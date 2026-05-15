@@ -5,82 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>思い出カメラ</title>
 
-    <!-- ✅ CSS を正しく読み込む -->
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <!-- カメラ画面 -->
 <div id="camera-screen" class="screen active">
-    <p class="guide">
-        壁を背にして撮影すると、思い出の場所に行ける！
-    </p>
-    <button id="shutter-btn" class="main-btn">📸</button>
+    <video id="camera-video" autoplay playsinline></video>
+    <button id="shutter-btn">📸 撮影</button>
 </div>
 
-<!-- お待ちください画面 -->
-<div id="loading-screen" class="screen">
-    <p class="loading-text">思い出と重ねています…</p>
-</div>
-
-<!-- 撮影後プレビュー画面 -->
+<!-- プレビュー -->
 <div id="preview-screen" class="screen">
-    <div class="top-bar">
-        <button id="retry-btn">撮り直す</button>
-    </div>
-
-    <div class="preview-area">
-        <p>（ここに合成された画像が表示されます）</p>
-    </div>
-
-    <div class="bottom-bar">
-        <button>人の位置</button>
-        <button>背景サイズ</button>
-        <button>色・明るさ</button>
-    </div>
-
-    <div class="next-bar">
-        <button id="to-edit-btn" class="main-btn">編集に進む</button>
-    </div>
+    <button id="retry-btn">戻る</button>
+    <img id="captured-image">
 </div>
 
-<!-- 編集画面 -->
-<div id="edit-screen" class="screen">
-    <div class="top-bar">
-        <button id="back-to-preview-btn">戻る</button>
-    </div>
+<canvas id="capture-canvas" style="display:none;"></canvas>
 
-    <div class="preview-area">
-        <p>（編集内容がここに反映されます）</p>
-    </div>
+<!-- ✅ MediaPipe（これが最重要） -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
 
-    <div class="bottom-bar">
-        <button>日付</button>
-        <button>場所</button>
-        <button>メッセージ</button>
-    </div>
-
-    <div class="next-bar">
-        <button id="done-btn" class="main-btn">できた！</button>
-    </div>
-</div>
-
-<!-- 保存画面 -->
-<div id="save-screen" class="screen">
-    <div class="top-bar">
-        <button>戻る</button>
-    </div>
-
-    <div class="preview-area">
-        <p>（完成した画像）</p>
-    </div>
-
-    <div class="next-bar">
-        <button class="main-btn">保存する</button>
-    </div>
-</div>
-
-<!-- ✅ JavaScript を正しく読み込む（最重要） -->
+<!-- ✅ アプリ本体 -->
 <script src="app.js"></script>
 </body>
 </html>
