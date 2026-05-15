@@ -4,7 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>思い出カメラ</title>
-    <link rel="stylesheet" href="style.css" />
+
+    <!-- ✅ CSS を正しく読み込む -->
+    style.css
 </head>
 <body>
 
@@ -63,7 +65,7 @@
     </div>
 </div>
 
-<!-- 保存画面（箱だけ。まだ遷移未実装） -->
+<!-- 保存画面 -->
 <div id="save-screen" class="screen">
     <div class="top-bar">
         <button>戻る</button>
@@ -78,6 +80,7 @@
     </div>
 </div>
 
-<script src="app.js"></script>
+<!-- ✅ JS を body の一番下で読み込む（重要） -->
+app.js</script>
 </body>
 </html>
