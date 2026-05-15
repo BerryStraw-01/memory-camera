@@ -39,33 +39,37 @@ const segmentation = new SelfieSegmentation({
 segmentation.setOptions({ modelSelection: 1 });
 
 // =========================
-// 切り抜き保持用 Canvas
+// 人物切り抜き専用 Canvas
 // =========================
 const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
 
 // =========================
-// ✅ 合成処理（ここが重要）
+// ✅ cover 描画（ctxを引数で渡す）
 // =========================
-function redrawComposite() {
-  const w = canvas.width;
-  const h = canvas.height;
-  if (!w || !h) return;
+function drawCover(ctxTarget, src, sw, sh, dw, dh) {
+  const srcAspect = sw / sh;
+  const dstAspect = dw / dh;
 
-  ctx.clearRect(0, 0, w, h);
+  let sx, sy, sWidth, sHeight;
 
-  // 背景
-  ctx.drawImage(backgroundImage, 0, 0, w, h);
+  if (srcAspect > dstAspect) {
+    sHeight = sh;
+    sWidth = sh * dstAspect;
+    sx = (sw - sWidth) / 2;
+    sy = 0;
+  } else {
+    sWidth = sw;
+    sHeight = sw / dstAspect;
+    sx = 0;
+    sy = (sh - sHeight) / 2;
+  }
 
-  // 人物配置
-  const pw = w * scale;
-  const ph = h * scale;
-  const px = (w - pw) / 2;
-  const py = h * 0.45 + (offsetY / 100) * h;
-
-  ctx.drawImage(personCanvas, px, py, pw, ph);
-
-  img.src = canvas.toDataURL("image/png");
+  ctxTarget.drawImage(
+    src,
+    sx, sy, sWidth, sHeight,
+    0, 0, dw, dh
+  );
 }
 
 // =========================
@@ -76,6 +80,7 @@ async function startCamera() {
     video: { facingMode: { ideal: "environment" } },
     audio: false
   });
+
   video.srcObject = stream;
   await video.play();
 
@@ -84,28 +89,39 @@ async function startCamera() {
 }
 
 // =========================
-// ✅ MediaPipe結果 → 切り抜き保存 → 合成
+// ✅ MediaPipe → 切り抜き → 合成
 // =========================
 segmentation.onResults(results => {
-  const w = video.videoWidth;
-  const h = video.videoHeight;
-  if (!w || !h) return;
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+  if (!vw || !vh) return;
 
-  // 切り抜き保存
-  personCanvas.width = w;
-  personCanvas.height = h;
-  personCtx.clearRect(0, 0, w, h);
-  personCtx.drawImage(video, 0, 0, w, h);
+  /* --- 人物切り抜き --- */
+  personCanvas.width = vw;
+  personCanvas.height = vh;
+  personCtx.clearRect(0, 0, vw, vh);
+
+  drawCover(personCtx, video, vw, vh, vw, vh);
+
   personCtx.globalCompositeOperation = "destination-in";
-  personCtx.drawImage(results.segmentationMask, 0, 0, w, h);
+  personCtx.drawImage(results.segmentationMask, 0, 0, vw, vh);
   personCtx.globalCompositeOperation = "source-over";
 
-  // メインCanvas初期化
-  canvas.width = w;
-  canvas.height = h;
+  /* --- 合成 --- */
+  canvas.width = vw;
+  canvas.height = vh;
+  ctx.clearRect(0, 0, vw, vh);
 
-  // ✅ 初回合成
-  redrawComposite();
+  drawCover(ctx, backgroundImage, backgroundImage.width, backgroundImage.height, vw, vh);
+
+  const pw = vw * scale;
+  const ph = vh * scale;
+  const px = (vw - pw) / 2;
+  const py = vh * 0.45 + (offsetY / 100) * vh;
+
+  ctx.drawImage(personCanvas, px, py, pw, ph);
+
+  img.src = canvas.toDataURL("image/png");
 
   loadingScreen.classList.remove("active");
   previewScreen.classList.add("active");
@@ -115,13 +131,11 @@ segmentation.onResults(results => {
 // シャッター
 // =========================
 shutterBtn.onclick = async () => {
-  // 初回：カメラ起動
   if (!cameraReady) {
     await startCamera();
     return;
   }
 
-  // 撮影
   cameraScreen.classList.remove("active");
   loadingScreen.classList.add("active");
 
@@ -129,16 +143,31 @@ shutterBtn.onclick = async () => {
 };
 
 // =========================
-// ✅ シークバー（再合成）
+// ✅ シークバー（即再合成）
 // =========================
+function redrawAfterAdjust() {
+  if (!canvas.width) return;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawCover(ctx, backgroundImage, backgroundImage.width, backgroundImage.height, canvas.width, canvas.height);
+
+  const pw = canvas.width * scale;
+  const ph = canvas.height * scale;
+  const px = (canvas.width - pw) / 2;
+  const py = canvas.height * 0.45 + (offsetY / 100) * canvas.height;
+
+  ctx.drawImage(personCanvas, px, py, pw, ph);
+  img.src = canvas.toDataURL("image/png");
+}
+
 offsetSlider.oninput = () => {
   offsetY = +offsetSlider.value;
-  redrawComposite();
+  redrawAfterAdjust();
 };
 
 scaleSlider.oninput = () => {
   scale = +scaleSlider.value / 100;
-  redrawComposite();
+  redrawAfterAdjust();
 };
 
 // =========================
