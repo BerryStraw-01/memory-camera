@@ -1,4 +1,4 @@
-/* 全体 */
+/* 共通設定 */
 body {
   margin: 0;
   font-family: sans-serif;
@@ -13,7 +13,6 @@ body {
   padding: 16px;
 }
 
-/* 表示中の画面 */
 .screen.active {
   display: flex;
   flex-direction: column;
@@ -21,7 +20,7 @@ body {
   align-items: center;
 }
 
-/* 各画面の仮デザイン */
+/* 各画面の仮背景色（確認用） */
 #camera-screen {
   background: #f0f0f0;
 }
@@ -29,23 +28,35 @@ body {
 #loading-screen {
   background: #ddeeff;
   justify-content: center;
-  font-size: 18px;
 }
 
 #preview-screen {
   background: #fff6e5;
 }
 
-/* UIパーツ */
-.guide {
-  margin-top: 20px;
-  font-size: 14px;
+#edit-screen {
+  background: #f5f5ff;
 }
 
-#shutter-btn {
-  font-size: 32px;
-  padding: 16px 24px;
-  margin-bottom: 40px;
+#save-screen {
+  background: #eaf7ea;
+}
+
+/* UIパーツ */
+.guide {
+  margin-top: 24px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 18px;
+}
+
+.main-btn {
+  width: 90%;
+  padding: 16px;
+  font-size: 18px;
 }
 
 .top-bar {
@@ -55,16 +66,23 @@ body {
 
 .preview-area {
   flex: 1;
+  width: 100%;
+  border: 1px dashed #aaa;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px dashed #aaa;
-  width: 100%;
 }
 
 .bottom-bar {
   width: 100%;
   display: flex;
   justify-content: space-around;
+  margin-top: 8px;
 }
-``
+
+.next-bar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}

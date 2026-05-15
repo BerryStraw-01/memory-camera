@@ -13,12 +13,12 @@
     <p class="guide">
         壁を背にして撮影すると、思い出の場所に行ける！
     </p>
-    <button id="shutter-btn">📸</button>
+    <button id="shutter-btn" class="main-btn">📸</button>
 </div>
 
 <!-- お待ちください画面 -->
 <div id="loading-screen" class="screen">
-    <p>思い出と重ねています…</p>
+    <p class="loading-text">思い出と重ねています…</p>
 </div>
 
 <!-- 撮影後プレビュー画面 -->
@@ -32,10 +32,49 @@
     </div>
 
     <div class="bottom-bar">
-        <button>位置</button>
-        <button>色</button>
-        <button>明るさ</button>
-        <button>撮り直す</button>
+        <button>人の位置</button>
+        <button>背景サイズ</button>
+        <button>色・明るさ</button>
+    </div>
+
+    <div class="next-bar">
+        <button id="to-edit-btn" class="main-btn">編集に進む</button>
+    </div>
+</div>
+
+<!-- 編集画面 -->
+<div id="edit-screen" class="screen">
+    <div class="top-bar">
+        <button id="back-to-preview-btn">戻る</button>
+    </div>
+
+    <div class="preview-area">
+        <p>（編集内容がここに反映されます）</p>
+    </div>
+
+    <div class="bottom-bar">
+        <button>日付</button>
+        <button>場所</button>
+        <button>メッセージ</button>
+    </div>
+
+    <div class="next-bar">
+        <button id="done-btn" class="main-btn">できた！</button>
+    </div>
+</div>
+
+<!-- 保存画面（箱だけ。まだ遷移未実装） -->
+<div id="save-screen" class="screen">
+    <div class="top-bar">
+        <button>戻る</button>
+    </div>
+
+    <div class="preview-area">
+        <p>（完成した画像）</p>
+    </div>
+
+    <div class="next-bar">
+        <button class="main-btn">保存する</button>
     </div>
 </div>
 
