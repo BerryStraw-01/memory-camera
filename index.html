@@ -13,21 +13,36 @@
 <!-- カメラ画面 -->
 <div id="camera-screen" class="screen active">
     <video id="camera-video" autoplay playsinline></video>
-    <button id="shutter-btn">📸 撮影</button>
+    <button id="shutter-btn" class="main-btn">📸 撮影</button>
 </div>
 
-<!-- プレビュー -->
+<!-- プレビュー画面 -->
 <div id="preview-screen" class="screen">
-    <button id="retry-btn">戻る</button>
-    <img id="captured-image">
+    <div class="preview-area">
+        <img id="captured-image" alt="合成結果">
+    </div>
+
+    <div class="controls">
+        <label>
+            上下
+            <input type="range" id="offset-slider" min="-20" max="20" value="0">
+        </label>
+        <label>
+            サイズ
+            <input type="range" id="scale-slider" min="70" max="90" value="80">
+        </label>
+    </div>
+
+    <button id="retry-btn">撮り直す</button>
 </div>
 
+<!-- 非表示Canvas -->
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
-<!-- ✅ MediaPipe（これが最重要） -->
+<!-- MediaPipe Selfie Segmentation -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
 
-<!-- ✅ アプリ本体 -->
+<!-- App -->
 <script src="app.js"></script>
 </body>
 </html>
