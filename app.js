@@ -1,12 +1,9 @@
 // =========================
-// フォント読み込み待ち
+// フォント読み込み Promise（★最重要）
 // =========================
-let fontsReady = false;
-
-document.fonts.ready.then(() => {
-  fontsReady = true;
-  console.log("Fonts ready");
-});
+const fontReadyPromise = document.fonts.load(
+  "600 32px 'Klee One'"
+);
 
 // =========================
 // 画面管理
@@ -51,7 +48,6 @@ const togglePlaceBtn = document.getElementById("toggle-place");
 // =========================
 // 状態
 // =========================
-let stream = null;
 let cameraReady = false;
 let offsetY = 0;
 let scale = 0.8;
@@ -126,11 +122,9 @@ async function startCamera() {
 }
 
 // =========================
-// 再描画（フォント待ちガード付き）
+// 再描画（文字は下中央・1行）
 // =========================
 function redraw() {
-  if (!fontsReady) return;
-
   const w = canvas.width;
   const h = canvas.height;
   if (!w || !h) return;
@@ -151,7 +145,7 @@ function redraw() {
   ctx.drawImage(personCanvas, px, py, pw, ph);
   ctx.restore();
 
-  // テキスト（下中央・1行）
+  // テキスト
   const texts = [];
   if (showKishiko) texts.push("岸高同窓会");
   if (showPlace) texts.push("〇〇に行ったよ");
@@ -177,12 +171,15 @@ function redraw() {
 }
 
 // =========================
-// MediaPipe結果
+// MediaPipe結果（★ここが決定版）
 // =========================
-segmentation.onResults(results => {
+segmentation.onResults(async results => {
   const w = video.videoWidth;
   const h = video.videoHeight;
   if (!w || !h) return;
+
+  // ✅ フォントを必ず待つ
+  await fontReadyPromise;
 
   personCanvas.width = w;
   personCanvas.height = h;
@@ -199,10 +196,8 @@ segmentation.onResults(results => {
   canvas.width = w;
   canvas.height = h;
 
-  document.fonts.ready.then(() => {
-    redraw();
-    showScreen("preview");
-  });
+  redraw();
+  showScreen("preview");
 });
 
 // =========================
