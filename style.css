@@ -1,16 +1,14 @@
-/* 共通設定 */
 body {
   margin: 0;
   font-family: sans-serif;
 }
 
-/* 画面共通 */
 .screen {
   display: none;
   width: 100vw;
   height: 100vh;
-  box-sizing: border-box;
   padding: 16px;
+  box-sizing: border-box;
 }
 
 .screen.active {
@@ -20,29 +18,12 @@ body {
   align-items: center;
 }
 
-/* 各画面の仮背景色（確認用） */
-#camera-screen {
-  background: #f0f0f0;
-}
+#camera-screen { background: #f0f0f0; }
+#loading-screen { background: #ddeeff; justify-content: center; }
+#preview-screen { background: #fff6e5; }
+#edit-screen { background: #f5f5ff; }
+#save-screen { background: #eaf7ea; }
 
-#loading-screen {
-  background: #ddeeff;
-  justify-content: center;
-}
-
-#preview-screen {
-  background: #fff6e5;
-}
-
-#edit-screen {
-  background: #f5f5ff;
-}
-
-#save-screen {
-  background: #eaf7ea;
-}
-
-/* UIパーツ */
 .guide {
   margin-top: 24px;
   font-size: 14px;
@@ -77,12 +58,10 @@ body {
   width: 100%;
   display: flex;
   justify-content: space-around;
-  margin-top: 8px;
 }
 
 .next-bar {
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-top: 8px;
 }
