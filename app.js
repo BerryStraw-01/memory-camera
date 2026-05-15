@@ -14,10 +14,9 @@ const offsetSlider = document.getElementById("offset-slider");
 const scaleSlider = document.getElementById("scale-slider");
 
 // =========================
-// 状態
+// 状態マシン（★最重要）
 // =========================
-let cameraStarted = false;
-let stream = null;
+let state = "idle"; // idle | starting | ready
 
 // =========================
 // 背景画像
@@ -35,33 +34,34 @@ const segmentation = new SelfieSegmentation({
 segmentation.setOptions({ modelSelection: 1 });
 
 // =========================
-// 切り抜き用Canvas
+// 切り抜き用
 // =========================
 const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
 
-// =========================
-// パラメータ
-// =========================
 let offsetY = 0;
 let scale = 0.8;
 
 // =========================
-// ✅ カメラ起動（必ずタップ内）
+// ✅ カメラ起動（撮影とは完全分離）
 // =========================
 function startCamera() {
+  state = "starting";
+  shutterBtn.textContent = "起動中…";
+
   navigator.mediaDevices.getUserMedia({
     video: { facingMode: "user" },
     audio: false
-  }).then(s => {
-    stream = s;
+  }).then(stream => {
     video.srcObject = stream;
-    video.play();
-
-    cameraStarted = true;
+    return video.play();
+  }).then(() => {
+    state = "ready";
     shutterBtn.textContent = "📸 撮影";
   }).catch(err => {
-    alert("カメラを起動できません。\nブラウザの権限設定を確認してください。");
+    state = "idle";
+    shutterBtn.textContent = "📸 カメラを起動";
+    alert("カメラを起動できません。権限を確認してください。");
     console.error(err);
   });
 }
@@ -75,11 +75,8 @@ function redrawComposite() {
   const ctx = canvas.getContext("2d");
 
   ctx.clearRect(0, 0, w, h);
-
-  // 背景
   ctx.drawImage(backgroundImage, 0, 0, w, h);
 
-  // 人物配置
   const pw = w * scale;
   const ph = h * scale;
   const px = (w - pw) / 2;
@@ -116,22 +113,26 @@ segmentation.onResults(results => {
 });
 
 // =========================
-// ✅ シャッターボタン（2段階）
+// ✅ シャッターボタン
 // =========================
-shutterBtn.onclick = async () => {
-  // ① 初回：カメラ起動
-  if (!cameraStarted) {
+shutterBtn.onclick = () => {
+  if (state === "idle") {
     startCamera();
     return;
   }
 
-  // ② 撮影
-  if (!backgroundImage.complete || video.readyState < 2) {
-    alert("準備中です");
+  if (state === "starting") {
+    // 起動中は何もしない
     return;
   }
 
-  await segmentation.send({ image: video });
+  if (state === "ready") {
+    if (!backgroundImage.complete) {
+      alert("準備中です");
+      return;
+    }
+    segmentation.send({ image: video });
+  }
 };
 
 // =========================
