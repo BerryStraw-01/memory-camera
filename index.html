@@ -5,28 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>思い出カメラ</title>
 
-    <!-- Google Fonts : Klee One -->
+    <!-- ✅ Google Fonts : Klee One（正しい書き方） -->
     https://fonts.googleapis.com
     https://fonts.gstatic.com
-    <ttps://fonts.googleapis.com/css2?family=Klee+One:wght@600&display=swap
+    <link
+            href="https://fontscss2?family=Klee+One:wght@600&display=swap
 
-    <link rel="stylesheetdy>
-
-<!-- カメラ画面 -->
-<div id="screen-camera" class="screen active">
-    <video id="camera-video" muted playsinline></video>
-    <button id="shutter-btn" class="main-btn">📸 カメラを起動</button>
+  <!-- ✅ CSS -->
+  <link rel="stylesheet" href!-- ================= カメラ画面 ================= -->
+    <div id="screen-camera" class="screen active">
+        <video id="camera-video" muted playsinline></video>
+        <button id="shutter-btn" class="main-btn">📸 カメラを起動</button>
     </div>
 
-    <!-- ローディング -->
+    <!-- ================= ローディング ================= -->
     <div id="screen-loading" class="screen center">
         <p>思い出と重ねています…</p>
     </div>
 
-    <!-- プレビュー -->
+    <!-- ================= プレビュー ================= -->
     <div id="screen-preview" class="screen">
         <div class="preview-area">
-            <img id="captured-image" alt="プレビュー">
+            <img id="captured-image" alt="プレビュー画像">
         </div>
 
         <div class="controls">
@@ -44,10 +44,10 @@
         <button id="retry-btn">撮り直す</button>
     </div>
 
-    <!-- 編集 -->
+    <!-- ================= 編集 ================= -->
     <div id="screen-edit" class="screen">
         <div class="edit-preview">
-            <img id="edit-image" alt="編集">
+            <img id="edit-image" alt="編集画像">
         </div>
 
         <div class="edit-tools">
@@ -58,19 +58,21 @@
         <button id="done-btn">できた！</button>
     </div>
 
-    <!-- ✅ 保存画面（長押し保存用） -->
+    <!-- ================= 保存 ================= -->
     <div id="screen-save" class="screen center">
         <img id="save-image" alt="保存画像">
         <p class="save-guide">画像を長押しして保存してね</p>
         <button id="back-to-edit">戻る</button>
     </div>
 
+    <!-- 非表示 Canvas -->
     <canvas id="capture-canvas" style="display:none;"></canvas>
 
-    <!-- MediaPipe -->
-    https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js</script>
+    <!-- ✅ MediaPipe（正しい script タグ） -->
+    <script src="https://cdn.jsdelivr.net/npmelfie_segmentation/selfie_segmentation.js
 
-    <!-- App -->
-    <script src="app.js"></script>
-    </body>
+<!-- ✅ App JS -->
+app.js</script>
+
+</body>
 </html>
