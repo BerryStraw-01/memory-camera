@@ -14,7 +14,7 @@ const offsetSlider = document.getElementById("offset-slider");
 const scaleSlider = document.getElementById("scale-slider");
 
 // =========================
-// 状態管理
+// 状態マシン
 // =========================
 let state = "idle"; // idle | starting | ready
 
@@ -43,14 +43,16 @@ let offsetY = 0;
 let scale = 0.8;
 
 // =========================
-// カメラ起動（必ずタップ内）
+// ✅ カメラ起動（外カメラ優先）
 // =========================
 function startCamera() {
   state = "starting";
   shutterBtn.textContent = "起動中…";
 
   navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user" },
+    video: {
+      facingMode: { ideal: "environment" } // ★ 外カメラ優先
+    },
     audio: false
   }).then(stream => {
     video.srcObject = stream;
@@ -61,7 +63,7 @@ function startCamera() {
   }).catch(err => {
     state = "idle";
     shutterBtn.textContent = "📸 カメラを起動";
-    alert("カメラを起動できません。権限を確認してください。");
+    alert("カメラを起動できません。\n権限や端末を確認してください。");
     console.error(err);
   });
 }
@@ -113,7 +115,7 @@ segmentation.onResults(results => {
 });
 
 // =========================
-// シャッターボタン（2段階）
+// シャッターボタン（起動≠撮影）
 // =========================
 shutterBtn.onclick = () => {
   if (state === "idle") {
