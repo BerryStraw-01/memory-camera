@@ -7,61 +7,76 @@ body {
   display: none;
   width: 100vw;
   height: 100vh;
-  box-sizing: border-box;
+  flex-direction: column;
 }
 
 .screen.active {
   display: flex;
-  flex-direction: column;
+}
+
+.center {
+  justify-content: center;
   align-items: center;
 }
 
-.screen.center {
-  justify-content: center;
+/* ===== 共通 ===== */
+.top-bar,
+.bottom-bar {
+  height: 10%;
+  padding: 8px;
+  z-index: 20;
 }
 
-/* カメラ映像 */
-#camera-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background: black;
-}
-
-/* ボタン */
-.main-btn {
-  position: absolute;
-  bottom: 24px;
-  padding: 12px 24px;
-  font-size: 18px;
-}
-
-/* プレビュー */
-.preview-area {
-  flex: 1;
-  width: 100%;
+.preview-area,
+.edit-preview {
+  flex: 7;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  pointer-events: none; /* ✅ タップを奪わない */
 }
 
-.preview-area img {
+.preview-area img,
+.edit-preview img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
 }
 
-.controls {
-  width: 100%;
+.controls,
+.edit-tools {
+  flex: 2;
   display: flex;
   gap: 12px;
+  padding: 8px;
+  z-index: 20;
 }
 
-.controls label {
-  flex: 1;
-  font-size: 12px;
+.next-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  z-index: 30;
 }
 
-#retry-btn {
-  margin: 8px;
+/* ===== カメラ ===== */
+#camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.main-btn {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  font-size: 18px;
+  z-index: 30;
+}
+
+.save-guide {
+  margin: 12px;
+  font-size: 14px;
+  color: #555;
 }
