@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>思い出カメラ</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- カメラ画面 -->
+<div id="camera-screen" class="screen active">
+    <p class="guide">
+        壁を背にして撮影すると、思い出の場所に行ける！
+    </p>
+    <button id="shutter-btn">📸</button>
+</div>
+
+<!-- お待ちください画面 -->
+<div id="loading-screen" class="screen">
+    <p>思い出と重ねています…</p>
+</div>
+
+<!-- 撮影後プレビュー画面 -->
+<div id="preview-screen" class="screen">
+    <div class="top-bar">
+        <button id="retry-btn">撮り直す</button>
+    </div>
+
+    <div class="preview-area">
+        <p>（ここに合成された画像が表示されます）</p>
+    </div>
+
+    <div class="bottom-bar">
+        <button>位置</button>
+        <button>色</button>
+        <button>明るさ</button>
+        <button>撮り直す</button>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

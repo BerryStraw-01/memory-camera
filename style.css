@@ -1,0 +1,70 @@
+/* 全体 */
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+/* 画面共通 */
+.screen {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+/* 表示中の画面 */
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 各画面の仮デザイン */
+#camera-screen {
+  background: #f0f0f0;
+}
+
+#loading-screen {
+  background: #ddeeff;
+  justify-content: center;
+  font-size: 18px;
+}
+
+#preview-screen {
+  background: #fff6e5;
+}
+
+/* UIパーツ */
+.guide {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+#shutter-btn {
+  font-size: 32px;
+  padding: 16px 24px;
+  margin-bottom: 40px;
+}
+
+.top-bar {
+  width: 100%;
+  text-align: left;
+}
+
+.preview-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #aaa;
+  width: 100%;
+}
+
+.bottom-bar {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+``
