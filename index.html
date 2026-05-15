@@ -8,77 +8,85 @@
     <!-- Google Fonts : Klee One -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-            href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&display=swap"
-            rel="stylesheet"
-    >
+    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&display=swap" rel="stylesheet">
 
-    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- ================= カメラ画面 ================= -->
+<!-- ===== カメラ ===== -->
 <div id="screen-camera" class="screen active">
-    <video id="camera-video" muted playsinline></video>
-    <button id="shutter-btn" class="main-btn">📸 カメラを起動</button>
+    <div class="image-area">
+        <video id="camera-video" muted playsinline></video>
+    </div>
+
+    <div class="action-area">
+        <button id="shutter-btn" class="btn primary">カメラをON</button>
+    </div>
 </div>
 
-<!-- ================= ローディング画面 ================= -->
+<!-- ===== ローディング ===== -->
 <div id="screen-loading" class="screen center">
     <p>思い出と重ねています…</p>
 </div>
 
-<!-- ================= プレビュー画面 ================= -->
+<!-- ===== プレビュー ===== -->
 <div id="screen-preview" class="screen">
-    <div class="preview-area">
-        <img id="captured-image" alt="プレビュー画像">
+    <div class="image-area">
+        <img id="captured-image" alt="プレビュー">
     </div>
 
-    <div class="controls">
-        <label>
-            上下
-            <input type="range" id="offset-slider" min="-20" max="20" value="0">
-        </label>
-        <label>
-            サイズ
-            <input type="range" id="scale-slider" min="70" max="90" value="80">
-        </label>
-    </div>
+    <div class="action-area">
+        <div class="slider-group">
+            <div class="slider-item">
+                <span class="icon">↕</span>
+                <input type="range" id="offset-slider" min="-20" max="20" value="0">
+                <span class="label">位置</span>
+            </div>
+            <div class="slider-item">
+                <span class="icon">⤢</span>
+                <input type="range" id="scale-slider" min="70" max="90" value="80">
+                <span class="label">大きさ</span>
+            </div>
+        </div>
 
-    <button id="to-edit-btn">編集に進む</button>
-    <button id="retry-btn">撮り直す</button>
+        <button id="to-edit-btn" class="btn primary">文字を入れる</button>
+        <button id="retry-btn" class="btn secondary">撮り直す</button>
+    </div>
 </div>
 
-<!-- ================= 編集画面 ================= -->
+<!-- ===== 編集 ===== -->
 <div id="screen-edit" class="screen">
-    <div class="edit-preview">
-        <img id="edit-image" alt="編集画像">
+    <div class="image-area">
+        <img id="edit-image" alt="編集">
     </div>
 
-    <div class="edit-tools">
-        <button id="toggle-kishiko">岸高同窓会</button>
-        <button id="toggle-place">場所</button>
+    <div class="action-area">
+        <div class="toggle-row">
+            <button id="toggle-kishiko" class="btn toggle">岸高同窓会</button>
+            <button id="toggle-place" class="btn toggle">場所</button>
+        </div>
+
+        <button id="done-btn" class="btn primary">できた！</button>
+        <button id="back-to-preview" class="btn secondary">戻る</button>
+    </div>
+</div>
+
+<!-- ===== 保存 ===== -->
+<div id="screen-save" class="screen">
+    <div class="image-area">
+        <img id="save-image" alt="保存画像">
     </div>
 
-    <button id="done-btn">できた！</button>
+    <div class="action-area">
+        <p class="save-guide">画像を長押しして保存してね</p>
+        <button id="back-to-edit" class="btn secondary">戻る</button>
+    </div>
 </div>
 
-<!-- ================= 保存画面 ================= -->
-<div id="screen-save" class="screen center">
-    <img id="save-image" alt="保存画像">
-    <p class="save-guide">画像を長押しして保存してね</p>
-    <button id="back-to-edit">戻る</button>
-</div>
-
-<!-- 非表示 Canvas -->
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
-<!-- MediaPipe -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
-
-<!-- App -->
 <script src="app.js"></script>
-
 </body>
 </html>

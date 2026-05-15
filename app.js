@@ -1,7 +1,6 @@
-// フォントを必ず待つ
 const fontReady = document.fonts.load("600 32px 'Klee One'");
 
-// 画面管理
+// ===== 画面管理 =====
 const screens = {
   camera: document.getElementById("screen-camera"),
   loading: document.getElementById("screen-loading"),
@@ -9,13 +8,12 @@ const screens = {
   edit: document.getElementById("screen-edit"),
   save: document.getElementById("screen-save"),
 };
-
 function showScreen(name) {
   Object.values(screens).forEach(s => s.classList.remove("active"));
   screens[name].classList.add("active");
 }
 
-// DOM
+// ===== DOM =====
 const video = document.getElementById("camera-video");
 const canvas = document.getElementById("capture-canvas");
 const ctx = canvas.getContext("2d");
@@ -29,6 +27,7 @@ const retryBtn = document.getElementById("retry-btn");
 const toEditBtn = document.getElementById("to-edit-btn");
 const doneBtn = document.getElementById("done-btn");
 const backToEditBtn = document.getElementById("back-to-edit");
+const backToPreviewBtn = document.getElementById("back-to-preview");
 
 const offsetSlider = document.getElementById("offset-slider");
 const scaleSlider = document.getElementById("scale-slider");
@@ -36,46 +35,39 @@ const scaleSlider = document.getElementById("scale-slider");
 const toggleKishikoBtn = document.getElementById("toggle-kishiko");
 const togglePlaceBtn = document.getElementById("toggle-place");
 
-// 状態
+// ===== 状態 =====
 let cameraReady = false;
 let offsetY = 0;
 let scale = 0.8;
 let showKishiko = false;
 let showPlace = false;
 
-// 背景
+// ===== 背景 =====
 const bg = new Image();
 bg.src = "images/memory.jpg";
 
-// MediaPipe
+// ===== MediaPipe =====
 const segmentation = new SelfieSegmentation({
   locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`
 });
 segmentation.setOptions({ modelSelection: 1 });
 
-// 切り抜き
+// ===== 切り抜き =====
 const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
 
-// cover描画
 function drawCover(ctx, src, sw, sh, dw, dh) {
   const sa = sw / sh, da = dw / dh;
   let sx, sy, sw2, sh2;
   if (sa > da) {
-    sh2 = sh;
-    sw2 = sh * da;
-    sx = (sw - sw2) / 2;
-    sy = 0;
+    sh2 = sh; sw2 = sh * da; sx = (sw - sw2) / 2; sy = 0;
   } else {
-    sw2 = sw;
-    sh2 = sw / da;
-    sx = 0;
-    sy = (sh - sh2) / 2;
+    sw2 = sw; sh2 = sw / da; sx = 0; sy = (sh - sh2) / 2;
   }
   ctx.drawImage(src, sx, sy, sw2, sh2, 0, 0, dw, dh);
 }
 
-// カメラ起動
+// ===== カメラON =====
 async function startCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: { ideal: "environment" } },
@@ -87,7 +79,7 @@ async function startCamera() {
   shutterBtn.textContent = "📸 撮影";
 }
 
-// 再描画
+// ===== 再描画 =====
 async function redraw() {
   await fontReady;
   const w = canvas.width, h = canvas.height;
@@ -100,7 +92,6 @@ async function redraw() {
   const ph = h * scale;
   const px = (w - pw) / 2;
   const py = h * 0.45 + (offsetY / 100) * h;
-
   ctx.drawImage(personCanvas, px, py, pw, ph);
 
   const texts = [];
@@ -114,7 +105,6 @@ async function redraw() {
     ctx.lineWidth = 5;
     ctx.strokeStyle = "black";
     ctx.fillStyle = "orange";
-
     ctx.strokeText(texts.join("　"), w / 2, h - 24);
     ctx.fillText(texts.join("　"), w / 2, h - 24);
   }
@@ -125,7 +115,7 @@ async function redraw() {
   saveImg.src = url;
 }
 
-// MediaPipe結果
+// ===== MediaPipe結果 =====
 segmentation.onResults(async res => {
   await fontReady;
   const w = video.videoWidth, h = video.videoHeight;
@@ -147,7 +137,7 @@ segmentation.onResults(async res => {
   showScreen("preview");
 });
 
-// イベント
+// ===== ボタン =====
 shutterBtn.onclick = async () => {
   if (!cameraReady) {
     await startCamera();
@@ -157,13 +147,30 @@ shutterBtn.onclick = async () => {
   segmentation.send({ image: video });
 };
 
-offsetSlider.oninput = () => { offsetY = +offsetSlider.value; redraw(); };
-scaleSlider.oninput = () => { scale = +scaleSlider.value / 100; redraw(); };
+offsetSlider.oninput = () => {
+  offsetY = +offsetSlider.value;
+  redraw();
+};
 
-toggleKishikoBtn.onclick = () => { showKishiko = !showKishiko; redraw(); };
-togglePlaceBtn.onclick = () => { showPlace = !showPlace; redraw(); };
+scaleSlider.oninput = () => {
+  scale = +scaleSlider.value / 100;
+  redraw();
+};
+
+toggleKishikoBtn.onclick = () => {
+  showKishiko = !showKishiko;
+  toggleKishikoBtn.classList.toggle("active", showKishiko);
+  redraw();
+};
+
+togglePlaceBtn.onclick = () => {
+  showPlace = !showPlace;
+  togglePlaceBtn.classList.toggle("active", showPlace);
+  redraw();
+};
 
 retryBtn.onclick = () => showScreen("camera");
 toEditBtn.onclick = () => showScreen("edit");
 doneBtn.onclick = () => showScreen("save");
 backToEditBtn.onclick = () => showScreen("edit");
+backToPreviewBtn.onclick = () => showScreen("preview");
