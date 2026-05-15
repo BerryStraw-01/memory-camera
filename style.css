@@ -5,13 +5,19 @@ body {
 
 .screen {
   display: none;
- border-box;  width: 100vw;
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
 }
 
 .screen.active {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.screen.center {
+  justify-content: center;
 }
 
 /* カメラ映像 */
@@ -22,13 +28,12 @@ body {
   background: black;
 }
 
-/* メインボタン */
+/* ボタン */
 .main-btn {
   position: absolute;
   bottom: 24px;
   padding: 12px 24px;
   font-size: 18px;
-  z-index: 10;
 }
 
 /* プレビュー */
@@ -46,7 +51,6 @@ body {
   object-fit: contain;
 }
 
-/* 調整UI */
 .controls {
   width: 100%;
   display: flex;
@@ -58,9 +62,6 @@ body {
   font-size: 12px;
 }
 
-/* 撮り直し */
 #retry-btn {
-  margin-top: 8px;
+  margin: 8px;
 }
-  height: 100vh;
-  padding: 12px;
