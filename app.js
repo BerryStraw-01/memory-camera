@@ -14,7 +14,7 @@ const offsetSlider = document.getElementById("offset-slider");
 const scaleSlider = document.getElementById("scale-slider");
 
 // =========================
-// 状態マシン（★最重要）
+// 状態管理
 // =========================
 let state = "idle"; // idle | starting | ready
 
@@ -43,7 +43,7 @@ let offsetY = 0;
 let scale = 0.8;
 
 // =========================
-// ✅ カメラ起動（撮影とは完全分離）
+// カメラ起動（必ずタップ内）
 // =========================
 function startCamera() {
   state = "starting";
@@ -113,24 +113,15 @@ segmentation.onResults(results => {
 });
 
 // =========================
-// ✅ シャッターボタン
+// シャッターボタン（2段階）
 // =========================
 shutterBtn.onclick = () => {
   if (state === "idle") {
     startCamera();
     return;
   }
-
-  if (state === "starting") {
-    // 起動中は何もしない
-    return;
-  }
-
   if (state === "ready") {
-    if (!backgroundImage.complete) {
-      alert("準備中です");
-      return;
-    }
+    if (!backgroundImage.complete) return;
     segmentation.send({ image: video });
   }
 };
