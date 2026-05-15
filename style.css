@@ -1,15 +1,53 @@
-body {
+/* =====================================================
+   基本リセット（PC / スマホ差を消す）
+===================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
   margin: 0;
+  padding: 0;
+}
+
+body {
   font-family: 'Klee One', cursive;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+
+  /* 文字選択・iOS長押し対策 */
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+
+  /* フォントの見え方を揃える */
+  -webkit-font-smoothing: antialiased;
 }
 
+/* =====================================================
+   ボタン・input のOS装飾を完全に消す（最重要）
+===================================================== */
+button,
+input {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: none;
+  box-shadow: none;
+  outline: none;
+  font-family: inherit;
+}
+
+/* =====================================================
+   画面構造
+===================================================== */
 .screen {
   display: none;
   width: 100vw;
-  height: 100vh;
+  height: 100svh;          /* iOS Safari対応 */
+  max-height: 100vh;       /* フォールバック */
   flex-direction: column;
 }
 
@@ -17,10 +55,14 @@ body {
   display: flex;
 }
 
-/* ===== 上70% ===== */
+/* =====================================================
+   上70%：画像エリア
+===================================================== */
 .image-area {
-  height: 70vh;
+  height: 70svh;
+  max-height: 70vh;
   background: #000;
+
   display: flex;
   justify-content: center;
   align-items: center;
@@ -33,9 +75,13 @@ body {
   object-fit: contain;
 }
 
-/* ===== 下30% ===== */
+/* =====================================================
+   下30%：操作エリア（親指ゾーン）
+===================================================== */
 .action-area {
-  height: 30vh;
+  height: 30svh;
+  max-height: 30vh;
+
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -43,39 +89,43 @@ body {
   justify-content: center;
 }
 
-/* ===== ボタン共通 ===== */
+/* =====================================================
+   ボタン共通
+===================================================== */
 .btn {
   width: 100%;
   min-height: 52px;
-  font-size: 18px;
   border-radius: 12px;
-  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
 }
 
-/* ✅ primary：水色に変更 */
+/* ✅ primary：薄い水色（PC/スマホ完全一致） */
 .primary {
-  background: #2196f3;
-  color: #fff;
+  background-color: #90caf9; /* Material Blue 200 */
+  color: #ffffff;
 }
 
 /* サブ操作 */
 .secondary {
-  background: #eee;
+  background-color: #eeeeee;
+  color: #000000;
 }
 
 /* トグルOFF */
 .toggle {
-  background: #ddd;
-  color: #000;
+  background-color: #dddddd;
+  color: #000000;
 }
 
-/* ✅ トグルON：オレンジに変更 */
+/* ✅ トグルON：オレンジ */
 .toggle.active {
-  background: #ffb74d;
-  color: #fff;
+  background-color: #ffb74d; /* Material Orange 300 */
+  color: #ffffff;
 }
 
-/* ===== 横並び ===== */
+/* 横並びトグル */
 .toggle-row {
   display: flex;
   gap: 12px;
@@ -85,7 +135,9 @@ body {
   flex: 1;
 }
 
-/* ===== スライダー ===== */
+/* =====================================================
+   スライダー（PC / iOS / Android 完全統一）
+===================================================== */
 .slider-group {
   display: flex;
   flex-direction: column;
@@ -101,6 +153,7 @@ body {
 .slider-item .icon {
   width: 24px;
   text-align: center;
+  font-size: 18px;
 }
 
 .slider-item .label {
@@ -110,34 +163,51 @@ body {
   text-align: right;
 }
 
+/* トラック */
 input[type="range"] {
   flex: 1;
   height: 6px;
   border-radius: 6px;
-  background: #ddd;
-  appearance: none;
+  background-color: #dddddd;
 }
 
+/* つまみ：WebKit */
 input[type="range"]::-webkit-slider-thumb {
-  appearance: none;
+  -webkit-appearance: none;
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #2196f3; /* スライダーつまみも水色に */
+  background-color: #90caf9;
 }
 
-/* ===== 保存 ===== */
+/* つまみ：Firefox */
+input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #90caf9;
+  border: none;
+}
+
+/* =====================================================
+   保存画面
+===================================================== */
 .save-guide {
   text-align: center;
+  font-size: 14px;
   color: #555;
   pointer-events: none;
 }
 
+/* 画像は長押し保存可能 */
 #save-image {
   pointer-events: auto;
   -webkit-touch-callout: default;
 }
 
+/* =====================================================
+   ローディング中央寄せ
+===================================================== */
 .center {
   justify-content: center;
   align-items: center;
