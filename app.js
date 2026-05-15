@@ -14,9 +14,10 @@ const offsetSlider = document.getElementById("offset-slider");
 const scaleSlider = document.getElementById("scale-slider");
 
 // =========================
-// 状態マシン
+// 状態
 // =========================
 let state = "idle"; // idle | starting | ready
+let currentStream = null;
 
 // =========================
 // 背景画像
@@ -34,39 +35,68 @@ const segmentation = new SelfieSegmentation({
 segmentation.setOptions({ modelSelection: 1 });
 
 // =========================
-// 切り抜き用Canvas
+// 切り抜き用
 // =========================
 const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
 
-// =========================
-// 合成パラメータ
-// =========================
 let offsetY = 0;
 let scale = 0.8;
 
 // =========================
-// ✅ カメラ起動（外カメラ固定）
+// ✅ カメラ起動（外カメラ最大優先）
 // =========================
-function startCamera() {
+async function startCamera() {
   state = "starting";
   shutterBtn.textContent = "起動中…";
 
-  navigator.mediaDevices.getUserMedia({
-    video: { facingMode: { ideal: "environment" } }, // ★ 外カメラ優先
-    audio: false
-  }).then(stream => {
-    video.srcObject = stream;
-    return video.play();
-  }).then(() => {
+  // 既存ストリーム停止
+  if (currentStream) {
+    currentStream.getTracks().forEach(t => t.stop());
+    currentStream = null;
+  }
+
+  try {
+    // ① まず environment を要求
+    const tempStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false
+    });
+
+    // ② 許可後に device 一覧取得
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(d => d.kind === "videoinput");
+
+    // ③ 外カメラっぽいものを探す
+    const backCamera = videoDevices.find(d =>
+      /back|rear|environment/i.test(d.label)
+    );
+
+    // ④ 見つかったら deviceId 指定で取り直す
+    if (backCamera) {
+      tempStream.getTracks().forEach(t => t.stop());
+
+      currentStream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: backCamera.deviceId } },
+        audio: false
+      });
+    } else {
+      // 見つからなければ最初の stream を使う
+      currentStream = tempStream;
+    }
+
+    video.srcObject = currentStream;
+    await video.play();
+
     state = "ready";
     shutterBtn.textContent = "📸 撮影";
-  }).catch(err => {
+
+  } catch (err) {
     state = "idle";
     shutterBtn.textContent = "📸 カメラを起動";
     alert("カメラを起動できません。\n権限や端末を確認してください。");
     console.error(err);
-  });
+  }
 }
 
 // =========================
@@ -116,7 +146,7 @@ segmentation.onResults(results => {
 });
 
 // =========================
-// シャッターボタン（起動 ≠ 撮影）
+// シャッターボタン
 // =========================
 shutterBtn.onclick = () => {
   if (state === "idle") {
