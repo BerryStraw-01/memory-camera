@@ -25,7 +25,7 @@ body {
   background: black;
 }
 
-/* メインボタン */
+/* 撮影ボタン */
 .main-btn {
   position: absolute;
   bottom: 24px;
@@ -65,3 +65,4 @@ body {
 #retry-btn {
   margin-top: 8px;
 }
+``

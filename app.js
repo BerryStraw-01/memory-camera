@@ -35,19 +35,19 @@ const segmentation = new SelfieSegmentation({
 segmentation.setOptions({ modelSelection: 1 });
 
 // =========================
-// 切り抜き保持
+// 切り抜き用Canvas
 // =========================
 const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
 
 // =========================
-// 合成パラメータ
+// パラメータ
 // =========================
 let offsetY = 0;
 let scale = 0.8;
 
 // =========================
-// カメラ起動（必ずタップ内）
+// ✅ カメラ起動（必ずタップ内）
 // =========================
 function startCamera() {
   navigator.mediaDevices.getUserMedia({
@@ -61,7 +61,7 @@ function startCamera() {
     cameraStarted = true;
     shutterBtn.textContent = "📸 撮影";
   }).catch(err => {
-    alert("カメラを起動できません。権限を確認してください。");
+    alert("カメラを起動できません。\nブラウザの権限設定を確認してください。");
     console.error(err);
   });
 }
@@ -116,14 +116,16 @@ segmentation.onResults(results => {
 });
 
 // =========================
-// シャッターボタン（2段階）
+// ✅ シャッターボタン（2段階）
 // =========================
 shutterBtn.onclick = async () => {
+  // ① 初回：カメラ起動
   if (!cameraStarted) {
     startCamera();
     return;
   }
 
+  // ② 撮影
   if (!backgroundImage.complete || video.readyState < 2) {
     alert("準備中です");
     return;
