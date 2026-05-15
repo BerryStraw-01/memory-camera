@@ -5,15 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>思い出カメラ</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <!-- カメラ画面 -->
 <div id="camera-screen" class="screen active">
-    <video id="camera-video" autoplay playsinline></video>
-    <button id="shutter-btn" class="main-btn">📸 撮影</button>
+    <video
+            id="camera-video"
+            muted
+            playsinline
+    ></video>
+
+    <button id="shutter-btn" class="main-btn">
+        📸 カメラを起動
+    </button>
 </div>
 
 <!-- プレビュー画面 -->
@@ -36,13 +42,10 @@
     <button id="retry-btn">撮り直す</button>
 </div>
 
-<!-- 非表示Canvas -->
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
-<!-- MediaPipe Selfie Segmentation -->
+<!-- MediaPipe -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
-
-<!-- App -->
 <script src="app.js"></script>
 </body>
 </html>

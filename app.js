@@ -14,16 +14,16 @@ const offsetSlider = document.getElementById("offset-slider");
 const scaleSlider = document.getElementById("scale-slider");
 
 // =========================
+// 状態
+// =========================
+let cameraStarted = false;
+let stream = null;
+
+// =========================
 // 背景画像
 // =========================
 const backgroundImage = new Image();
 backgroundImage.src = "images/memory.jpg";
-
-// =========================
-// カメラ起動
-// =========================
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => video.srcObject = stream);
 
 // =========================
 // MediaPipe
@@ -41,18 +41,29 @@ const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
 
 // =========================
-// パラメータ
+// 合成パラメータ
 // =========================
 let offsetY = 0;
 let scale = 0.8;
-let brightnessFactor = 1.0;
-let saturateFactor = 1.0;
 
 // =========================
-// ユーティリティ
+// カメラ起動（必ずタップ内）
 // =========================
-function clamp(v, min, max) {
-  return Math.min(max, Math.max(min, v));
+function startCamera() {
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" },
+    audio: false
+  }).then(s => {
+    stream = s;
+    video.srcObject = stream;
+    video.play();
+
+    cameraStarted = true;
+    shutterBtn.textContent = "📸 撮影";
+  }).catch(err => {
+    alert("カメラを起動できません。権限を確認してください。");
+    console.error(err);
+  });
 }
 
 // =========================
@@ -74,26 +85,13 @@ function redrawComposite() {
   const px = (w - pw) / 2;
   const py = h * 0.45 + (offsetY / 100) * h;
 
-  ctx.save();
-  ctx.filter =
-    `brightness(${brightnessFactor}) contrast(1.03) saturate(${saturateFactor})`;
-  ctx.globalAlpha = 0.97;
   ctx.drawImage(personCanvas, px, py, pw, ph);
-  ctx.restore();
-
-  /* =====================
-     ✅ オーバーレイ（超薄）
-     ===================== */
-  ctx.save();
-  ctx.fillStyle = "rgba(240, 235, 225, 0.06)"; // 暖色寄り・超薄
-  ctx.fillRect(0, 0, w, h);
-  ctx.restore();
 
   img.src = canvas.toDataURL("image/png");
 }
 
 // =========================
-// 切り抜き（1回のみ）
+// 切り抜き（撮影時のみ）
 // =========================
 segmentation.onResults(results => {
   const w = video.videoWidth;
@@ -118,10 +116,19 @@ segmentation.onResults(results => {
 });
 
 // =========================
-// シャッター
+// シャッターボタン（2段階）
 // =========================
 shutterBtn.onclick = async () => {
-  if (!backgroundImage.complete || video.readyState < 2) return;
+  if (!cameraStarted) {
+    startCamera();
+    return;
+  }
+
+  if (!backgroundImage.complete || video.readyState < 2) {
+    alert("準備中です");
+    return;
+  }
+
   await segmentation.send({ image: video });
 };
 
