@@ -4,10 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>思い出カメラ</title>
-    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Fonts : Klee One -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -17,18 +20,13 @@
     <button id="shutter-btn" class="main-btn">📸 カメラを起動</button>
 </div>
 
-<!-- お待ちください画面 -->
+<!-- ローディング -->
 <div id="screen-loading" class="screen center">
     <p>思い出と重ねています…</p>
 </div>
 
-<!-- プレビュー画面 -->
+<!-- プレビュー -->
 <div id="screen-preview" class="screen">
-
-    <div class="top-bar">
-        <button id="retry-btn">撮り直す</button>
-    </div>
-
     <div class="preview-area">
         <img id="captured-image">
     </div>
@@ -44,44 +42,37 @@
         </label>
     </div>
 
-    <div class="bottom-bar">
-        <button id="to-edit-btn" class="next-btn">編集に進む</button>
-    </div>
+    <button id="to-edit-btn">編集に進む</button>
+    <button id="retry-btn">撮り直す</button>
 </div>
 
-<!-- 編集画面 -->
+<!-- 編集 -->
 <div id="screen-edit" class="screen">
-
-    <div class="top-bar">
-        <button id="back-to-preview">戻る</button>
-    </div>
-
     <div class="edit-preview">
         <img id="edit-image">
     </div>
 
     <div class="edit-tools">
-        <button id="toggle-place">場所</button>
         <button id="toggle-kishiko">岸高同窓会</button>
+        <button id="toggle-place">場所</button>
     </div>
 
-    <div class="bottom-bar">
-        <button id="done-btn">できた！</button>
-    </div>
+    <button id="done-btn">できた！</button>
 </div>
 
-<!-- 保存画面 -->
+<!-- 保存 -->
 <div id="screen-save" class="screen center">
-    <div class="preview-area">
-        <img id="save-image">
-    </div>
+    <img id="save-image">
     <p class="save-guide">画像を長押しして保存してね</p>
     <button id="back-to-edit">戻る</button>
 </div>
 
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
+<!-- MediaPipe -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
+
+<!-- App -->
 <script src="app.js"></script>
 </body>
 </html>
