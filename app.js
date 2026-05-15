@@ -1,7 +1,7 @@
-// フォント読み込み完了を必ず待つ
+// フォントを必ず待つ
 const fontReady = document.fonts.load("600 32px 'Klee One'");
 
-// 画面切替
+// 画面管理
 const screens = {
   camera: document.getElementById("screen-camera"),
   loading: document.getElementById("screen-loading"),
@@ -9,6 +9,7 @@ const screens = {
   edit: document.getElementById("screen-edit"),
   save: document.getElementById("screen-save"),
 };
+
 function showScreen(name) {
   Object.values(screens).forEach(s => s.classList.remove("active"));
   screens[name].classList.add("active");
@@ -52,7 +53,7 @@ const segmentation = new SelfieSegmentation({
 });
 segmentation.setOptions({ modelSelection: 1 });
 
-// 人物切り抜き
+// 切り抜き
 const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
 
@@ -93,7 +94,6 @@ async function redraw() {
   if (!w || !h) return;
 
   ctx.clearRect(0, 0, w, h);
-
   drawCover(ctx, bg, bg.width, bg.height, w, h);
 
   const pw = w * scale;
@@ -101,9 +101,7 @@ async function redraw() {
   const px = (w - pw) / 2;
   const py = h * 0.45 + (offsetY / 100) * h;
 
-  ctx.filter = "brightness(0.97) saturate(0.95)";
   ctx.drawImage(personCanvas, px, py, pw, ph);
-  ctx.filter = "none";
 
   const texts = [];
   if (showKishiko) texts.push("岸高同窓会");
@@ -131,6 +129,7 @@ async function redraw() {
 segmentation.onResults(async res => {
   await fontReady;
   const w = video.videoWidth, h = video.videoHeight;
+
   personCanvas.width = w;
   personCanvas.height = h;
 

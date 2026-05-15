@@ -6,73 +6,71 @@
     <title>思い出カメラ</title>
 
     <!-- Google Fonts : Klee One -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&display=swap" rel="stylesheet">
+    https://fonts.googleapis.com
+    https://fonts.gstatic.com
+    <ttps://fonts.googleapis.com/css2?family=Klee+One:wght@600&display=swap
 
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheetdy>
 
 <!-- カメラ画面 -->
 <div id="screen-camera" class="screen active">
     <video id="camera-video" muted playsinline></video>
     <button id="shutter-btn" class="main-btn">📸 カメラを起動</button>
-</div>
-
-<!-- ローディング -->
-<div id="screen-loading" class="screen center">
-    <p>思い出と重ねています…</p>
-</div>
-
-<!-- プレビュー -->
-<div id="screen-preview" class="screen">
-    <div class="preview-area">
-        <img id="captured-image">
     </div>
 
-    <div class="controls">
-        <label>
-            上下
-            <input type="range" id="offset-slider" min="-20" max="20" value="0">
-        </label>
-        <label>
-            サイズ
-            <input type="range" id="scale-slider" min="70" max="90" value="80">
-        </label>
+    <!-- ローディング -->
+    <div id="screen-loading" class="screen center">
+        <p>思い出と重ねています…</p>
     </div>
 
-    <button id="to-edit-btn">編集に進む</button>
-    <button id="retry-btn">撮り直す</button>
-</div>
+    <!-- プレビュー -->
+    <div id="screen-preview" class="screen">
+        <div class="preview-area">
+            <img id="captured-image" alt="プレビュー">
+        </div>
 
-<!-- 編集 -->
-<div id="screen-edit" class="screen">
-    <div class="edit-preview">
-        <img id="edit-image">
+        <div class="controls">
+            <label>
+                上下
+                <input type="range" id="offset-slider" min="-20" max="20" value="0">
+            </label>
+            <label>
+                サイズ
+                <input type="range" id="scale-slider" min="70" max="90" value="80">
+            </label>
+        </div>
+
+        <button id="to-edit-btn">編集に進む</button>
+        <button id="retry-btn">撮り直す</button>
     </div>
 
-    <div class="edit-tools">
-        <button id="toggle-kishiko">岸高同窓会</button>
-        <button id="toggle-place">場所</button>
+    <!-- 編集 -->
+    <div id="screen-edit" class="screen">
+        <div class="edit-preview">
+            <img id="edit-image" alt="編集">
+        </div>
+
+        <div class="edit-tools">
+            <button id="toggle-kishiko">岸高同窓会</button>
+            <button id="toggle-place">場所</button>
+        </div>
+
+        <button id="done-btn">できた！</button>
     </div>
 
-    <button id="done-btn">できた！</button>
-</div>
+    <!-- ✅ 保存画面（長押し保存用） -->
+    <div id="screen-save" class="screen center">
+        <img id="save-image" alt="保存画像">
+        <p class="save-guide">画像を長押しして保存してね</p>
+        <button id="back-to-edit">戻る</button>
+    </div>
 
-<!-- 保存 -->
-<div id="screen-save" class="screen center">
-    <img id="save-image">
-    <p class="save-guide">画像を長押しして保存してね</p>
-    <button id="back-to-edit">戻る</button>
-</div>
+    <canvas id="capture-canvas" style="display:none;"></canvas>
 
-<canvas id="capture-canvas" style="display:none;"></canvas>
+    <!-- MediaPipe -->
+    https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js</script>
 
-<!-- MediaPipe -->
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
-
-<!-- App -->
-<script src="app.js"></script>
-</body>
+    <!-- App -->
+    <script src="app.js"></script>
+    </body>
 </html>

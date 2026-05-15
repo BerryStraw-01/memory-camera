@@ -1,7 +1,10 @@
 body {
   margin: 0;
   font-family: 'Klee One', cursive;
+
+  /* ✅ iOSで文字選択を防ぐ */
   user-select: none;
+  -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
 
@@ -64,14 +67,15 @@ button {
   font-size: 16px;
 }
 
-/* 保存画面 */
+/* ✅ 保存画面 */
 .save-guide {
   margin-top: 8px;
   color: #555;
-  user-select: none;
   pointer-events: none;
+  user-select: none;
 }
 
+/* ✅ 画像だけ長押し可能にする */
 #save-image {
   pointer-events: auto;
   -webkit-touch-callout: default;
