@@ -34,25 +34,26 @@ const segmentation = new SelfieSegmentation({
 segmentation.setOptions({ modelSelection: 1 });
 
 // =========================
-// 切り抜き用
+// 切り抜き用Canvas
 // =========================
 const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
 
+// =========================
+// 合成パラメータ
+// =========================
 let offsetY = 0;
 let scale = 0.8;
 
 // =========================
-// ✅ カメラ起動（外カメラ優先）
+// ✅ カメラ起動（外カメラ固定）
 // =========================
 function startCamera() {
   state = "starting";
   shutterBtn.textContent = "起動中…";
 
   navigator.mediaDevices.getUserMedia({
-    video: {
-      facingMode: { ideal: "environment" } // ★ 外カメラ優先
-    },
+    video: { facingMode: { ideal: "environment" } }, // ★ 外カメラ優先
     audio: false
   }).then(stream => {
     video.srcObject = stream;
@@ -115,13 +116,14 @@ segmentation.onResults(results => {
 });
 
 // =========================
-// シャッターボタン（起動≠撮影）
+// シャッターボタン（起動 ≠ 撮影）
 // =========================
 shutterBtn.onclick = () => {
   if (state === "idle") {
     startCamera();
     return;
   }
+
   if (state === "ready") {
     if (!backgroundImage.complete) return;
     segmentation.send({ image: video });
