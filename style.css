@@ -513,10 +513,9 @@ body{
   max-width: 320px;
   aspect-ratio: 3 / 4;
 
-  /* ✅ 画面の真ん中に強制配置 */
   position: relative;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateX(-6px); /* ✅ 視覚補正 */
 
   margin-top: 12px;
   margin-bottom: 8px;
