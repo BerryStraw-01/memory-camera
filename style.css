@@ -85,14 +85,6 @@ button::-moz-focus-inner {
 }
 
 /* =====================================================
-   画面構造
-===================================================== */
-
-.screen.active {
-  display: flex;
-}
-
-/* =====================================================
    下30%：操作エリア
 ===================================================== */
 .action-area {
@@ -513,15 +505,6 @@ body{
    画面切替の最終防衛ライン
 ====================== */
 
-/* active 以外は絶対に表示しない */
-.screen {
-  display: none !important;
-}
-
-.screen.active {
-  display: flex !important;
-}
-
 /* 画面の中身（タイトル除外後） */
 
 .screen-content {
@@ -529,7 +512,6 @@ body{
   flex-direction: column;
 
   /* ✅ 真ん中固定 */
-  align-items: center;
   justify-content: center;
 
   flex: 1;
@@ -560,4 +542,18 @@ body{
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;      /* ✅ phone 基準 */
+  height: 100%;
+
+  display: none;
+}
+
+.screen.active {
+  display: flex;
 }
