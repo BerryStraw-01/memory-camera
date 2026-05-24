@@ -10,40 +10,9 @@
 /* ======================
    ベース：画面固定
 ====================== */
-html, body{
-  margin: 0;
-  padding: 0;
+html, body {
   width: 100%;
-  height: 100vh;
-  overflow: hidden;        /* ✅ 外はスクロールさせない */
-  overscroll-behavior: none;
-  font-family: "Klee One", cursive;
-}
-
-/* ======================
-   スマホ幅コンテナ
-====================== */
-.phone {
-  position: relative;
-  width: 100%;
-  max-width: 390px;
-  height: 100svh;
-  margin: 0 auto;
-
-  /* ✅ 左右 padding を完全に消す */
-  padding-left: 0;
-  padding-right: 0;
-
-  overflow: hidden;
-}
-
-/* スクロールバー非表示（indexと同じ） */
-.phone::-webkit-scrollbar{
-  display: none;
-}
-.phone{
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  height: 100%;
 }
 
 body {
@@ -56,6 +25,30 @@ body {
   -webkit-touch-callout: none;
 
   -webkit-font-smoothing: antialiased;
+}
+
+body {
+
+  margin: 0;
+  overflow: hidden;
+  background: linear-gradient(
+    180deg,
+    #fff0f6,
+    #ffe4ec
+  );
+}
+
+/* ======================
+   スマホ幅コンテナ
+====================== */
+.phone {
+  position: relative;
+  width: 100%;
+  max-width: 390px;
+  height: 100svh;
+  padding:40px 0;   /* クイズ画面と同じ */
+
+  overflow: hidden;
 }
 
 /* =====================================================
@@ -232,17 +225,6 @@ input[type="range"]::-moz-range-thumb {
 /* ======================
    思い出カメラ：春テーマ
 ====================== */
-
-/* 全体背景 */
-body{
-  background: linear-gradient(
-    180deg,
-    #fff0f6,
-    #ffe4ec
-  );
-  overflow: hidden;
-  font-family: "Klee One", cursive;
-}
 
 /* 背景レイヤー */
 .spring-bg{
@@ -521,20 +503,19 @@ body{
 
 /* カメラ・写真表示枠（中央固定・3:4） */
 /* ✅ カメラ・写真表示枠（最終版・完全中央） */
-.image-area {
-  width: 100%;
-  max-width: 320px;
-  aspect-ratio: 3 / 4;
+.image-area{
+  width:calc(100vw - 32px);
+  max-width:320px;
+  aspect-ratio:3 / 4;
 
-  margin: 12px auto 8px;   /* ✅ 純粋な中央寄せ */
+  margin:0 auto;          /* ✅ ここだけ中央 */
 
-  background: #000;
-  border-radius: 18px;
+  background:#000;
+  border-radius:18px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .image-area video,
@@ -556,4 +537,19 @@ body{
 
 .screen.active {
   display: flex;
+}
+
+/* ✅ viewport を基準にした中央配置 */
+.viewport-center {
+  position: fixed;
+  inset: 0;
+
+  display: grid;
+  place-items: start center; /* 上寄せ＋横中央 */
+
+  pointer-events: none; /* 背景扱い */
+}
+
+.phone {
+  pointer-events: auto;
 }
