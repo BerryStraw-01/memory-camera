@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+
+# images folder
+images/.DS_Store
