@@ -503,19 +503,19 @@ input[type="range"]::-moz-range-thumb {
 
 /* カメラ・写真表示枠（中央固定・3:4） */
 /* ✅ カメラ・写真表示枠（最終版・完全中央） */
-.image-area{
-  width:calc(100vw - 32px);
-  max-width:320px;
-  aspect-ratio:3 / 4;
+.image-area {
+  width: 100%;          /* ✅ 親基準 */
+  max-width: 320px;
+  aspect-ratio: 3 / 4;
 
-  margin:0 auto;          /* ✅ ここだけ中央 */
+  margin: 0 auto;
 
-  background:#000;
-  border-radius:18px;
+  background: #000;
+  border-radius: 18px;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .image-area video,
@@ -537,6 +537,9 @@ input[type="range"]::-moz-range-thumb {
 
 .screen.active {
   display: flex;
+  flex-direction: column;    /* 縦並びにする */
+  align-items: center;       /* 横方向の中央寄せ */
+  justify-content: center;
 }
 
 /* ✅ viewport を基準にした中央配置 */
