@@ -526,7 +526,11 @@ body{
   max-width: 320px;
   aspect-ratio: 3 / 4;
 
-  margin: 12px auto 8px;   /* ✅ 純粋な中央寄せ */
+  /* ✅ viewport基準で完全中央 */
+  position: fixed;
+  left: 50vw;
+  top: 50%;
+  transform: translate(-50%, -50%);
 
   background: #000;
   border-radius: 18px;
