@@ -26,7 +26,7 @@ html, body{
 .phone{
   width: 100%;
   max-width: 390px;        /* ✅ iPhone幅 */
-  height: 100vh;
+  height: 100svh;
   margin: 0 auto;
   padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
   box-sizing: border-box;
@@ -546,16 +546,22 @@ body{
 }
 
 /* 画面の中身（タイトル除外後） */
+
 .screen-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;   /* ✅ flex 暴走防止 */
 }
+
 
 /* ✅ カメラ・写真エリアはここで制御 */
 .image-area {
-  flex: 1;                 /* 残りの高さだけ使う */
-  min-height: 0;           /* ← 超重要（これがないと暴れる） */
+  flex: 1;
+  min-height: 0;
+
+  /* ✅ これが無いと必ずデカくなる */
+  max-height: 60svh;   /* ← ここを 55〜65 で微調整可 */
 
   margin: 12px 16px 8px;
   background: #000;
@@ -564,14 +570,14 @@ body{
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;        /* 枠からはみ出さない */
+  overflow: hidden;
 }
 
 .image-area video,
 .image-area img {
   width: 100%;
   height: 100%;
-  object-fit: contain;   /* ✅ 全体を見せる（cover にしない） */
+  object-fit: contain;
 }
 
 .image-area {
