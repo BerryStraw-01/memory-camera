@@ -23,19 +23,18 @@ html, body{
 /* ======================
    スマホ幅コンテナ
 ====================== */
-.phone{
+.phone {
+  position: relative;
   width: 100%;
-  max-width: 390px;        /* ✅ iPhone幅 */
+  max-width: 390px;
   height: 100svh;
   margin: 0 auto;
-  padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
-  box-sizing: border-box;
 
-  overflow-y: auto;        /* ✅ 中だけスクロール */
-  -webkit-overflow-scrolling: touch;
+  /* ✅ 左右 padding を完全に消す */
+  padding-left: 0;
+  padding-right: 0;
 
-  position: relative;
-  z-index: 1;
+  overflow: hidden;
 }
 
 /* スクロールバー非表示（indexと同じ） */
@@ -104,14 +103,10 @@ button::-moz-focus-inner {
    下30%：操作エリア
 ===================================================== */
 .action-area {
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  justify-content: center;
-  flex: 0 0 auto;
-  margin-top: 8px;
-
+  width: 100%;
+  max-width: 320px;
+  margin: 20px auto 0;
+  padding: 0 16px;   /* ✅ ボタンだけ余白 */
 }
 
 /* =====================================================
@@ -515,15 +510,24 @@ body{
 
 .image-area {
   width: 100%;
-  max-height: 520px;
-  flex: 1;
-  margin: 12px auto 8px;
+  max-width: 320px;
+  aspect-ratio: 3 / 4;
+
+  /* ✅ 画面の真ん中に強制配置 */
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+
+  margin-top: 12px;
+  margin-bottom: 8px;
+
   background: #000;
   border-radius: 18px;
 
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 /* ローディング画面専用（最重要） */
