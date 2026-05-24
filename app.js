@@ -74,6 +74,10 @@ async function startCamera() {
     audio: false
   });
   video.srcObject = stream;
+
+  // ✅ 再生前に高さを固定（超重要）
+  const box = document.querySelector(".image-area");
+
   await video.play();
   cameraReady = true;
   shutterBtn.textContent = "📸 撮影";
