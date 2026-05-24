@@ -124,9 +124,6 @@ button::-moz-focus-inner {
    下30%：操作エリア
 ===================================================== */
 .action-area {
-  height: 30svh;
-  max-height: 30vh;
-
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -410,11 +407,6 @@ body{
   text-shadow: 0 2px 4px rgba(255,255,255,0.8);
 }
 
-/* 画面共通 */
-.screen{
-  padding: 12px;
-}
-
 /* 画像エリア */
 .image-area{
   border-radius: 18px;
@@ -446,14 +438,6 @@ body{
   background: rgba(255,255,255,0.8);
   color: #e2558f;
   border: 2px solid #ffd1e0;
-}
-
-/* ローディング文字 */
-#screen-loading p{
-  font-size: 22px;
-  color: #e2558f;
-  text-align: center;
-  margin-top: 40vh;
 }
 
 /* ======================
@@ -536,4 +520,49 @@ body{
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* screen 内の縦レイアウト */
+.screen-inner {
+  height: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.image-area {
+  flex: 1;              /* ✅ 画面の残りを全部使う */
+  background: #000;
+  border-radius: 18px;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ローディング画面専用（最重要） */
+#screen-loading {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+#screen-loading p {
+  margin: 0;                 /* 余計なズレ防止 */
+  font-size: 22px;
+  color: #e2558f;
+}
+
+/* ======================
+   画面切替の最終防衛ライン
+====================== */
+
+/* active 以外は絶対に表示しない */
+.screen {
+  display: none !important;
+}
+
+.screen.active {
+  display: flex !important;
 }

@@ -133,8 +133,8 @@ segmentation.onResults(async res => {
   canvas.width = w;
   canvas.height = h;
 
-  await redraw();
   showScreen("preview");
+  await redraw();
 });
 
 // ===== ボタン =====
@@ -144,6 +144,12 @@ shutterBtn.onclick = async () => {
     return;
   }
   showScreen("loading");
+
+  // ✅ 画像を一旦クリア（超重要）
+  previewImg.src = "";
+  editImg.src = "";
+  saveImg.src = "";
+
   segmentation.send({ image: video });
 };
 
