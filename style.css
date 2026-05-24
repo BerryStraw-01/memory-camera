@@ -109,6 +109,9 @@ button::-moz-focus-inner {
   flex-direction: column;
   gap: 12px;
   justify-content: center;
+  flex: 0 0 auto;
+  margin-top: 8px;
+
 }
 
 /* =====================================================
@@ -385,6 +388,8 @@ body{
   margin: 24px 0 12px;
   color: #e2558f;
   text-shadow: 0 2px 4px rgba(255,255,255,0.8);
+  flex: 0 0 auto;     /* ✅ 高さを奪わない */
+  margin: 8px 0 12px;
 }
 
 /* ボタン */
@@ -496,17 +501,15 @@ body{
 
 /* screen 内の縦レイアウト */
 .screen-inner {
-  height: 100%;
-  padding: 16px;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .image-area {
   width: 100%;
-  height: 65vh;
   max-height: 520px;
-
+  flex: 1;
   margin: 12px auto 8px;
   background: #000;
   border-radius: 18px;
