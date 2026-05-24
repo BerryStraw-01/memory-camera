@@ -16,8 +16,6 @@
 
 <!-- 春背景 -->
 <div class="spring-bg">
-
-    <!-- 花びら -->
     <div class="sakura" style="left:10%; animation-duration:13s; animation-delay:-21s;"></div>
     <div class="sakura" style="left:18%; animation-duration:26s; animation-delay:-7s;"></div>
     <div class="sakura" style="left:27%; animation-duration:19s; animation-delay:-33s;"></div>
@@ -27,105 +25,138 @@
     <div class="sakura" style="left:63%; animation-duration:17s; animation-delay:-29s;"></div>
     <div class="sakura" style="left:72%; animation-duration:24s; animation-delay:-18s;"></div>
 
-    <!-- 🌸 桜の花 -->
-    <div class="sakura-flower"
-         style="left:22%; animation-duration:55s; animation-delay:-17s;">
+    <div class="sakura-flower" style="left:22%; animation-duration:55s; animation-delay:-17s;">
         <span></span><span></span><span></span><span></span><span></span>
     </div>
-
-    <div class="sakura-flower"
-         style="left:48%; animation-duration:55s; animation-delay:-38s;">
+    <div class="sakura-flower" style="left:48%; animation-duration:55s; animation-delay:-38s;">
         <span></span><span></span><span></span><span></span><span></span>
     </div>
-
-    <div class="sakura-flower"
-         style="left:78%; animation-duration:55; animation-delay:-11s;">
+    <div class="sakura-flower" style="left:78%; animation-duration:55s; animation-delay:-11s;">
         <span></span><span></span><span></span><span></span><span></span>
     </div>
-
 </div>
 
 <div class="phone">
-<!-- ===== カメラ ===== -->
+
+    <!-- ===== カメラ ===== -->
     <div id="screen-camera" class="screen active">
         <div class="screen-inner">
 
-            <h1 class="app-title">思い出カメラ</h1>
+            <header class="screen-header">
+                <h1 class="app-title">思い出カメラ</h1>
+            </header>
 
-            <div class="image-area">
-                <video id="camera-video" muted playsinline></video>
-            </div>
+            <div class="screen-content">
+                <div class="image-area">
+                    <video id="camera-video" muted playsinline></video>
+                </div>
 
-            <div class="action-area">
-                <button id="shutter-btn" class="btn primary">カメラをON</button>
+                <div class="action-area">
+                    <button id="shutter-btn" class="btn primary">カメラをON</button>
+                </div>
             </div>
 
         </div>
     </div>
 
-<!-- ===== ローディング ===== -->
-<div id="screen-loading" class="screen center">
-    <p>思い出と重ねています…</p>
-</div>
-
-<!-- ===== プレビュー ===== -->
-<div id="screen-preview" class="screen">
-    <div class="image-area">
-        <img id="captured-image" alt="プレビュー">
-    </div>
-
-    <div class="action-area">
-        <div class="slider-group">
-            <div class="slider-item">
-                <span class="icon">↕</span>
-                <input type="range" id="offset-slider" min="-20" max="20" value="0">
-                <span class="label">位置</span>
-            </div>
-            <div class="slider-item">
-                <span class="icon">⤢</span>
-                <input type="range" id="scale-slider" min="70" max="90" value="80">
-                <span class="label">大きさ</span>
-            </div>
+    <!-- ===== ローディング ===== -->
+    <div id="screen-loading" class="screen">
+        <div class="screen-inner center">
+            <p>思い出と重ねています…</p>
         </div>
-
-        <button id="to-edit-btn" class="btn primary">文字を入れる</button>
-        <button id="retry-btn" class="btn secondary">撮り直す</button>
-    </div>
-</div>
-
-<!-- ===== 編集 ===== -->
-<div id="screen-edit" class="screen">
-    <div class="image-area">
-        <img id="edit-image" alt="編集">
     </div>
 
-    <div class="action-area">
-        <div class="toggle-row">
-            <button id="toggle-kishiko" class="btn toggle">岸高同窓会</button>
-            <button id="toggle-place" class="btn toggle">場所</button>
+    <!-- ===== プレビュー ===== -->
+    <div id="screen-preview" class="screen">
+        <div class="screen-inner">
+
+            <header class="screen-header">
+                <h1 class="app-title">プレビュー</h1>
+            </header>
+
+            <div class="screen-content">
+                <div class="image-area">
+                    <img id="captured-image" alt="プレビュー">
+                </div>
+
+                <div class="action-area">
+
+                    <div class="slider-group">
+                        <div class="slider-item">
+                            <span class="icon">↕</span>
+                            <input type="range" id="offset-slider" min="-20" max="20" value="0">
+                            <span class="label">位置</span>
+                        </div>
+                        <div class="slider-item">
+                            <span class="icon">⤢</span>
+                            <input type="range" id="scale-slider" min="70" max="90" value="80">
+                            <span class="label">大きさ</span>
+                        </div>
+                    </div>
+
+                    <button id="to-edit-btn" class="btn primary">文字を入れる</button>
+                    <button id="retry-btn" class="btn secondary">撮り直す</button>
+                </div>
+            </div>
+
         </div>
-
-        <button id="done-btn" class="btn primary">できた！</button>
-        <button id="back-to-preview" class="btn secondary">戻る</button>
-    </div>
-</div>
-
-<!-- ===== 保存 ===== -->
-<div id="screen-save" class="screen">
-    <div class="image-area">
-        <img id="save-image" alt="保存画像">
     </div>
 
-    <div class="action-area">
-        <p class="save-guide">画像を長押しして保存してね</p>
-        <button id="back-to-edit" class="btn secondary">戻る</button>
+    <!-- ===== 編集 ===== -->
+    <div id="screen-edit" class="screen">
+        <div class="screen-inner">
+
+            <header class="screen-header">
+                <h1 class="app-title">編集</h1>
+            </header>
+
+            <div class="screen-content">
+                <div class="image-area">
+                    <img id="edit-image" alt="編集">
+                </div>
+
+                <div class="action-area">
+                    <div class="toggle-row">
+                        <button id="toggle-kishiko" class="btn toggle">岸高同窓会</button>
+                        <button id="toggle-place" class="btn toggle">場所</button>
+                    </div>
+
+                    <button id="done-btn" class="btn primary">できた！</button>
+                    <button id="back-to-preview" class="btn secondary">戻る</button>
+                </div>
+            </div>
+
+        </div>
     </div>
-</div>
+
+    <!-- ===== 保存 ===== -->
+    <div id="screen-save" class="screen">
+        <div class="screen-inner">
+
+            <header class="screen-header">
+                <h1 class="app-title">保存</h1>
+            </header>
+
+            <div class="screen-content">
+                <div class="image-area">
+                    <img id="save-image" alt="保存画像">
+                </div>
+
+                <div class="action-area">
+                    <p class="save-guide">画像を長押しして保存してね</p>
+                    <button id="back-to-edit" class="btn secondary">戻る</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 
 <canvas id="capture-canvas" style="display:none;"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>
