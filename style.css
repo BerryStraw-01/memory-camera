@@ -642,12 +642,17 @@ input[type="range"]::-moz-range-thumb {
   /* aspect-ratio を削除し、固定の「高さ」を指定します */
   height: 426px;
   background: black;
-  border-radius: 24px;
+  border-radius:26px;
 
-  border: 6px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 14px 30px rgba(255, 155, 190, 0.35);
+  /* ✅ 薄いピンクの枠 */
+  border:6px solid rgba(255, 210, 225, 0.95);
 
-  margin: 24px auto 26px; /* 左右を auto にして画面中央に配置 */
+  box-shadow:
+    0 12px 26px rgba(255,160,190,0.35),
+    inset 0 0 0 1px rgba(255,255,255,0.25);
+
+  margin:20px auto 28px;
+
 
   /* 中身がはみ出さないための設定 */
   overflow: hidden;
@@ -841,4 +846,25 @@ input[type="range"]::-moz-range-thumb {
   color: transparent;
 
   margin:4px 0 6px;        /* 上下を詰める */
+}
+
+.title-icon svg{
+  width:110px;   /* ← 130px → 110px */
+  height:auto;
+  margin-bottom:2px;
+}
+
+.title-text{
+  font-size:28px;        /* ← 32px → 28px */
+  letter-spacing:0.12em;
+  margin:2px 0 4px;     /* 上下を詰める */
+}
+
+.subtitle{
+  font-size:12px;        /* ← 13px → 12px */
+  margin-bottom:8px;    /* カメラ枠との距離を縮める */
+}
+
+.screen-header{
+  margin-bottom:4px;   /* ← デフォルトよりかなり詰める */
 }
