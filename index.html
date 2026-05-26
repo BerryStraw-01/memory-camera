@@ -243,8 +243,6 @@
                 <span class="corner br"></span>
             </div>
 
-
-
             <!-- ✅ シークバー UI はここ -->
             <div class="preview-controls">
 
@@ -287,34 +285,144 @@
 
     <!-- ===== 編集 ===== -->
     <div id="screen-edit" class="screen">
-        <div class="screen-inner">
+        <div class="screen-inner edit-ui">
+            <button id="edit-back-btn" class="preview-back-btn" aria-label="戻る">
+                <svg viewBox="0 0 24 24">
+                    <path
+                            d="M15 6 L9 12 L15 18"
+                            fill="none"
+                            stroke="#ff7aa8"
+                            stroke-width="2.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                    />
+                </svg>
+            </button>
 
-            <header class="screen-header">
-                <h1 class="app-title">編集</h1>
-            </header>
-
-            <div class="screen-content">
-                <div class="image-area">
-                    <img id="edit-image" alt="編集">
-                </div>
-
-                <div class="action-area">
-                    <div class="toggle-row">
-                        <button id="toggle-kishiko" class="btn toggle">岸高同窓会</button>
-                        <button id="toggle-place" class="btn toggle">場所</button>
-                    </div>
-
-                    <button id="done-btn" class="btn primary">できた！</button>
-                    <button id="back-to-preview" class="btn secondary">戻る</button>
-                </div>
+            <!-- 画像 -->
+            <div class="preview-frame edit-frame">
+                <img id="edit-image" alt="編集">
             </div>
 
+            <!-- カードUI -->
+            <div class="edit-cards">
+
+                <!-- 文字 -->
+                <button id="toggle-kishiko" class="edit-card pink">
+                    <div class="card-icon">
+
+                        <svg viewBox="2 2 32 32" width="56" height="56" xmlns="http://w3.org">
+                            <!-- T（56pxのサイズ感に合わせて線をさらに太く、力強く修正） -->
+                            <path d="M8 10h14M15 10v14"
+                                  stroke="white" stroke-width="3.8"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+
+                            <!-- +（右下でしっかり目立つ太さに調整） -->
+                            <path d="M26 18v6M23 21h6"
+                                  stroke="white" stroke-width="3.2"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+
+                            <!-- ✨左上の大キラキラ（56pxの枠内でさらにダイナミックに） -->
+                            <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
+                                  fill="white"
+                                  opacity="0.95"
+                                  transform="translate(2, 2) scale(1.4)" />
+
+                            <!-- ✨右上の小キラキラ -->
+                            <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
+                                  fill="white"
+                                  opacity="0.8"
+                                  transform="translate(22, 3) scale(0.95)" />
+                        </svg>
+
+                    </div>
+
+                    <div class="card-text">
+                        <div class="card-title">岸高同窓会</div>
+                        <div class="card-sub">タップして表示</div>
+                    </div>
+                </button>
+
+                <!-- 場所 -->
+                <button id="toggle-place" class="edit-card purple">
+                    <div class="card-icon">
+                        <svg viewBox="2 2 32 32" width="56" height="56" xmlns="http://w3.org">
+                            <!-- マップピン（大きなボタンの中でどっしりと目立つ主役に） -->
+                            <path d="M16 28s8-6.5 8-13a8 8 0 1 0-16 0c0 6.5 8 13 8 13z"
+                                  fill="white"/>
+
+                            <!-- ピン中央の穴 -->
+                            <circle cx="16" cy="15" r="2.5" fill="#a855f7"/>
+
+                            <!-- ✨右上の大キラキラ（はみ出さず、かつ大きくきらめくサイズ） -->
+                            <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
+                                  fill="white"
+                                  opacity="0.95"
+                                  transform="translate(22, 2) scale(1.4)" />
+
+                            <!-- ✨左上の小キラキラ -->
+                            <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
+                                  fill="white"
+                                  opacity="0.75"
+                                  transform="translate(1, 5) scale(0.95)" />
+                        </svg>
+
+                    </div>
+
+                    <div class="card-text">
+                        <div class="card-title">場所</div>
+                        <div class="card-sub">タップして表示</div>
+                    </div>
+                </button>
+
+            </div>
+
+            <!-- ボタン -->
+            <button id="save-btn" class="btn primary large">
+
+                <!-- 保存アイコン -->
+                <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://w3.org" style="aspect-ratio: 1 / 1; flex-shrink: 0;">
+                    <!-- 縦棒（中央配置：細さ1.8px） -->
+                    <path d="M16 7v12"
+                          stroke="white" stroke-width="1.8"
+                          stroke-linecap="round"/>
+
+                    <!-- 矢印の先端（✅ バグの原因だった一本のパスを左右に分解し、黒い潰れを根本から消去） -->
+                    <path d="M11 14l5 5"
+                          stroke="white" stroke-width="1.8"
+                          stroke-linecap="round"/>
+                    <path d="M21 14l-5 5"
+                          stroke="white" stroke-width="1.8"
+                          stroke-linecap="round"/>
+
+                    <!-- 下の皿線（細さ1.8px） -->
+                    <path d="M8 25h16"
+                          stroke="white" stroke-width="1.8"
+                          stroke-linecap="round"/>
+
+                    <!-- ✨右上の大キラキラ -->
+                    <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
+                          fill="white"
+                          opacity="0.95"
+                          transform="translate(21, 3) scale(1.0)" />
+
+                    <!-- ✨左上の小キラキラ -->
+                    <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
+                          fill="white"
+                          opacity="0.75"
+                          transform="translate(4, 6) scale(0.7)" />
+                </svg>
+
+                <span>保存する</span>
+
+            </button>
         </div>
     </div>
 
     <!-- ===== 保存 ===== -->
     <div id="screen-save" class="screen">
         <div class="screen-inner">
+
 
             <header class="screen-header">
                 <h1 class="app-title">保存</h1>

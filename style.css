@@ -846,10 +846,6 @@ input[type="range"]::-moz-range-thumb {
 }
 
 
-
-
-
-
 /* ==========================================================================
    ===== プレビュー画面全体 =====
    ========================================================================== */
@@ -1109,9 +1105,6 @@ input[type="range"]::-moz-range-thumb {
   display: block;
 }
 
-/* ==========================================================================
-   ===== 3分割グリッド線（位置計算バグを完全解決した決定版） =====
-   ========================================================================== */
 /* ==========================================================================
    ===== 3分割グリッド線（にじみバグを完全解決した決定版） =====
    ========================================================================== */
@@ -1513,4 +1506,332 @@ input[type="range"]::-moz-range-thumb {
 .control-left {
   margin-left: -12px;   /* ← 6〜12px の間で好みに調整 */
   margin-right: 12px;   /* ← 6〜12px の間で好みに調整 */
+}
+
+#edit-image {
+  width: auto;
+  height: auto;
+
+  max-width: 100%;
+  max-height: 100%;
+
+  object-fit: contain;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== 全体 ===== */
+.edit-ui {
+  text-align: center;
+  padding: 16px;
+}
+
+/* ===== ヘッダー ===== */
+.edit-header {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.edit-title {
+  font-size: 26px;
+  color: #ff7aa8;
+}
+
+/* 戻る */
+.back-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* サブ */
+.edit-sub {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+/* ===== 画像 ===== */
+.edit-frame {
+  border: 8px solid white;
+  border-radius: 22px;
+}
+
+/* ===== ヒント ===== */
+.edit-hint {
+  margin: 12px 0;
+  color: #999;
+  font-size: 13px;
+}
+
+/* ===== カード ===== */
+.edit-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.edit-card {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+  padding: 12px;
+  border-radius: 18px;
+
+  background: white;
+  box-shadow: 0 8px 20px rgba(255, 120, 160, 0.2);
+}
+
+.edit-card.pink {
+  background: linear-gradient(135deg, #ffe3ee, #fff);
+}
+
+.edit-card.purple {
+  background: linear-gradient(135deg, #f1e5ff, #fff);
+}
+
+/* アイコン */
+.card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #ff7aa8;
+  color: white;
+  font-weight: bold;
+}
+
+/* テキスト */
+.card-title {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.card-sub {
+  font-size: 12px;
+  color: #888;
+}
+
+/* ===== ボタン ===== */
+.btn.large {
+  height: 60px;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+.btn.primary.large {
+  background: linear-gradient(90deg,#ff7aa8,#ff9fc5);
+}
+
+.btn.secondary.large {
+  background: #eee;
+}
+
+#screen-edit .preview-back-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+
+  width: 44px;
+  height: 44px;
+
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 10;
+}
+
+/* ===== カード全体 ===== */
+.edit-cards {
+  display: flex;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+/* ===== カード本体 ===== */
+.edit-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px;
+  border-radius: 20px;
+
+  border: none;
+  cursor: pointer;
+
+  /* ガラス感 */
+  backdrop-filter: blur(10px);
+
+  /* 影 */
+  box-shadow:
+    0 10px 25px rgba(255, 120, 160, 0.25);
+
+  transition: transform 0.1s ease;
+}
+
+.edit-card:active {
+  transform: scale(0.96);
+}
+
+/* ===== ピンク ===== */
+.edit-card.pink {
+  background: linear-gradient(
+    135deg,
+    #ffe3ee,
+    #ffd0e1
+  );
+}
+
+/* ===== 紫 ===== */
+.edit-card.purple {
+  background: linear-gradient(
+    135deg,
+    #f3e8ff,
+    #e9d5ff
+  );
+}
+
+/* ===== アイコン ===== */
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(135deg,#ff7aa8,#ff9fc5);
+
+  flex-shrink: 0;
+}
+
+.edit-card.purple .card-icon {
+  background: linear-gradient(135deg,#a855f7,#c084fc);
+}
+
+.card-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+/* ===== テキスト ===== */
+.card-text {
+  text-align: left;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ff4f88;
+}
+
+.edit-card.purple .card-title {
+  color: #9333ea;
+}
+
+.card-sub {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 左（ピンク） */
+.edit-card.pink.active {
+  box-shadow:
+    0 0 0 2px #ff7aa8,
+    0 10px 25px rgba(255,120,160,0.4);
+}
+
+/* 右（紫 / 青系） */
+.edit-card.purple.active {
+  box-shadow:
+    0 0 0 2px #8b5cf6, /* 外枠 */
+    0 10px 25px rgba(139,92,246,0.4);
+}
+
+.edit-frame {
+  width: 100%;
+  /* 4:3の黄金比率にするため、横幅290pxに合わせて縦幅を217pxに自動計算させます */
+  aspect-ratio: 3 / 4;
+  background: black;
+  border-radius: 26px;
+
+  /* ✅ 薄いピンクの枠 */
+  border: 6px solid rgba(255, 210, 225, 0.95);
+
+  box-shadow:
+    0 12px 26px rgba(255, 160, 190, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+
+  margin: 20px auto 20px;
+  display: flex;
+
+  /* 中身がはみ出さないための設定 */
+  overflow: hidden;
+}
+
+.card-title {
+  font-family: 'Zen Maru Gothic', 'Klee One', sans-serif;
+  font-weight: 900;
+}
+
+.card-sub {
+  font-family: 'Zen Maru Gothic';
+  font-weight: 900;
+}
+
+/* ===== ボタンの中のSVGアイコンのサイズを強制的に56pxに固定 ===== */
+.action-area button svg,
+.toggle-row button svg,
+.btn-icon {
+  width: 56px !important;
+  height: 56px !important;
+  display: block;
+}
+
+/* アイコンが大きくなった分、ボタンの横幅や高さも自動で広がるように調整 */
+.toggle-row .btn.toggle {
+  display: flex;
+  flex-direction: column; /* アイコンと文字を縦並びに */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;     /* 大きなアイコンが入るようにボタンの余白を確保 */
+  height: auto;           /* 高さを固定せず自動で広げる */
+}
+
+.btn-icon {
+  width: 28px !important;
+  height: 28px !important;
+  margin-right: 8px;
+}
+
+/* 横並びにする */
+#save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

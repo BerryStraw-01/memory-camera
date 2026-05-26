@@ -8,6 +8,7 @@ const screens = {
   edit: document.getElementById("screen-edit"),
   save: document.getElementById("screen-save"),
 };
+
 function showScreen(name) {
   Object.values(screens).forEach(s => s.classList.remove("active"));
   screens[name].classList.add("active");
@@ -26,7 +27,6 @@ const shutterBtn = document.getElementById("camera-btn");
 const retryBtn = document.getElementById("retry-btn");
 const toEditBtn = document.getElementById("to-edit-btn");
 const doneBtn = document.getElementById("done-btn");
-const backToEditBtn = document.getElementById("back-to-edit");
 const backToPreviewBtn = document.getElementById("back-to-preview");
 
 const offsetSlider = document.getElementById("offset-slider");
@@ -35,6 +35,8 @@ const scaleSlider = document.getElementById("scale-slider");
 const toggleKishikoBtn = document.getElementById("toggle-kishiko");
 const togglePlaceBtn = document.getElementById("toggle-place");
 
+const place = "岸和田城";
+
 // ===== 状態 =====
 let cameraReady = false;
 let offsetY = 0;
@@ -42,7 +44,8 @@ let scale = 0.8;
 let showKishiko = false;
 let showPlace = false;
 
-// ✅ プレビューの出力サイズ（3:4）
+let finalImageURL = null;
+
 const OUTPUT_WIDTH = 1108;
 const OUTPUT_HEIGHT = 1477;
 
@@ -70,10 +73,8 @@ function drawContain(ctx, src, sw, sh, dw, dh) {
   const h = sh * scale;
   const x = (dw - w) / 2;
   const y = (dh - h) / 2;
-
   ctx.drawImage(src, 0, 0, sw, sh, x, y, w, h);
 }
-
 
 // ===== カメラON =====
 async function startCamera() {
@@ -81,6 +82,7 @@ async function startCamera() {
     video: { facingMode: { ideal: "environment" } },
     audio: false
   });
+
   video.srcObject = stream;
 
   await new Promise(resolve => {
@@ -94,8 +96,8 @@ async function startCamera() {
   shutterBtn.textContent = "📸 撮影";
 }
 
-// ===== 再描画 =====
-async function redraw() {
+// ===== 共通描画（背景＋人物） =====
+async function drawBase() {
   await fontReady;
   await bgReady;
 
@@ -104,47 +106,84 @@ async function redraw() {
 
   ctx.clearRect(0, 0, w, h);
 
-  // ✅ 背景（切れない）
   drawContain(ctx, bg, bg.width, bg.height, w, h);
 
-  // ✅ 被写体
-  // 被写体の元サイズ
   const srcW = personCanvas.width;
   const srcH = personCanvas.height;
+  const aspect = srcW / srcH;
 
-  // 元の縦横比を保持
-  const personAspect = srcW / srcH;
-
-  // 基準サイズ（高さ基準が自然）
   const baseH = h * scale;
-  const baseW = baseH * personAspect;
+  const baseW = baseH * aspect;
 
-  // 描画位置
   const px = (w - baseW) / 2;
   const py = h * 0.45 + (offsetY / 100) * h;
 
-  // 描画
   ctx.drawImage(personCanvas, px, py, baseW, baseH);
+}
 
-  const url = canvas.toDataURL("image/png");
-  previewImg.src = url;
-  editImg.src = url;
-  saveImg.src = url;
+// ===== プレビュー描画（文字なし） =====
+async function redraw() {
+  await drawBase();
+
+  finalImageURL = canvas.toDataURL("image/png");
+  previewImg.src = finalImageURL;
+}
+
+// ===== 保存用描画（文字あり） =====
+async function redrawFinal() {
+
+  // ✅ これを必ず入れる（超重要）
+  await document.fonts.ready;
+
+  await drawBase();
+
+  const w = canvas.width;
+  const h = canvas.height;
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "600 86px 'Klee One', cursive";
+
+    if (showKishiko) {
+      const x = w / 2;
+      const y = h * 0.05; // ✅ 下に移動
+
+      // ✅ 外枠（白）
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 10;
+      ctx.lineJoin = "round";
+      ctx.strokeText("in 岸高同窓会", x, y);
+
+      // ✅ 中の文字（ピンク）
+      ctx.fillStyle = "#ff7aa8";
+      ctx.fillText("in 岸高同窓会", x, y);
+    }
+
+    if (showPlace) {
+      const x = w / 2;
+      const y = h * 0.95; // ✅ さらに下に
+
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 8;
+      ctx.lineJoin = "round";
+      ctx.strokeText("📍" + place, x, y);
+
+      ctx.fillStyle = "#ff7aa8";
+      ctx.fillText("📍" + place, x, y);
+    }
+
+
+  finalImageURL = canvas.toDataURL("image/png");
 }
 
 // ===== MediaPipe結果 =====
 segmentation.onResults(async res => {
-  await fontReady;
-  await bgReady;
-
-  // ✅ 出力サイズを固定
   canvas.width = OUTPUT_WIDTH;
   canvas.height = OUTPUT_HEIGHT;
 
   personCanvas.width = res.image.width;
   personCanvas.height = res.image.height;
 
-  // ===== 被写体マスク作成 =====
   personCtx.clearRect(0, 0, personCanvas.width, personCanvas.height);
   personCtx.drawImage(res.image, 0, 0);
 
@@ -152,12 +191,10 @@ segmentation.onResults(async res => {
   personCtx.drawImage(res.segmentationMask, 0, 0);
   personCtx.globalCompositeOperation = "source-over";
 
-  // ===== 最終描画 =====
   await redraw();
 
   showScreen("preview");
 });
-
 
 // ===== ボタン =====
 shutterBtn.onclick = async () => {
@@ -165,20 +202,14 @@ shutterBtn.onclick = async () => {
     await startCamera();
     return;
   }
+
   showScreen("loading");
 
-  // ✅ 画像を一旦クリア（超重要）
   previewImg.src = "";
   editImg.src = "";
   saveImg.src = "";
 
-  try {
-    await segmentation.send({ image: video });
-  } catch (e) {
-    console.error(e);
-    alert("画像の処理に失敗しました。もう一度撮影してください。");
-    showScreen("camera");
-  }
+  await segmentation.send({ image: video });
 };
 
 offsetSlider.oninput = () => {
@@ -191,20 +222,64 @@ scaleSlider.oninput = () => {
   redraw();
 };
 
-toggleKishikoBtn.onclick = () => {
+// ===== ボタンイベントの修正 =====
+
+// 「岸高同窓会」ボタンを押したとき
+toggleKishikoBtn.onclick = async () => {
   showKishiko = !showKishiko;
+
   toggleKishikoBtn.classList.toggle("active", showKishiko);
-  redraw();
+
+  await redrawFinal();
+  editImg.src = finalImageURL;
 };
 
-togglePlaceBtn.onclick = () => {
+togglePlaceBtn.onclick = async () => {
   showPlace = !showPlace;
+
   togglePlaceBtn.classList.toggle("active", showPlace);
-  redraw();
+
+  await redrawFinal();
+  editImg.src = finalImageURL;
 };
 
+// ✅ プレビュー画面から「編集画面（toEdit）」に移る瞬間の処理も最適化
+toEditBtn.onclick = async () => {
+  // 編集画面へ移る際、現在のボタンの状態（文字ON/OFF）を反映した画像を生成
+  await redrawFinal();
+  if (finalImageURL) editImg.src = finalImageURL;
+  showScreen("edit");
+};
+
+const saveBtn = document.getElementById("save-btn");
+
+saveBtn.onclick = async () => {
+
+  // ✅ 高画質で再描画
+  await redrawFinal();
+
+  // ✅ ダウンロードリンク作成
+  const link = document.createElement("a");
+  link.href = finalImageURL;
+  link.download = "memory-photo.png";
+
+  // ✅ 自動クリック
+  link.click();
+};
+
+
+// ✅ 保存（ここが最重要）
+doneBtn.onclick = async () => {
+  await redrawFinal(); // ✅ 文字入り描画
+
+  saveImg.src = finalImageURL;
+  showScreen("save");
+};
+
+document.getElementById("back-camera").onclick = () => {
+  showScreen("camera");
+};
+
+// 戻る
 retryBtn.onclick = () => showScreen("camera");
-toEditBtn.onclick = () => showScreen("edit");
-doneBtn.onclick = () => showScreen("save");
-backToEditBtn.onclick = () => showScreen("edit");
 backToPreviewBtn.onclick = () => showScreen("preview");
