@@ -835,7 +835,7 @@ input[type="range"]::-moz-range-thumb {
     0 12px 26px rgba(255, 160, 190, 0.35),
     inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 
-  margin: auto;
+  margin: 20px auto 20px;
   display: flex;
 
   /* 中身がはみ出さないための設定 */
