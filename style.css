@@ -556,3 +556,252 @@ input[type="range"]::-moz-range-thumb {
 .phone {
   pointer-events: auto;
 }
+
+/* 背景レイヤー */
+.spring-bg{
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+
+  /* ✅ 背景画像 */
+  background-image: url("images/bg-sakura.png");
+
+  /* ✅ 画面全体に自然にフィット */
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+
+  /* ✅ スクロールやズレ防止 */
+  background-attachment: fixed;
+}
+
+
+
+
+
+.screen-camera{
+  min-height:100svh;
+  background-image:url("images/bg-sakura.png");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:32px 16px 40px;
+  text-align:center;
+}
+
+
+.title-icon {
+  width: 48px;
+  height: 48px;
+  color: #ff9bbd;
+  margin: 0 auto 6px; /* 左右の余白を auto にして中央寄せ */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title-text{
+  font-size:36px;                 /* ✅ 大きく */
+  font-weight:500;
+  letter-spacing:0.14em;
+
+  background: linear-gradient(
+    90deg,
+    #ff7aa8,
+    #ff9fc5,
+    #ff7aa8
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-align: center; /* 文字を中央に寄せる *//* ✅ 文字グラデ */
+
+  margin:6px 0 8px;
+}
+
+.title-text{
+  color:#ff7aa8;               /* くすみピンク */
+  font-weight:500;             /* 細め */
+  letter-spacing:0.12em;       /* 画像とほぼ一致 */
+  margin:6px 0 4px;
+}
+
+.subtitle{
+  font-size:14px;
+  color:#ff7aa8;
+  text-align: center; /* 文字を中央に寄せる */
+}
+
+.screen-content {
+  width: 100%;
+  max-width: 320px;
+  /* aspect-ratio を削除し、固定の「高さ」を指定します */
+  height: 426px;
+  background: black;
+  border-radius: 24px;
+
+  border: 6px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 30px rgba(255, 155, 190, 0.35);
+
+  margin: 24px auto 26px; /* 左右を auto にして画面中央に配置 */
+
+  /* 中身がはみ出さないための設定 */
+  overflow: hidden;
+}
+
+
+/* ===== ボタン ===== */
+.camera-btn{
+  width:100%;
+  max-width:320px;
+  height:56px;
+
+  background:linear-gradient(90deg,#ff8fb3,#ff6fa5);
+  border:none;
+  border-radius:999px;
+
+  color:white;
+  font-size:18px;
+  font-weight:600;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  box-shadow:0 8px 20px rgba(255,120,160,0.45);
+  cursor:pointer;
+  margin: 0 auto;
+}
+
+.camera-btn:active{
+  transform:scale(0.97);
+}
+
+/* ===== 注意文 ===== */
+.note-text{
+  margin-top:12px;
+  font-size:13px;
+  color:#b88a9f;
+  /* 中央寄せと横並びのレイアウトを追加 */
+    display: flex;
+    justify-content: center; /* 左右の中央に寄せる */
+    align-items: center;     /* 上下の中央を揃える */
+    gap: 5px;                /* アイコンと文字の間のすき間 */
+}
+
+.subtitle{
+  font-size:13px;
+  color:#b8a3ad;               /* グレー寄り */
+  letter-spacing:0.08em;
+  position:relative;
+}
+
+.subtitle::before,
+.subtitle::after{
+  content:"・・・";
+  color:#ff7aa8;
+  margin:0 8px;
+}
+
+.camera-frame{
+  width:100%;
+  max-width:320px;
+  aspect-ratio:3 / 4;
+  background:black;
+
+  border-radius:26px;
+  border:7px solid rgba(255,255,255,0.92); /* 白枠を太く */
+
+  box-shadow:
+    0 12px 26px rgba(255,160,190,0.35),
+    inset 0 0 0 1px rgba(255,255,255,0.25);
+
+  margin:28px 0 30px;
+}
+
+.camera-btn{
+  width:100%;
+  max-width:320px;
+  height:54px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff7aa8 0%,
+      #ff96c1 50%,
+      #ff7aa8 100%
+    );
+
+  border-radius:999px;
+  border:2px solid rgba(255,255,255,0.55); /* ✅ 外枠 */
+
+  color:white;
+  font-size:17px;              /* 少し小さく */
+  font-weight:500;
+  letter-spacing:0.1em;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+
+  box-shadow:
+    0 10px 22px rgba(255,120,160,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.4);
+
+  backdrop-filter: blur(2px);
+}
+
+.camera-btn:active{
+  transform:scale(0.96);
+}
+
+.note-text{
+  margin-top:10px;
+  font-size:12px;
+  color:#c2aab4;
+  letter-spacing:0.05em;
+}
+
+.camera-icon{
+  width:52px;
+  height:52px;
+  margin-bottom:8px;
+}
+
+.subtitle,
+.camera-btn,
+.note-text{
+  font-family: 'Zen Maru Gothic', 'Klee One', sans-serif;
+}
+
+.subtitle{
+  font-size:14px;
+  color:#b8a3ad;
+  letter-spacing:0.08em;
+}
+
+.camera-btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+
+.btn-svg{
+  width:20px;
+  height:20px;
+  fill:white;
+  flex-shrink:0;
+}
+
+.btn-text{
+  font-family:'Zen Maru Gothic', sans-serif;
+  font-size:17px;
+  letter-spacing:0.1em;
+}

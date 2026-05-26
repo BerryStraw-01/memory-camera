@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -41,23 +42,162 @@
     <!-- ===== カメラ ===== -->
     <div id="screen-camera" class="screen active">
         <div class="screen-inner">
-
+            <!-- ハートだけ少し小さく調整版 -->
             <header class="screen-header">
-                <h1 class="app-title">思い出カメラ</h1>
+                <div class="title-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 130 55"
+                         width="130"
+                         height="55"
+                         aria-hidden="true">
+
+                        <defs>
+                            <!-- カメラ -->
+                            <linearGradient id="gradCamMain" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#ff7ca9"/>
+                                <stop offset="100%" stop-color="#f2447e"/>
+                            </linearGradient>
+
+                            <!-- キラキラ -->
+                            <linearGradient id="gradSparklePale" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#ffd1e4"/>
+                                <stop offset="100%" stop-color="#fca1cc"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- 左キラキラ（大きめ・角丸寄り） -->
+                        <path
+                                d="
+                M 10 29
+                C 10 39 14 42 19 42
+                C 14 42 10 45 10 55
+                C 10 45 6 42 1 42
+                C 6 42 10 39 10 29
+                Z"
+                                fill="url(#gradSparklePale)"
+                                opacity="0.9"
+                        />
+
+                        <!-- カメラ -->
+                        <g transform="translate(30, 1)">
+
+                            <!-- 本体 -->
+                            <path
+                                    d="
+                    M18 20
+                    h-4
+                    c-3 0-6 3-6 6
+                    v18
+                    c0 3 3 6 6 6
+                    h36
+                    c3 0 6-3 6-6
+                    V26
+                    c0-3-3-6-6-6
+                    h-4
+                    l-6-8
+                    H24
+                    l-6 8
+                    z"
+                                    fill="none"
+                                    stroke="url(#gradCamMain)"
+                                    stroke-width="3.2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                            />
+
+                            <!-- 中間サイズのハート版 -->
+                            <path
+                                    d="
+    M 31 29
+    C 33.5 24.8 39.2 25.5 39.2 31
+    C 39.2 35.5 35.2 39 31 42.5
+    C 26.8 39 22.8 35.5 22.8 31
+    C 22.8 25.5 28.5 24.8 31 29
+    Z"
+                                    fill="none"
+                                    stroke="url(#gradCamMain)"
+                                    stroke-width="3"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                            />
+                        </g>
+
+                        <!-- 右キラキラ（大きめ・下配置） -->
+                        <path
+                                d="
+                M 97 34
+                C 97 42 100 45 104 45
+                C 100 45 97 48 97 56
+                C 97 48 94 45 90 45
+                C 94 45 97 42 97 34
+                Z"
+                                fill="url(#gradSparklePale)"
+                                opacity="0.85"
+                        />
+
+                        <!-- 右大キラ -->
+                        <path
+                                d="
+                M 118 20
+                C 118 33 122 36 127 36
+                C 122 36 118 40 118 53
+                C 118 40 114 36 109 36
+                C 114 36 118 33 118 20
+                Z"
+                                fill="url(#gradSparklePale)"
+                        />
+                    </svg>
+                </div>
             </header>
 
+            <h1 class="title-text">思い出カメラ</h1>
+            <p class="subtitle">大切な瞬間を写真に残しましょう</p>
+
+                <!-- 撮影枠 -->
             <div class="screen-content">
                 <div class="image-area">
                     <video id="camera-video" muted playsinline></video>
                 </div>
-
-                <div class="action-area">
-                    <button id="shutter-btn" class="btn primary">カメラをON</button>
-                </div>
             </div>
+            <button class="camera-btn">
+
+                <!-- 左アイコン -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4 4h3l2-2h6l2 2h3a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3zm8 3a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
+                </svg>
+
+
+                <span class="btn-text">カメラをON</span>
+
+                <!-- 右キラキラ -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <!-- 左上の大きなキラキラ -->
+                    <path d="M10 2c0 4.418-3.582 8-8 8 4.418 0 8 3.582 8 8 0-4.418 3.582-8 8-8-4.418 0-8-3.582-8-8z"/>
+                    <!-- 右下の小さなキラキラ -->
+                    <path d="M19 13c0 2.209-1.791 4-4 4 2.209 0 4 1.791 4 4 0-2.209 1.791-4 4-4-2.209 0-4-1.791-4-4z"/>
+                </svg>
+
+
+            </button>
+            <p class="note-text" style="display: inline-flex; align-items: center; gap: 4px;">
+                <!-- 南京錠（背景を透明にし、テキストのサイズに合わせました） -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="flex-shrink: 0;">
+                    <g fill="none" stroke="#FF69B4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- シャックル（上のU字） -->
+                        <path d="M 8 11 V 8 A 4 4 0 0 1 16 8 V 11" />
+                        <!-- ボディ（下の四角） -->
+                        <rect x="5" y="11" width="14" height="10" rx="1.5" />
+                        <!-- 鍵穴 -->
+                        <path d="M 12 14 V 17" stroke-width="2" />
+                    </g>
+                </svg>
+                写真は端末内のみに保存されます
+            </p>
 
         </div>
+        </div>
     </div>
+
 
     <!-- ===== ローディング ===== -->
     <div id="screen-loading" class="screen">
