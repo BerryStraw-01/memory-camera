@@ -496,7 +496,7 @@ input[type="range"]::-moz-range-thumb {
   /* ✅ 真ん中固定 */
   justify-content: center;
 
-  flex: 1;
+  flex: none;
   min-height: 0;
 }
 
@@ -504,8 +504,8 @@ input[type="range"]::-moz-range-thumb {
 /* カメラ・写真表示枠（中央固定・3:4） */
 /* ✅ カメラ・写真表示枠（最終版・完全中央） */
 .image-area {
-  width: 100%;          /* ✅ 親基準 */
-  max-width: 320px;
+  width: calc(100vw - 32px);
+  max-width: 360px;
   aspect-ratio: 4 / 3;
 
   margin: 0 auto;
@@ -518,11 +518,13 @@ input[type="range"]::-moz-range-thumb {
   justify-content: center;
 }
 
+
 .image-area video,
 .image-area img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  border-radius: 20px;
 }
 
 .screen {
