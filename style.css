@@ -824,7 +824,7 @@ input[type="range"]::-moz-range-thumb {
   max-width: 290px;
   height: 386px;
   /* 4:3の黄金比率にするため、横幅290pxに合わせて縦幅を217pxに自動計算させます */
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 3 / 4;
   background: black;
   border-radius: 26px;
 
