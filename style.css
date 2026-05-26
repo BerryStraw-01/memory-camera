@@ -223,22 +223,6 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* ======================
-   思い出カメラ：春テーマ
-====================== */
-
-/* 背景レイヤー */
-.spring-bg{
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-}
-
-/* ======================
-   リアル寄りの桜の花びら
-====================== */
-
-/* ======================
    花びら型（iPhone対応・確実）
 ====================== */
 
@@ -861,122 +845,34 @@ input[type="range"]::-moz-range-thumb {
   display: block;
 }
 
-/* ===== プレビュー画面 ===== */
-.preview-screen{
-  padding:24px 16px 32px;
-  text-align:center;
+
+
+
+
+
+/* ==========================================================================
+   ===== プレビュー画面全体 =====
+   ========================================================================== */
+.preview-screen {
+  padding: 24px 16px 32px;
+  text-align: center;
 }
 
-/* タイトル */
-.preview-title{
-  font-size:26px;
-  color:#ff7aa8;
-  margin-bottom:4px;
+/* タイトル・サブタイトル */
+.preview-title {
+  font-size: 26px;
+  color: #ff7aa8;
+  margin-bottom: 4px;
 }
 
-.preview-sub{
-  font-size:13px;
-  color:#b8a3ad;
-  margin-bottom:16px;
+.preview-sub {
+  font-size: 13px;
+  color: #b8a3ad;
+  margin-bottom: 16px;
 }
 
-/* プレビュー枠 */
-/* ===== プレビュー写真枠 ===== */
-.preview-frame{
-  position: relative;
-  width: 100%;
-  max-width: 320px;
-
-  aspect-ratio: 3 / 4;     /* ✅ ここが重要 */
-
-  margin: 0 auto 16px;
-
-  background: #000;
-  border-radius: 22px;
-  border: 6px solid rgba(255,255,255,0.9);
-  overflow: hidden;
-}
-
-/* 画像は枠いっぱい */
-.preview-frame img{
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: #000;
-  display: block;
-}
-
-/* グリッド */
-.grid{
-  position:absolute;
-  inset:0;
-  background:
-    linear-gradient(#ff9fc533 1px, transparent 1px),
-    linear-gradient(90deg, #ff9fc533 1px, transparent 1px);
-  background-size:33.33% 33.33%;
-}
-
-/* 中央十字 */
-.cross::before,
-.cross::after{
-  content:"";
-  position:absolute;
-  background:#ff7aa8;
-}
-
-.cross::before{
-  width:20px;
-  height:2px;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-}
-.cross::after{
-  width:2px;
-  height:20px;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-}
-
-/* 四隅ガイド */
-.corner{
-  position:absolute;
-  width:22px;
-  height:22px;
-  border:3px solid #ff7aa8;
-}
-
-.tl{ top:6px; left:6px; border-right:none; border-bottom:none; }
-.tr{ top:6px; right:6px; border-left:none; border-bottom:none; }
-.bl{ bottom:6px; left:6px; border-right:none; border-top:none; }
-.br{ bottom:6px; right:6px; border-left:none; border-top:none; }
-
-/* 操作エリア */
-.preview-controls{
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-.control-title{
-  font-size:14px;
-  color:#ff7aa8;
-  margin-bottom:8px;
-}
-
-.btn-icon{
-  width: 20px;
-  height: 20px;
-  fill: white;
-}
-
-/* 背景だけ無効化 */
-.spring-bg{
-  pointer-events: none;
-}
-
-.preview-back-btn{
+/* 戻るボタン */
+.preview-back-btn {
   position: absolute;
   top: 16px;
   left: 16px;
@@ -984,48 +880,637 @@ input[type="range"]::-moz-range-thumb {
   height: 44px;
   border-radius: 50%;
   border: none;
-
-  background: rgba(255,255,255,0.9);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 10;
 }
 
-.preview-back-btn svg{
+.preview-back-btn svg {
   width: 22px;
   height: 22px;
   fill: #ff7aa8;
 }
 
-/* ===== プレビュー用シークバー ===== */
-.preview-controls input[type="range"]{
-  -webkit-appearance: none;
-  width: 100%;
-  height: 4px;
-  border-radius: 4px;
-  background: linear-gradient(
-    90deg,
-    #ffb6cf,
-    #ffdbe7
-  );
+/* 背景無効化用クラス */
+.spring-bg {
+  pointer-events: none;
 }
 
-/* つまみ */
-.preview-controls input[type="range"]::-webkit-slider-thumb{
+
+/* ==========================================================================
+   ===== プレビュー写真枠 ＆ カメラガイド =====
+   ========================================================================== */
+/* プレビュー外枠 */
+.preview-frame {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 3 / 4; /* ✅ ここが重要 */
+  margin: 0 auto 16px;
+  background: #000;
+  border-radius: 22px;
+  border: 6px solid rgba(255, 210, 225, 0.95);
+  overflow: hidden;
+}
+
+/* 写真画像 */
+.preview-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
+
+/* 4隅のL字ガイド（ベース設定） */
+.corner {
+  position: absolute;
+  width: 24px; /* 全体のサイズ調整 */
+  height: 24px;
+  background: transparent;
+}
+
+/* 外側の太いピンク線 */
+.corner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 5px solid #ff7aa8;
+}
+
+/* 内側の白い芯線 */
+.corner::after {
+  content: "";
+  position: absolute;
+  top: 1.5px;
+  left: 1.5px;
+  right: 1.5px;
+  bottom: 1.5px;
+  border: 2px solid #fff;
+}
+
+/* 4隅の各個別位置・角丸・不要な辺の除去調整 */
+.tl { top: 12px; left: 12px; }
+.tl::before { border-right: none; border-bottom: none; border-top-left-radius: 7px; }
+.tl::after  { border-right: none; border-bottom: none; border-top-left-radius: 5px; }
+
+/* 右上 */
+.tr { top: 12px; right: 12px; }
+.tr::before { border-left: none; border-bottom: none; border-top-right-radius: 7px; }
+.tr::after  { border-left: none; border-bottom: none; border-top-right-radius: 5px; }
+
+/* 左下 */
+.bl { bottom: 12px; left: 12px; }
+.bl::before { border-right: none; border-top: none; border-bottom-left-radius: 7px; }
+.bl::after  { border-right: none; border-top: none; border-bottom-left-radius: 5px; }
+
+/* 右下 */
+.br { bottom: 12px; right: 12px; }
+.br::before { border-left: none; border-top: none; border-bottom-right-radius: 7px; }
+.br::after  { border-left: none; border-top: none; border-bottom-right-radius: 5px; }
+
+
+/* ==========================================================================
+   ===== 操作エリア（コントロール） =====
+   ========================================================================== */
+/* 操作コンテナ */
+.preview-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  fill: white;
+}
+
+/* コントロールカード枠 */
+.control-card {
+  padding: 10px 14px;
+}
+
+.control-card.horizontal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+}
+
+/* ==========================================================================
+   ===== 操作エリア（コントロール）修正版 =====
+   ========================================================================== */
+
+/* 左側：アイコン＆タイトルエリア（縦並び・完全中央寄せに変更） */
+.control-left {
+  display: flex;
+  flex-direction: column;  /* 縦並びにして中央に配置 */
+  align-items: center;     /* 左右方向の中央寄せ */
+  justify-content: center; /* 上下方向の中央寄せ */
+  gap: 6px;
+  min-width: 100px;        /* 縦並び化に伴い幅を最適化 */
+}
+
+/* アイコン（さらに太く大きく・中央ズレを完全修正） */
+.control-icon {
+  width: 44px;             /* 40px -> 44px に拡大 */
+  height: 44px;
+  border-radius: 50%;
+  background: #ffe3ee;
+  color: #ff7aa8;
+
+  display: inline-flex;    /* flexより中央配置が安定するインラインフレックス */
+  align-items: center;
+  justify-content: center;
+
+  font-size: 24px;         /* 20px -> 24px に拡大 */
+  font-weight: 900;        /* 最高強度に太く設定 */
+  line-height: 1;          /* 文字自体の上下余白をリセットしてズレを防止 */
+}
+
+/* 左側の説明文字（サイズ拡大） */
+/* 右側：シークバーエリア */
+.control-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* バーの上下位置を中央に安定させる */
+}
+
+/* シークバー（レンジ）の共通スタイル */
+.preview-controls input[type="range"],
+.control-right input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;             /* バー自体も少し太くして安定感を向上 */
+  border-radius: 4px;
+  background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
+  display: block;
+}
+
+/* つまみ（スライダーサム：上にずれる現象を修正） */
+.preview-controls input[type="range"]::-webkit-slider-thumb,
+.control-right input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
   border-radius: 50%;
   background: #ff7aa8;
-  border: 4px solid #fff;
-  margin-top: -7px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  border: 3px solid #fff;
+
+  /* 【修正】バーの高さ(6px)とつまみ(18px)の中心を完全に一致させる計算値 */
+  margin-top: -6px;
+
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
 }
 
-/* カード自体の余白を減らす */
-.control-card{
-  padding: 10px 14px;
+/* 下部キャプション・数値表記（サイズ拡大） */
+.range-caption {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 14px;         /* 13px -> 14px に拡大 */
+  font-weight: 700;
+  color: #ff7aa8;
+}
+
+ご提示いただいたHTML構造に合わせて、ご要望の「十字ガイドの2色化」と「グリッド線の点線（破線）化」を反映しました。
+外枠（.preview-frame）のボーダー色である rgba(255, 210, 225, 0.95) をグリッド線の点線に適用し、中央の十字（.cross）も4隅と同じく「外側ピンク＋内側白」の構造にブラッシュアップしています。
+## 変更・追加するCSSコード
+以下のコードを、先ほどのCSSの該当するパーツ部分と差し替えてください。
+
+/* ==========================================================================
+   ===== プレビュー写真枠 ＆ カメラガイド（修正版） =====
+   ========================================================================== *//* プレビュー外枠 */
+.preview-frame {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 3 / 4;
+  margin: 0 auto 16px;
+  background: #000;
+  border-radius: 22px;
+  border: 6px solid rgba(255, 210, 225, 0.95); /* この色を点線に使用 */
+  overflow: hidden;
+}
+/* 写真画像 */
+.preview-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: block;
+}
+
+/* ==========================================================================
+   ===== 3分割グリッド線（位置計算バグを完全解決した決定版） =====
+   ========================================================================== */
+/* ==========================================================================
+   ===== 3分割グリッド線（にじみバグを完全解決した決定版） =====
+   ========================================================================== */
+.preview-frame .grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* --- 横の点線（2本とも完全に同じクッキリとした破線にする調整） --- */
+/* 上から1/3の位置（一番上の線） */
+.preview-frame .grid::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 33.333%;
+  height: 2px; /* 1.5pxから2pxにわずかに太くして、ブラウザのにじみバグをシャットアウト */
+
+  /* ✅ グラデーションの色の変わり目を「0px」で完全固定し、にじみを強制リセット */
+  background-image: linear-gradient(
+    to right,
+    rgba(255, 210, 225, 0.95) 0px,
+    rgba(255, 210, 225, 0.95) 5px,
+    transparent 5px,
+    transparent 10px
+  );
+  background-size: 10px 2px; /* 5px描画・5px空白のパターンを確実に繰り返す */
+}
+
+/* 上から2/3の位置（下の横線） */
+.preview-frame .grid::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 66.666%;
+  height: 2px;
+  background-image: linear-gradient(
+    to right,
+    rgba(255, 210, 225, 0.95) 0px,
+    rgba(255, 210, 225, 0.95) 5px,
+    transparent 5px,
+    transparent 10px
+  );
+  background-size: 10px 2px;
+}
+
+/* --- 縦の点線（追加していただいたタグ用） --- */
+.preview-frame .grid-v1,
+.preview-frame .grid-v2 {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 210, 225, 0.95) 0px,
+    rgba(255, 210, 225, 0.95) 5px,
+    transparent 5px,
+    transparent 10px
+  );
+  background-size: 2px 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+.preview-frame .grid-v1 { left: 33.333%; }
+.preview-frame .grid-v2 { left: 66.666%; }
+
+
+
+/* 4隅のL字ガイド（ベース設定 - 変更なし） */
+.corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+}
+.corner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 5px solid #ff7aa8;
+}
+.corner::after {
+  content: "";
+  position: absolute;
+  top: 1.5px;
+  left: 1.5px;
+  right: 1.5px;
+  bottom: 1.5px;
+  border: 2px solid #fff;
+}
+/* 各位置ごとの調整（変更なし） */
+.tl { top: 12px; left: 12px; }
+.tl::before { border-right: none; border-bottom: none; border-top-left-radius: 7px; }
+.tl::after  { border-right: none; border-bottom: none; border-top-left-radius: 5px; }
+
+.tr { top: 12px; right: 12px; }
+.tr::before { border-left: none; border-bottom: none; border-top-right-radius: 7px; }
+.tr::after  { border-left: none; border-bottom: none; border-top-right-radius: 5px; }
+
+.bl { bottom: 12px; left: 12px; }
+.bl::before { border-right: none; border-top: none; border-bottom-left-radius: 7px; }
+.bl::after  { border-right: none; border-top: none; border-bottom-left-radius: 5px; }
+
+.br { bottom: 12px; right: 12px; }
+.br::before { border-left: none; border-top: none; border-bottom-right-radius: 7px; }
+.br::after  { border-left: none; border-top: none; border-bottom-right-radius: 5px; }
+
+/* ==========================================================================
+   ===== 操作エリア（コントロール）シークバー完全修正版 =====
+   ========================================================================== */
+
+/* 右側：シークバーエリア */
+.control-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* シークバー（レンジ本体）のスタイル共通化と初期化 */
+.preview-controls input[type="range"],
+.control-right input[type="range"] {
+  -webkit-appearance: none;
+  background: transparent; /* 背景のベースを透明にしてズレを防ぐ */
+  width: 100%;
+  height: 28px;            /* つまみが絶対に隠れない、少し高めの領域を確保 */
+  margin: 0;               /* ブラウザ固有の余白を完全にリセット */
+  padding: 0;
+  display: block;
+}
+
+/* スライダーの「線（トラック）」部分のスタイルを厳密に定義 */
+.preview-controls input[type="range"]::-webkit-slider-runnable-track,
+.control-right input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;             /* 線の太さ */
+  background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
+  border-radius: 4px;
+}
+
+/* つまみ（スライダーサム：白枠をスリムに、中心配置を完全固定） */
+.preview-controls input[type="range"]::-webkit-slider-thumb,
+.control-right input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff7aa8;
+
+  /* ✅ 白枠をスリムに変更（3px → 1.5px） */
+  border: 1.5px solid #fff;
+
+  /* ✅ 上下の中央にぴったり重ねるための厳密な計算値 */
+  /* つまみの高さ(18px) から 線の太さ(6px) を引き、2で割った値をマイナスにする */
+  margin-top: -6px;
+
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* Firefox用の対応（Firefoxでも同じ見た目をキープするために追加） */
+.preview-controls input[type="range"]::-moz-range-track,
+.control-right input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
+  border-radius: 4px;
+}
+.preview-controls input[type="range"]::-moz-range-thumb,
+.control-right input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff7aa8;
+  border: 1.5px solid #fff; /* 白枠スリム化 */
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   ===== 操作エリア（コントロール）シークバー完全修正版 =====
+   ========================================================================== */
+
+/* 右側：シークバーエリア */
+.control-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* シークバー（レンジ本体）の初期化 */
+.preview-controls input[type="range"],
+.control-right input[type="range"] {
+  -webkit-appearance: none;
+  background: transparent;  /* 本体背景を透明にしてズレを防止 */
+  width: 100%;
+  height: 24px;             /* つまみがはみ出さない高さを確保 */
+  margin: 0;                /* ブラウザ固有の余白をリセット */
+  padding: 0;
+  display: block;
+}
+
+/* フォーム選択時の青い枠を消す */
+.preview-controls input[type="range"]:focus,
+.control-right input[type="range"]:focus {
+  outline: none;
+}
+
+/* 【重要】スライダーの「線」部分に直接高さを指定して位置を固定 */
+.preview-controls input[type="range"]::-webkit-slider-runnable-track,
+.control-right input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;              /* スライダーの線の太さ */
+  background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
+  border-radius: 4px;
+}
+
+/* つまみ：白枠をスリム化＆位置を線の中心に強制ロック */
+.preview-controls input[type="range"]::-webkit-slider-thumb,
+.control-right input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff7aa8;
+
+  /* ✅ 白枠をさらにスリムに変更 */
+  border: 1.5px solid #fff;
+
+  /* ✅ 上下の中心位置をミリ単位で完璧に合わせる計算値 */
+  /* つまみの高さ(18px) - 線の太さ(6px) = 12px → それを2で割った「6px」を引く */
+  margin-top: -6px;
+
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* ===== Firefox用の位置調整対応 ===== */
+.preview-controls input[type="range"]::-moz-range-track,
+.control-right input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
+  border-radius: 4px;
+}
+.preview-controls input[type="range"]::-moz-range-thumb,
+.control-right input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff7aa8;
+  border: 1.5px solid #fff; /* 白枠スリム化 */
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   ===== 操作エリア（コントロール）位置・バランス完全調整版 =====
+   ========================================================================== */
+
+/* コンテナ全体の並びと高さを均等に揃える */
+.control-card.horizontal {
+  display: flex;
+  align-items: center;     /* 左右のボックス自体を上下中央で綺麗に揃える */
+  gap: 16px;               /* 左右の間隔を少し広げて見やすく */
+  padding: 16px 14px;      /* 上下の余白を広げて中の要素が潰れるのを防ぐ */
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+}
+
+/* 左側：アイコン＆タイトルエリア（縦並び・中央配置） */
+.control-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;     /* 横方向の中央揃え */
+  justify-content: center; /* 縦方向の中隔を中央揃え */
+  gap: 6px;
+  min-width: 90px;         /* 右側のシークバー領域を広くするために幅を最適化 */
+  flex-shrink: 0;          /* 横幅が潰れないように固定 */
+}
+
+/* アイコン（真円の維持と中央ズレを完全リセット） */
+.control-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffe3ee;
+  color: #ff7aa8;
+
+  display: inline-flex;    /* 内部の文字を確実にど真ん中に配置 */
+  align-items: center;
+  justify-content: center;
+
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* 左側の説明文字（サイズ・位置調整） */
+.control-title {
+  font-size: 16px;         /* 18pxから16pxに微調整しスマートに */
+  font-weight: 800;
+  color: #ff7aa8;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* 右側：シークバーエリア（高さを左側と綺麗に同期） */
+.control-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* 内部パーツ全体の中心線を揃える */
+  height: 100%;            /* 親の高さに合わせる */
+}
+
+/* シークバー（レンジ本体）の初期化 */
+.preview-controls input[type="range"],
+.control-right input[type="range"] {
+  -webkit-appearance: none;
+  background: transparent;
+  width: 100%;
+  height: 24px;             /* つまみがはみ出さない高さを維持 */
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+.preview-controls input[type="range"]:focus,
+.control-right input[type="range"]:focus {
+  outline: none;
+}
+
+/* スライダーの「線」部分に高さを指定 */
+.preview-controls input[type="range"]::-webkit-slider-runnable-track,
+.control-right input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
+  border-radius: 4px;
+}
+
+/* つまみ：スリムな白枠＆中心にロック */
+.preview-controls input[type="range"]::-webkit-slider-thumb,
+.control-right input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff7aa8;
+  border: 1.5px solid #fff; /* スリムな白枠 */
+  margin-top: -6px;         /* 線の中心にジャストフィットさせる計算値 */
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* ===== Firefox用の位置調整対応 ===== */
+.preview-controls input[type="range"]::-moz-range-track,
+.control-right input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
+  border-radius: 4px;
+}
+.preview-controls input[type="range"]::-moz-range-thumb,
+.control-right input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff7aa8;
+  border: 1.5px solid #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* 下部キャプション・数値表記 */
+.range-caption {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;         /* スライダーとの隙間を程よく詰めて一体感を出す */
+  font-size: 14px;
+  font-weight: 700;
+  color: #ff7aa8;
+  line-height: 1;
+}
+
+/* シークバー全体を少し左に寄せる */
+.control-right {
+  margin-left: -24px;   /* ← 6〜12px の間で好みに調整 */
+  margin-right: 24px;   /* ← 6〜12px の間で好みに調整 */
+}
+
+/* シークバー全体を少し左に寄せる */
+.control-left {
+  margin-left: -12px;   /* ← 6〜12px の間で好みに調整 */
+  margin-right: 12px;   /* ← 6〜12px の間で好みに調整 */
 }

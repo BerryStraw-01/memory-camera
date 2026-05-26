@@ -42,9 +42,17 @@ let scale = 0.8;
 let showKishiko = false;
 let showPlace = false;
 
+// ✅ プレビューの出力サイズ（3:4）
+const OUTPUT_WIDTH = 1108;
+const OUTPUT_HEIGHT = 1477;
+
 // ===== 背景 =====
 const bg = new Image();
 bg.src = "images/memory.jpg";
+
+const bgReady = new Promise(resolve => {
+  bg.onload = resolve;
+});
 
 // ===== MediaPipe =====
 const segmentation = new SelfieSegmentation({
@@ -56,16 +64,16 @@ segmentation.setOptions({ modelSelection: 1 });
 const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
 
-function drawCover(ctx, src, sw, sh, dw, dh) {
-  const sa = sw / sh, da = dw / dh;
-  let sx, sy, sw2, sh2;
-  if (sa > da) {
-    sh2 = sh; sw2 = sh * da; sx = (sw - sw2) / 2; sy = 0;
-  } else {
-    sw2 = sw; sh2 = sw / da; sx = 0; sy = (sh - sh2) / 2;
-  }
-  ctx.drawImage(src, sx, sy, sw2, sh2, 0, 0, dw, dh);
+function drawContain(ctx, src, sw, sh, dw, dh) {
+  const scale = Math.min(dw / sw, dh / sh);
+  const w = sw * scale;
+  const h = sh * scale;
+  const x = (dw - w) / 2;
+  const y = (dh - h) / 2;
+
+  ctx.drawImage(src, 0, 0, sw, sh, x, y, w, h);
 }
+
 
 // ===== カメラON =====
 async function startCamera() {
@@ -75,10 +83,13 @@ async function startCamera() {
   });
   video.srcObject = stream;
 
-  // ✅ 再生前に高さを固定（超重要）
-  const box = document.querySelector(".image-area");
+  await new Promise(resolve => {
+    video.onloadedmetadata = () => {
+      video.play();
+      resolve();
+    };
+  });
 
-  await video.play();
   cameraReady = true;
   shutterBtn.textContent = "📸 撮影";
 }
@@ -86,32 +97,34 @@ async function startCamera() {
 // ===== 再描画 =====
 async function redraw() {
   await fontReady;
-  const w = canvas.width, h = canvas.height;
-  if (!w || !h) return;
+  await bgReady;
+
+  const w = canvas.width;
+  const h = canvas.height;
 
   ctx.clearRect(0, 0, w, h);
-  drawCover(ctx, bg, bg.width, bg.height, w, h);
 
-  const pw = w * scale;
-  const ph = h * scale;
-  const px = (w - pw) / 2;
+  // ✅ 背景（切れない）
+  drawContain(ctx, bg, bg.width, bg.height, w, h);
+
+  // ✅ 被写体
+  // 被写体の元サイズ
+  const srcW = personCanvas.width;
+  const srcH = personCanvas.height;
+
+  // 元の縦横比を保持
+  const personAspect = srcW / srcH;
+
+  // 基準サイズ（高さ基準が自然）
+  const baseH = h * scale;
+  const baseW = baseH * personAspect;
+
+  // 描画位置
+  const px = (w - baseW) / 2;
   const py = h * 0.45 + (offsetY / 100) * h;
-  ctx.drawImage(personCanvas, px, py, pw, ph);
 
-  const texts = [];
-  if (showKishiko) texts.push("岸高同窓会");
-  if (showPlace) texts.push("〇〇に行ったよ");
-
-  if (texts.length) {
-    ctx.font = "600 32px 'Klee One', cursive";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = "black";
-    ctx.fillStyle = "orange";
-    ctx.strokeText(texts.join("　"), w / 2, h - 24);
-    ctx.fillText(texts.join("　"), w / 2, h - 24);
-  }
+  // 描画
+  ctx.drawImage(personCanvas, px, py, baseW, baseH);
 
   const url = canvas.toDataURL("image/png");
   previewImg.src = url;
@@ -122,24 +135,29 @@ async function redraw() {
 // ===== MediaPipe結果 =====
 segmentation.onResults(async res => {
   await fontReady;
-  const w = video.videoWidth, h = video.videoHeight;
+  await bgReady;
 
-  personCanvas.width = w;
-  personCanvas.height = h;
+  // ✅ 出力サイズを固定
+  canvas.width = OUTPUT_WIDTH;
+  canvas.height = OUTPUT_HEIGHT;
 
-  drawCover(personCtx, video, w, h, w, h);
+  personCanvas.width = res.image.width;
+  personCanvas.height = res.image.height;
+
+  // ===== 被写体マスク作成 =====
+  personCtx.clearRect(0, 0, personCanvas.width, personCanvas.height);
+  personCtx.drawImage(res.image, 0, 0);
+
   personCtx.globalCompositeOperation = "destination-in";
-  personCtx.filter = "blur(6px)";
-  personCtx.drawImage(res.segmentationMask, 0, 0, w, h);
-  personCtx.filter = "none";
+  personCtx.drawImage(res.segmentationMask, 0, 0);
   personCtx.globalCompositeOperation = "source-over";
 
-  canvas.width = w;
-  canvas.height = h;
+  // ===== 最終描画 =====
+  await redraw();
 
   showScreen("preview");
-  await redraw();
 });
+
 
 // ===== ボタン =====
 shutterBtn.onclick = async () => {
@@ -154,7 +172,13 @@ shutterBtn.onclick = async () => {
   editImg.src = "";
   saveImg.src = "";
 
-  segmentation.send({ image: video });
+  try {
+    await segmentation.send({ image: video });
+  } catch (e) {
+    console.error(e);
+    alert("画像の処理に失敗しました。もう一度撮影してください。");
+    showScreen("camera");
+  }
 };
 
 offsetSlider.oninput = () => {

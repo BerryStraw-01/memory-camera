@@ -211,63 +211,78 @@
 
     <!-- ===== プレビュー ===== -->
     <div id="screen-preview" class="screen">
-        <button id="retry-btn" class="preview-back-btn" aria-label="戻る">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 5v-3l-5 5 5 5v-3c3.3 0 6 2.7 6 6 0 3.3-2.7 6-6 6s-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/>
-            </svg>
-        </button>
         <div class="screen-inner preview-screen">
 
-            <header class="screen-header">
-                <h1 class="preview-title">プレビュー</h1>
-                <p class="preview-sub">
-                    位置と大きさを調整して、ベストな一枚に
-                </p>
-            </header>
+            <button id="retry-btn" class="preview-back-btn" aria-label="戻る">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15 6 L9 12 L15 18"
+                          fill="none"
+                          stroke="#ff7aa8"
+                          stroke-width="2.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
+            </button>
 
-            <!-- プレビュー枠 -->
+            <!-- 写真だけ -->
+            <!-- 写真と各種ガイドラインを重ねる枠 -->
             <div class="preview-frame">
-                <img id="captured-image" alt="プレビュー">
+                <img id="captured-image">
 
-                <!-- グリッド -->
+                <!-- ✅ グリッド（横線） -->
                 <div class="grid"></div>
 
-                <!-- 中央十字 -->
-                <div class="cross"></div>
+                <!-- ⚠️ 追加：縦線用の2つのタグをここにコピペしてください -->
+                <div class="grid-v1"></div>
+                <div class="grid-v2"></div>
 
-                <!-- 四隅ガイド -->
+                <!-- 4隅のL字ガイド -->
                 <span class="corner tl"></span>
                 <span class="corner tr"></span>
                 <span class="corner bl"></span>
                 <span class="corner br"></span>
             </div>
 
-            <!-- 操作カード -->
+
+
+            <!-- ✅ シークバー UI はここ -->
             <div class="preview-controls">
 
-                <div class="control-card">
-                    <div class="control-title">上下の位置</div>
-                    <input type="range" id="offset-slider" min="-20" max="20" value="0">
+                <div class="control-card horizontal">
+                    <div class="control-left">
+                        <div class="control-icon">↕</div>
+                    </div>
+                    <div class="control-right">
+                        <input type="range" id="offset-slider" min="-20" max="20" value="0">
+                        <div class="range-caption">
+                            <span>下</span>
+                            <span>上</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="control-card">
-                    <div class="control-title">大きさ</div>
-                    <input type="range" id="scale-slider" min="70" max="120" value="100">
+                <div class="control-card horizontal">
+                    <div class="control-left">
+                        <div class="control-icon">⤢</div>
+                    </div>
+                    <div class="control-right">
+                        <input type="range" id="scale-slider" min="70" max="120" value="100">
+                        <div class="range-caption">
+                            <span>小</span>
+                            <span>大</span>
+                        </div>
+                    </div>
                 </div>
 
                 <button id="to-edit-btn" class="btn primary">
-                    <svg class="btn-icon" viewBox="0 0 24 24">
-                        <!-- ペン -->
-                        <path d="M4 20l4.5-1 8.9-8.9-3.5-3.5L5 15.5 4 20z" />
-                        <!-- キラキラ -->
-                        <path d="M18 3c0 2.2-1.8 4-4 4 2.2 0 4 1.8 4 4 0-2.2 1.8-4 4-4-2.2 0-4-1.8-4-4z"/>
-                    </svg>
-                    次：文字を入れる
+                    ✏️ 次：文字を入れる
                 </button>
 
             </div>
-
         </div>
+
+
+    </div>
     </div>
 
     <!-- ===== 編集 ===== -->
