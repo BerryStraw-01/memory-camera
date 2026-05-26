@@ -162,7 +162,7 @@
                     <video id="camera-video" muted playsinline></video>
                 </div>
             </div>
-            <button class="camera-btn">
+            <button id="camera-btn" class="camera-btn">
 
                 <!-- 左アイコン -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -221,25 +221,25 @@
                 <div class="image-area">
                     <img id="captured-image" alt="プレビュー">
                 </div>
+            </div>
 
-                <div class="action-area">
+            <div class="action-area">
 
-                    <div class="slider-group">
-                        <div class="slider-item">
-                            <span class="icon">↕</span>
-                            <input type="range" id="offset-slider" min="-20" max="20" value="0">
-                            <span class="label">位置</span>
-                        </div>
-                        <div class="slider-item">
-                            <span class="icon">⤢</span>
-                            <input type="range" id="scale-slider" min="70" max="90" value="80">
-                            <span class="label">大きさ</span>
-                        </div>
+                <div class="slider-group">
+                    <div class="slider-item">
+                        <span class="icon">↕</span>
+                        <input type="range" id="offset-slider" min="-20" max="20" value="0">
+                        <span class="label">位置</span>
                     </div>
-
-                    <button id="to-edit-btn" class="btn primary">文字を入れる</button>
-                    <button id="retry-btn" class="btn secondary">撮り直す</button>
+                    <div class="slider-item">
+                        <span class="icon">⤢</span>
+                        <input type="range" id="scale-slider" min="70" max="90" value="80">
+                        <span class="label">大きさ</span>
+                    </div>
                 </div>
+
+                <button id="to-edit-btn" class="btn primary">文字を入れる</button>
+                <button id="retry-btn" class="btn secondary">撮り直す</button>
             </div>
 
         </div>

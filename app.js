@@ -22,7 +22,7 @@ const previewImg = document.getElementById("captured-image");
 const editImg = document.getElementById("edit-image");
 const saveImg = document.getElementById("save-image");
 
-const shutterBtn = document.getElementById("shutter-btn");
+const shutterBtn = document.getElementById("camera-btn");
 const retryBtn = document.getElementById("retry-btn");
 const toEditBtn = document.getElementById("to-edit-btn");
 const doneBtn = document.getElementById("done-btn");
