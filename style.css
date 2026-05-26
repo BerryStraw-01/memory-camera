@@ -822,7 +822,7 @@ input[type="range"]::-moz-range-thumb {
 .screen-content {
   width: 100%;
   max-width: 290px;
-  height: 386px;
+  height: 406px;
   /* 4:3の黄金比率にするため、横幅290pxに合わせて縦幅を217pxに自動計算させます */
   aspect-ratio: 3 / 4;
   background: black;
@@ -835,7 +835,7 @@ input[type="range"]::-moz-range-thumb {
     0 12px 26px rgba(255, 160, 190, 0.35),
     inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 
-  margin: 20px auto 28px;
+  margin: auto;
   display: flex;
 
   /* 中身がはみ出さないための設定 */
