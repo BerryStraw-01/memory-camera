@@ -211,35 +211,53 @@
 
     <!-- ===== プレビュー ===== -->
     <div id="screen-preview" class="screen">
-        <div class="screen-inner">
+        <div class="screen-inner preview-screen">
 
             <header class="screen-header">
-                <h1 class="app-title">プレビュー</h1>
+                <h1 class="preview-title">プレビュー</h1>
+                <p class="preview-sub">
+                    位置と大きさを調整して、ベストな一枚に
+                </p>
             </header>
 
-            <div class="screen-content">
-                <div class="image-area">
-                    <img id="captured-image" alt="プレビュー">
-                </div>
+            <!-- プレビュー枠 -->
+            <div class="preview-frame">
+                <img id="captured-image" alt="プレビュー">
+
+                <!-- グリッド -->
+                <div class="grid"></div>
+
+                <!-- 中央十字 -->
+                <div class="cross"></div>
+
+                <!-- 四隅ガイド -->
+                <span class="corner tl"></span>
+                <span class="corner tr"></span>
+                <span class="corner bl"></span>
+                <span class="corner br"></span>
             </div>
 
-            <div class="action-area">
+            <!-- 操作カード -->
+            <div class="preview-controls">
 
-                <div class="slider-group">
-                    <div class="slider-item">
-                        <span class="icon">↕</span>
-                        <input type="range" id="offset-slider" min="-20" max="20" value="0">
-                        <span class="label">位置</span>
-                    </div>
-                    <div class="slider-item">
-                        <span class="icon">⤢</span>
-                        <input type="range" id="scale-slider" min="70" max="90" value="80">
-                        <span class="label">大きさ</span>
-                    </div>
+                <div class="control-card">
+                    <div class="control-title">上下の位置</div>
+                    <input type="range" id="offset-slider" min="-20" max="20" value="0">
                 </div>
 
-                <button id="to-edit-btn" class="btn primary">文字を入れる</button>
-                <button id="retry-btn" class="btn secondary">撮り直す</button>
+                <div class="control-card">
+                    <div class="control-title">大きさ</div>
+                    <input type="range" id="scale-slider" min="70" max="120" value="100">
+                </div>
+
+                <button id="to-edit-btn" class="btn primary">
+                    📷 文字を入れる
+                </button>
+
+                <button id="retry-btn" class="btn secondary">
+                    ↩ 撮り直す
+                </button>
+
             </div>
 
         </div>
