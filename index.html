@@ -214,6 +214,11 @@
         <div class="screen-inner preview-screen">
 
             <header class="screen-header">
+                <button id="retry-btn" class="btn secondary">
+                    <svg class="btn-icon back-icon" viewBox="0 0 24 24">
+                        <path d="M12 5v-3l-5 5 5 5v-3c3.3 0 6 2.7 6 6 0 3.3-2.7 6-6 6s-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/>
+                    </svg>
+                </button>
                 <h1 class="preview-title">プレビュー</h1>
                 <p class="preview-sub">
                     位置と大きさを調整して、ベストな一枚に
@@ -251,11 +256,13 @@
                 </div>
 
                 <button id="to-edit-btn" class="btn primary">
-                    📷 文字を入れる
-                </button>
-
-                <button id="retry-btn" class="btn secondary">
-                    ↩ 撮り直す
+                    <svg class="btn-icon" viewBox="0 0 24 24">
+                        <!-- ペン -->
+                        <path d="M4 20l4.5-1 8.9-8.9-3.5-3.5L5 15.5 4 20z" />
+                        <!-- キラキラ -->
+                        <path d="M18 3c0 2.2-1.8 4-4 4 2.2 0 4 1.8 4 4 0-2.2 1.8-4 4-4-2.2 0-4-1.8-4-4z"/>
+                    </svg>
+                    次：文字を入れる
                 </button>
 
             </div>
