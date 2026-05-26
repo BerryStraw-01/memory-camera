@@ -506,7 +506,7 @@ input[type="range"]::-moz-range-thumb {
 .image-area {
   width: 100%;          /* ✅ 親基準 */
   max-width: 320px;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 3;
 
   margin: 0 auto;
 
@@ -823,4 +823,22 @@ input[type="range"]::-moz-range-thumb {
   color: transparent;
 
   margin:6px 0 8px;
+}
+
+.title-text{
+  font-size:32px;          /* ← 36px → 32px */
+  font-weight:500;
+  letter-spacing:0.14em;
+
+  background: linear-gradient(
+    135deg,
+    #FF46BB 0%,
+    #ff7aa8 45%,
+    #ff9fc5 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  margin:4px 0 6px;        /* 上下を詰める */
 }
