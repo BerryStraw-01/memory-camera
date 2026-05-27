@@ -24,10 +24,7 @@ const editImg = document.getElementById("edit-image");
 const saveImg = document.getElementById("save-image");
 
 const shutterBtn = document.getElementById("camera-btn");
-const retryBtn = document.getElementById("retry-btn");
 const toEditBtn = document.getElementById("to-edit-btn");
-const doneBtn = document.getElementById("done-btn");
-const backToPreviewBtn = document.getElementById("back-to-preview");
 
 const offsetSlider = document.getElementById("offset-slider");
 const scaleSlider = document.getElementById("scale-slider");
@@ -254,32 +251,26 @@ toEditBtn.onclick = async () => {
 const saveBtn = document.getElementById("save-btn");
 
 saveBtn.onclick = async () => {
-
-  // ✅ 高画質で再描画
   await redrawFinal();
 
-  // ✅ ダウンロードリンク作成
-  const link = document.createElement("a");
-  link.href = finalImageURL;
-  link.download = "memory-photo.png";
-
-  // ✅ 自動クリック
-  link.click();
-};
-
-
-// ✅ 保存（ここが最重要）
-doneBtn.onclick = async () => {
-  await redrawFinal(); // ✅ 文字入り描画
-
   saveImg.src = finalImageURL;
-  showScreen("save");
+
+  showScreen("save"); // ✅ 保存画面へ
 };
 
-document.getElementById("back-camera").onclick = () => {
-  showScreen("camera");
-};
+const saveBackBtn = document.getElementById("save-back-btn");
 
-// 戻る
+if (saveBackBtn) {
+  saveBackBtn.onclick = () => {
+    showScreen("edit"); // ✅ 編集画面に戻る
+  };
+}
+
+const retryBtn = document.getElementById("retry-btn");
+const editBackBtn = document.getElementById("edit-back-btn");
+
 retryBtn.onclick = () => showScreen("camera");
-backToPreviewBtn.onclick = () => showScreen("preview");
+
+editBackBtn.onclick = () => {
+showScreen("preview");
+};

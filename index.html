@@ -248,7 +248,31 @@
 
                 <div class="control-card horizontal">
                     <div class="control-left">
-                        <div class="control-icon">↕</div>
+                        <div class="control-icon">
+                            <svg viewBox="0 0 32 32" xmlns="http://w3.org" style="width: 100%; height: 100%; aspect-ratio: 1 / 1; flex-shrink: 0;">
+                                <!-- 縦棒 -->
+                                <path d="M16 6v20"
+                                      stroke="#ff7aa8" stroke-width="2.5"
+                                      stroke-linecap="round"/>
+
+                                <!-- 上矢印（左側・右側の羽） -->
+                                <path d="M10 11l6-6"
+                                      stroke="#ff7aa8" stroke-width="2.5"
+                                      stroke-linecap="round"/>
+                                <path d="M22 11l-6-6"
+                                      stroke="#ff7aa8" stroke-width="2.5"
+                                      stroke-linecap="round"/>
+
+                                <!-- 下矢印（✅ 座標のズレを修正し、綺麗に下を向くように修正） -->
+                                <path d="M10 21l6 5"
+                                      stroke="#ff7aa8" stroke-width="2.5"
+                                      stroke-linecap="round"/>
+                                <path d="M22 21l-6 5"
+                                      stroke="#ff7aa8" stroke-width="2.5"
+                                      stroke-linecap="round"/>
+                            </svg>
+
+                        </div>
                     </div>
                     <div class="control-right">
                         <input type="range" id="offset-slider" min="-20" max="20" value="0">
@@ -261,7 +285,35 @@
 
                 <div class="control-card horizontal">
                     <div class="control-left">
-                        <div class="control-icon">⤢</div>
+                        <div class="control-icon">
+                            <svg viewBox="0 0 32 32" xmlns="http://w3.org" style="width: 100%; height: 100%; aspect-ratio: 1 / 1; flex-shrink: 0;">
+                                <!-- 外側の大きい四角（拡大後のイメージ：綺麗に見せるため角丸仕様） -->
+                                <rect x="4" y="4" width="24" height="24" rx="3"
+                                      fill="none"
+                                      stroke="#ff7aa8" stroke-width="2.5"
+                                      stroke-dasharray="4 3"/> <!-- 破線にして変化前/後を表現 -->
+
+                                <!-- 内側の小さい四角（縮小時のイメージ） -->
+                                <rect x="11" y="11" width="10" height="10" rx="1.5"
+                                      fill="none"
+                                      stroke="#ff7aa8" stroke-width="2.5"/>
+
+                                <!-- 右上方向への拡大を示す矢印（対角線） -->
+                                <path d="M19 13l6-6"
+                                      fill="none"
+                                      stroke="#ff7aa8" stroke-width="2.5"
+                                      stroke-linecap="round"/>
+
+                                <!-- 矢印の先端（右上） -->
+                                <path d="M21 7h4v4"
+                                      fill="none"
+                                      stroke="#ff7aa8" stroke-width="2.5"
+                                      stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+
+
+
+                        </div>
                     </div>
                     <div class="control-right">
                         <input type="range" id="scale-slider" min="70" max="120" value="100">
@@ -272,9 +324,47 @@
                     </div>
                 </div>
 
-                <button id="to-edit-btn" class="btn primary">
-                    ✏️ 次：文字を入れる
+                <button id="to-edit-btn" class="btn primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://w3.org" style="aspect-ratio: 1 / 1; flex-shrink: 0;">
+                        <!-- ペン軸の左側の辺 -->
+                        <line x1="10" y1="21" x2="21" y2="10"
+                              stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+                        <!-- ペン軸の右側の辺 -->
+                        <line x1="13" y1="24" x2="24" y2="13"
+                              stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+                        <!-- ペンのお尻のフタ -->
+                        <line x1="21" y1="10" x2="24" y2="13"
+                              stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+                        <!-- ペン先 -->
+                        <path d="M10 21l-4 7 7-4"
+                              fill="none"
+                              stroke="white" stroke-width="2"
+                              stroke-linecap="round" stroke-linejoin="round"/>
+
+                        <!-- ✨右下の大キラキラ（右上から右下の安全な位置へ移動） -->
+                        <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
+                              fill="none"
+                              stroke="white" stroke-width="2"
+                              stroke-linecap="round" stroke-linejoin="round"
+                              opacity="0.95"
+                              transform="translate(22, 20) scale(1.0)" />
+
+                        <!-- ✨左下の小キラキラ（全体のバランスを整えるため維持） -->
+                        <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
+                              fill="none"
+                              stroke="white" stroke-width="2"
+                              stroke-linecap="round" stroke-linejoin="round"
+                              opacity="0.75"
+                              transform="translate(2, 14) scale(0.7)" />
+                    </svg>
+
+
+                    <span>次：文字を入れる</span>
                 </button>
+
 
             </div>
         </div>
@@ -422,22 +512,45 @@
     <!-- ===== 保存 ===== -->
     <div id="screen-save" class="screen">
         <div class="screen-inner">
+            <button id="save-back-btn" class="preview-back-btn" aria-label="戻る">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15 6 L9 12 L15 18"
+                          fill="none"
+                          stroke="#ff7aa8"
+                          stroke-width="2.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
+            </button>
 
-
-            <header class="screen-header">
-                <h1 class="app-title">保存</h1>
-            </header>
-
-            <div class="screen-content">
-                <div class="image-area">
+            <div class="preview-frame">
                     <img id="save-image" alt="保存画像">
-                </div>
-
-                <div class="action-area">
-                    <p class="save-guide">画像を長押しして保存してね</p>
-                    <button id="back-to-edit" class="btn secondary">戻る</button>
-                </div>
             </div>
+            <div class="save-instruction">
+
+                <!-- 桜SVG（絶対に潰れないぷっくり5枚花デザイン） -->
+                <svg class="sakura-icon" viewBox="0 0 100 100" width="24" height="24" xmlns="http://w3.org" style="aspect-ratio: 1 / 1; flex-shrink: 0;">
+                    <!-- 1枚の大きな花びらを正確に360度（72度ずつ）に回転配置 -->
+                    <g fill="#ffb6c1">
+                        <!-- 上 -->
+                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" />
+                        <!-- 右上 -->
+                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(72 50 50)" />
+                        <!-- 右下 -->
+                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(144 50 50)" />
+                        <!-- 左下 -->
+                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(216 50 50)" />
+                        <!-- 左上 -->
+                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(288 50 50)" />
+                    </g>
+                    <!-- 中央の花芯（アクセントの濃いピンク） -->
+                    <circle cx="50" cy="50" r="6" fill="#ff7aa8" opacity="0.9"/>
+                </svg>
+
+                <span>画像を長押しして保存してください</span>
+
+            </div>
+
 
         </div>
     </div>
