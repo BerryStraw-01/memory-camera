@@ -1,4 +1,4 @@
-const fontReady = document.fonts.load("600 32px 'Klee One'");
+const fontReady = document.fonts.ready;
 
 // ===== 画面管理 =====
 const screens = {
@@ -31,6 +31,8 @@ const scaleSlider = document.getElementById("scale-slider");
 
 const toggleKishikoBtn = document.getElementById("toggle-kishiko");
 const togglePlaceBtn = document.getElementById("toggle-place");
+
+const btnText = document.querySelector("#camera-btn .btn-text");
 
 const place = "岸和田城";
 
@@ -90,7 +92,7 @@ async function startCamera() {
   });
 
   cameraReady = true;
-  shutterBtn.textContent = "📸 撮影";
+  btnText.textContent = "撮影";
 }
 
 // ===== 共通描画（背景＋人物） =====
@@ -120,17 +122,50 @@ async function drawBase() {
 
 // ===== プレビュー描画（文字なし） =====
 async function redraw() {
+  await fontReady;
   await drawBase();
 
   finalImageURL = canvas.toDataURL("image/png");
   previewImg.src = finalImageURL;
 }
 
+function drawPin(ctx, x, y, size) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // 本体（しずく型）
+  ctx.beginPath();
+  ctx.moveTo(0, size);
+
+  ctx.bezierCurveTo(
+    size, size * 0.4,
+    size * 0.8, -size,
+    0, -size
+  );
+
+  ctx.bezierCurveTo(
+    -size * 0.8, -size,
+    -size, size * 0.4,
+    0, size
+  );
+
+  ctx.fillStyle = "#ff7aa8";
+  ctx.fill();
+
+  // 中央の丸
+  ctx.beginPath();
+  ctx.arc(0, -size * 0.2, size * 0.35, 0, Math.PI * 2);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+
+  ctx.restore();
+}
+
 // ===== 保存用描画（文字あり） =====
 async function redrawFinal() {
 
-  // ✅ これを必ず入れる（超重要）
-  await document.fonts.ready;
+  await fontReady;
 
   await drawBase();
 
@@ -141,37 +176,45 @@ async function redrawFinal() {
   ctx.textBaseline = "middle";
   ctx.font = "600 86px 'Klee One', cursive";
 
-    if (showKishiko) {
-      const x = w / 2;
-      const y = h * 0.05; // ✅ 下に移動
+  // ===== 上の文字 =====
+  if (showKishiko) {
+    const x = w / 2;
+    const y = h * 0.05;
 
-      // ✅ 外枠（白）
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 10;
-      ctx.lineJoin = "round";
-      ctx.strokeText("in 岸高同窓会", x, y);
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 10;
+    ctx.lineJoin = "round";
+    ctx.strokeText("in 岸高同窓会", x, y);
 
-      // ✅ 中の文字（ピンク）
-      ctx.fillStyle = "#ff7aa8";
-      ctx.fillText("in 岸高同窓会", x, y);
-    }
+    ctx.fillStyle = "#ff7aa8";
+    ctx.fillText("in 岸高同窓会", x, y);
+  }
 
-    if (showPlace) {
-      const x = w / 2;
-      const y = h * 0.95; // ✅ さらに下に
+  // ===== 下の場所 =====
+  if (showPlace) {
 
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 8;
-      ctx.lineJoin = "round";
-      ctx.strokeText("📍" + place, x, y);
+    const textX = w / 2 + 40;  // 少し右にずらして中央バランス
+    const textY = h * 0.95;
 
-      ctx.fillStyle = "#ff7aa8";
-      ctx.fillText("📍" + place, x, y);
-    }
+    const pinX = textX - 230;  // ピン位置
+    const pinY = textY;
 
+    // ✅ ピン描画
+    drawPin(ctx, pinX, pinY, 50);
+
+    // ✅ 文字
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 10;
+    ctx.lineJoin = "round";
+    ctx.strokeText(place, textX, textY);
+
+    ctx.fillStyle = "#ff7aa8";
+    ctx.fillText(place, textX, textY);
+  }
 
   finalImageURL = canvas.toDataURL("image/png");
 }
+
 
 // ===== MediaPipe結果 =====
 segmentation.onResults(async res => {
