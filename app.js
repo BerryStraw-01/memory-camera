@@ -60,7 +60,6 @@ let lastSegmentationResult = null;
 
 let cachedPersonCanvas = null;
 let cachedBounds = null;
-let cachedBackgroundReady = false;
 let needsRender = false;
 
 let finalImageURL = null;
@@ -91,17 +90,11 @@ function getBgParam() {
   return params.get("bg"); // 例: kishiwada-hare
 }
 
-function setBackgroundByKey(key) {
-  const preset = PRESETS[key];
-  if (!preset) {
-    console.warn("未知の bgKey:", key);
-    return;
-  }
+function setBackground(url) {
+  bg.src = url;
 
-  currentBgKey = key;
-  bg.src = preset.image;
-
-  bg.onload = async () => {
+  bg.onload = () => {
+    needsRender = true;   // ← 軽量再描画だけにする
   };
 }
 
