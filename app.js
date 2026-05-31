@@ -1,5 +1,64 @@
 const fontReady = document.fonts.ready;
 
+const PRESETS = {
+  "kishiwada-hare": {
+    image: "images/kishiwada-hare.png",
+    place: "岸和田城（晴れ）",
+
+    normalize: { brightness: 1.00, saturation: 1.00 },
+    saturation: 1.20,
+
+    globalMultiply: { color: [0,0,0], opacity: 0.00 },
+    globalScreen: { color: [255,255,255], opacity: 0.00 },
+
+    localScreen: {
+      enabled: true,
+      color: [72,157,237],
+      opacity: 0.40,
+      center: [0.5, 0.22],
+      radius: 0.35
+    },
+
+    overlay: {
+      color: [72,157,237],
+      opacity: 0.10
+    }
+  },
+
+  "kishiwada-kumori": {
+    image: "images/kishiwada-kumori.png",
+    place: "岸和田城（曇り）",
+
+    normalize: { brightness: 1.02, saturation: 0.95 },
+    saturation: 1.10,
+
+    globalMultiply: {
+      color: [212, 221, 228],
+      opacity: 0.5
+    },
+
+    globalScreen: {
+      color: [255,240,245],
+      opacity: 0.06
+    },
+
+    localScreen: {
+      enabled: true,
+      color: [255,180,200],
+      opacity: 0.35,
+      center: [0.5, 0.18],
+      radius: 0.40
+    },
+
+    overlay: {
+      color: [255,200,215],
+      opacity: 0.08
+    }
+  }
+};
+
+let currentBgKey = "kishiwada-hare";
+
 // ===== 画面管理 =====
 const screens = {
   camera: document.getElementById("screen-camera"),
@@ -34,8 +93,6 @@ const togglePlaceBtn = document.getElementById("toggle-place");
 
 const btnText = document.querySelector("#camera-btn .btn-text");
 
-const place = "岸和田城";
-
 // ===== 状態 =====
 let cameraReady = false;
 let offsetY = 0;
@@ -50,11 +107,6 @@ const OUTPUT_HEIGHT = 1477;
 
 // ===== 背景 =====
 const bg = new Image();
-bg.src = "images/memory.jpg";
-
-const bgReady = new Promise(resolve => {
-  bg.onload = resolve;
-});
 
 // ===== MediaPipe =====
 const segmentation = new SelfieSegmentation({
@@ -65,6 +117,26 @@ segmentation.setOptions({ modelSelection: 1 });
 // ===== 切り抜き =====
 const personCanvas = document.createElement("canvas");
 const personCtx = personCanvas.getContext("2d");
+
+function getBgParam() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("bg"); // 例: kishiwada-hare
+}
+
+function setBackgroundByKey(key) {
+  const preset = PRESETS[key];
+  if (!preset) {
+    console.warn("未知の bgKey:", key);
+    return;
+  }
+
+  currentBgKey = key;
+  bg.src = preset.image;
+
+  bg.onload = async () => {
+    await redraw();
+  };
+}
 
 function drawContain(ctx, src, sw, sh, dw, dh) {
   const scale = Math.min(dw / sw, dh / sh);
@@ -95,10 +167,106 @@ async function startCamera() {
   btnText.textContent = "撮影";
 }
 
+function applyNormalize(ctx, canvas, cfg) {
+  ctx.save();
+  ctx.filter = `
+    brightness(${cfg.brightness})
+    saturate(${cfg.saturation})
+  `;
+  ctx.drawImage(canvas, 0, 0);
+  ctx.restore();
+}
+
+function applyGlobalMultiply(ctx, w, h, cfg) {
+  if (cfg.opacity <= 0) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  ctx.globalAlpha = cfg.opacity;
+  ctx.fillStyle = `rgb(${cfg.color.join(",")})`;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+}
+
+function applyGlobalScreen(ctx, w, h, cfg) {
+  if (cfg.opacity <= 0) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.globalAlpha = cfg.opacity;
+  ctx.fillStyle = `rgb(${cfg.color.join(",")})`;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+}
+
+function applyLocalLight(ctx, w, h, cfg, mode) {
+  if (!cfg.enabled || cfg.opacity <= 0) return;
+
+  const cx = cfg.center[0] * w;
+  const cy = cfg.center[1] * h;
+  const r  = cfg.radius * Math.min(w, h);
+
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  grad.addColorStop(0, `rgba(${cfg.color.join(",")},${cfg.opacity})`);
+  grad.addColorStop(1, `rgba(${cfg.color.join(",")},0)`);
+
+  ctx.save();
+  ctx.globalCompositeOperation = mode;
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+}
+
+function applyLocalScreenToPerson(personCanvas, cfg) {
+  if (!cfg.enabled || cfg.opacity <= 0) return personCanvas;
+
+  personLightCanvas.width = personCanvas.width;
+  personLightCanvas.height = personCanvas.height;
+  personLightCtx.clearRect(0, 0, personLightCanvas.width, personLightCanvas.height);
+
+  const w = personLightCanvas.width;
+  const h = personLightCanvas.height;
+
+  // ① スクリーン光を描く
+  const cx = cfg.center[0] * w;
+  const cy = cfg.center[1] * h;
+  const r  = cfg.radius * Math.min(w, h);
+
+  const grad = personLightCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  grad.addColorStop(0, `rgba(${cfg.color.join(",")},${cfg.opacity})`);
+  grad.addColorStop(1, `rgba(${cfg.color.join(",")},0)`);
+
+  personLightCtx.globalCompositeOperation = "source-over";
+  personLightCtx.fillStyle = grad;
+  personLightCtx.fillRect(0, 0, w, h);
+
+  // ② 人物マスクでクリップ
+  personLightCtx.globalCompositeOperation = "destination-in";
+  personLightCtx.drawImage(personCanvas, 0, 0);
+
+  return personLightCanvas;
+}
+
+function applyOverlay(ctx, w, h, cfg) {
+  if (cfg.opacity <= 0) return;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "overlay";
+  ctx.globalAlpha = cfg.opacity;
+  ctx.fillStyle = `rgb(${cfg.color.join(",")})`;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+}
+
+function getCurrentPreset() {
+  return PRESETS[currentBgKey];
+}
+
 // ===== 共通描画（背景＋人物） =====
 async function drawBase() {
   await fontReady;
-  await bgReady;
+
+  if (!bg.complete || bg.naturalWidth === 0) return;
 
   const w = canvas.width;
   const h = canvas.height;
@@ -117,13 +285,86 @@ async function drawBase() {
   const px = (w - baseW) / 2;
   const py = h * 0.45 + (offsetY / 100) * h;
 
-  ctx.drawImage(personCanvas, px, py, baseW, baseH);
+  const preset = getCurrentPreset();
+  const processedPerson = applyPresetToPerson(personCanvas, preset);
+
+  ctx.drawImage(processedPerson, px, py, baseW, baseH);
+}
+
+function setBackground(url) {
+  // 背景画像を変更
+  bg.src = url;
+
+  // 背景ロード完了後に再描画
+  bg.onload = async () => {
+    await redraw();
+  };
+}
+
+function drawPersonWithColor(ctx, x, y, w, h) {
+  ctx.drawImage(personCanvas, x, y, w, h);
 }
 
 // ===== プレビュー描画（文字なし） =====
+
+const workCanvas = document.createElement("canvas");
+const workCtx = workCanvas.getContext("2d");
+
+const personWorkCanvas = document.createElement("canvas");
+const personWorkCtx = personWorkCanvas.getContext("2d");
+
+const personLightCanvas = document.createElement("canvas");
+const personLightCtx = personLightCanvas.getContext("2d");
+
+function applyPresetToPerson(personCanvas, preset) {
+  personWorkCanvas.width = personCanvas.width;
+  personWorkCanvas.height = personCanvas.height;
+  personWorkCtx.clearRect(0, 0, personWorkCanvas.width, personWorkCanvas.height);
+
+  // ① 元の人物
+  personWorkCtx.drawImage(personCanvas, 0, 0);
+
+  // ② normalize
+  personWorkCtx.save();
+  personWorkCtx.filter = `
+    brightness(${preset.normalize.brightness})
+    saturate(${preset.normalize.saturation})
+  `;
+  personWorkCtx.drawImage(personWorkCanvas, 0, 0);
+  personWorkCtx.restore();
+
+  // ③ saturation
+  personWorkCtx.save();
+  personWorkCtx.filter = `saturate(${preset.saturation})`;
+  personWorkCtx.drawImage(personWorkCanvas, 0, 0);
+  personWorkCtx.restore();
+
+  // ✅ ④ 人物マスク付きスクリーン光（ここが重要）
+  const screenLight = applyLocalScreenToPerson(personCanvas, preset.localScreen);
+  personWorkCtx.save();
+  personWorkCtx.globalCompositeOperation = "screen";
+  personWorkCtx.drawImage(screenLight, 0, 0);
+  personWorkCtx.restore();
+
+  // ⑤ overlay（人物だけ）
+  personWorkCtx.save();
+  personWorkCtx.globalCompositeOperation = "overlay";
+  personWorkCtx.globalAlpha = preset.overlay.opacity;
+  personWorkCtx.fillStyle = `rgb(${preset.overlay.color.join(",")})`;
+  personWorkCtx.fillRect(0, 0, personWorkCanvas.width, personWorkCanvas.height);
+  personWorkCtx.restore();
+
+  return personWorkCanvas;
+}
+
 async function redraw() {
   await fontReady;
   await drawBase();
+
+  // ✅ 背景全体にかけたい処理だけ残す（必要なら）
+  const preset = getCurrentPreset();
+  applyGlobalMultiply(ctx, canvas.width, canvas.height, preset.globalMultiply);
+  applyGlobalScreen(ctx, canvas.width, canvas.height, preset.globalScreen);
 
   finalImageURL = canvas.toDataURL("image/png");
   previewImg.src = finalImageURL;
@@ -206,10 +447,12 @@ async function redrawFinal() {
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 10;
     ctx.lineJoin = "round";
-    ctx.strokeText(place, textX, textY);
+    const preset = getCurrentPreset();
+    const placeText = preset.place ?? "";
 
     ctx.fillStyle = "#ff7aa8";
-    ctx.fillText(place, textX, textY);
+    ctx.strokeText(placeText, textX, textY);
+    ctx.fillText(placeText, textY);
   }
 
   finalImageURL = canvas.toDataURL("image/png");
@@ -218,6 +461,7 @@ async function redrawFinal() {
 
 // ===== MediaPipe結果 =====
 segmentation.onResults(async res => {
+  console.log("✅ segmentation.onResults called");
   canvas.width = OUTPUT_WIDTH;
   canvas.height = OUTPUT_HEIGHT;
 
@@ -317,3 +561,8 @@ retryBtn.onclick = () => showScreen("camera");
 editBackBtn.onclick = () => {
 showScreen("preview");
 };
+
+window.addEventListener("DOMContentLoaded", () => {
+  const bgKey = getBgParam() ?? "kishiwada-hare";
+  setBackgroundByKey(bgKey);
+});
