@@ -60,6 +60,7 @@ let lastSegmentationResult = null;
 
 let cachedPersonCanvas = null;
 let cachedBounds = null;
+let bgReady = false;
 let needsRender = false;
 
 let finalImageURL = null;
@@ -95,6 +96,20 @@ function setBackground(url) {
 
   bg.onload = () => {
     needsRender = true;   // ← 軽量再描画だけにする
+  };
+}
+
+function setBackgroundByKey(key) {
+  const preset = PRESETS[key];
+  if (!preset) return;
+
+  currentBgKey = key;
+  bgReady = false;
+  bg.src = preset.image;
+
+  bg.onload = () => {
+    bgReady = true;
+    needsRender = true;
   };
 }
 
@@ -629,6 +644,7 @@ const maskCanvas = document.createElement("canvas");
 const maskCtx = maskCanvas.getContext("2d");
 
 function renderLight() {
+  if (!bgReady) return;
   if (!cachedPersonCanvas || !cachedBounds) return;
 
   canvas.width = OUTPUT_WIDTH;
@@ -657,6 +673,7 @@ function renderLight() {
   const py = targetY - faceY;
 
   ctx.clearRect(0, 0, frameW, frameH);
+  console.log("bg:", bg.complete, bg.naturalWidth);
   drawCover(ctx, bg, bg.width, bg.height, frameW, frameH);
   ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
 
