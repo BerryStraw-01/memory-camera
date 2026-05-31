@@ -109,7 +109,6 @@ function setBackgroundByKey(key) {
 
   bg.onload = () => {
     bgReady = true;
-    needsRender = true;
   };
 }
 
@@ -634,7 +633,14 @@ async function renderWithCurrentParams(res) {
 
   // 描画
   ctx.clearRect(0, 0, frameW, frameH);
-  drawCover(ctx, bg, bg.width, bg.height, frameW, frameH);
+  drawCover(
+    ctx,
+    bg,
+    bg.naturalWidth,
+    bg.naturalHeight,
+    frameW,
+    frameH
+  );
   ctx.drawImage(personCanvas, px, py, baseW, baseH);
 
   previewImg.src = canvas.toDataURL();
@@ -646,6 +652,7 @@ const maskCtx = maskCanvas.getContext("2d");
 function renderLight() {
   if (!bgReady) return;
   if (!cachedPersonCanvas || !cachedBounds) return;
+  if (bg.naturalWidth === 0) return;
 
   canvas.width = OUTPUT_WIDTH;
   canvas.height = OUTPUT_HEIGHT;
@@ -674,7 +681,14 @@ function renderLight() {
 
   ctx.clearRect(0, 0, frameW, frameH);
   console.log("bg:", bg.complete, bg.naturalWidth);
-  drawCover(ctx, bg, bg.width, bg.height, frameW, frameH);
+  drawCover(
+    ctx,
+    bg,
+    bg.naturalWidth,
+    bg.naturalHeight,
+    frameW,
+    frameH
+  );
   ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
 
   previewImg.src = canvas.toDataURL();
