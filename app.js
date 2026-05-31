@@ -57,10 +57,54 @@ const bgReady = new Promise(resolve => {
 });
 
 // ===== MediaPipe =====
-const segmentation = new SelfieSegmentation({
-  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`
+let imageSegmenter;
+let segmentationReady = false;
+
+let fallbackSegmentation = new SelfieSegmentation({
+  locateFile: f =>
+    `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`
 });
-segmentation.setOptions({ modelSelection: 1 });
+fallbackSegmentation.setOptions({ modelSelection: 1 });
+
+// --- Wi‑Fi接続チェック ---
+function isOnWifi() {
+  const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (!c) return true;           // 判定不能＝OK扱い
+  if (c.type) return c.type === "wifi";
+  return c.effectiveType === "4g";
+}
+
+(async () => {
+  if (!isOnWifi()) {
+    alert(
+      "Wi‑Fiに接続してください。\n" +
+      "高精度処理のため約40MBのデータを読み込みます。"
+    );
+    segmentationReady = false;
+    return;
+  }
+
+  try {
+    imageSegmenter = new ImageSegmenter({
+      locateFile: f =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/image_segmentation/${f}`
+    });
+
+    await imageSegmenter.setOptions({
+      baseOptions: {
+        modelAssetPath:
+          "https://storage.googleapis.com/mediapipe-assets/deeplab_v3.tflite"
+      },
+      outputCategoryMask: true
+    });
+
+    segmentationReady = true;
+    console.log("✅ 高精度モデル準備完了");
+  } catch (e) {
+    console.error("❌ 高精度モデル失敗", e);
+    segmentationReady = false;
+  }
+})();
 
 // ===== 切り抜き =====
 const personCanvas = document.createElement("canvas");
@@ -216,26 +260,6 @@ async function redrawFinal() {
 }
 
 
-// ===== MediaPipe結果 =====
-segmentation.onResults(async res => {
-  canvas.width = OUTPUT_WIDTH;
-  canvas.height = OUTPUT_HEIGHT;
-
-  personCanvas.width = res.image.width;
-  personCanvas.height = res.image.height;
-
-  personCtx.clearRect(0, 0, personCanvas.width, personCanvas.height);
-  personCtx.drawImage(res.image, 0, 0);
-
-  personCtx.globalCompositeOperation = "destination-in";
-  personCtx.drawImage(res.segmentationMask, 0, 0);
-  personCtx.globalCompositeOperation = "source-over";
-
-  await redraw();
-
-  showScreen("preview");
-});
-
 // ===== ボタン =====
 shutterBtn.onclick = async () => {
   if (!cameraReady) {
@@ -245,11 +269,57 @@ shutterBtn.onclick = async () => {
 
   showScreen("loading");
 
-  previewImg.src = "";
-  editImg.src = "";
-  saveImg.src = "";
+  // ===== 高精度モデル =====
+  if (segmentationReady) {
+    const result = await imageSegmenter.segment(video);
 
-  await segmentation.send({ image: video });
+    canvas.width = OUTPUT_WIDTH;
+    canvas.height = OUTPUT_HEIGHT;
+
+    personCanvas.width = video.videoWidth;
+    personCanvas.height = video.videoHeight;
+
+    personCtx.clearRect(0, 0, personCanvas.width, personCanvas.height);
+    personCtx.drawImage(video, 0, 0);
+
+    const maskCanvas = document.createElement("canvas");
+    maskCanvas.width = personCanvas.width;
+    maskCanvas.height = personCanvas.height;
+
+    const maskCtx = maskCanvas.getContext("2d");
+    maskCtx.filter = "blur(1.5px)";   // ✅ 境界ぼかし
+    maskCtx.drawImage(result.categoryMask, 0, 0);
+    maskCtx.filter = "none";
+
+    personCtx.globalCompositeOperation = "destination-in";
+    personCtx.drawImage(maskCanvas, 0, 0);
+    personCtx.globalCompositeOperation = "source-over";
+
+    await redraw();
+    showScreen("preview");
+    return;
+  }
+
+  // ===== フォールバック（軽量）=====
+  fallbackSegmentation.onResults(async res => {
+    canvas.width = OUTPUT_WIDTH;
+    canvas.height = OUTPUT_HEIGHT;
+
+    personCanvas.width = res.image.width;
+    personCanvas.height = res.image.height;
+
+    personCtx.clearRect(0, 0, personCanvas.width, personCanvas.height);
+    personCtx.drawImage(res.image, 0, 0);
+
+    personCtx.globalCompositeOperation = "destination-in";
+    personCtx.drawImage(res.segmentationMask, 0, 0);
+    personCtx.globalCompositeOperation = "source-over";
+
+    await redraw();
+    showScreen("preview");
+  });
+
+  await fallbackSegmentation.send({ image: video });
 };
 
 offsetSlider.oninput = () => {
