@@ -92,10 +92,12 @@ function getBgParam() {
 }
 
 function setBackground(url) {
+  bgReady = false;
   bg.src = url;
 
   bg.onload = () => {
-    needsRender = true;   // ← 軽量再描画だけにする
+    bgReady = true;
+    needsRender = true;
   };
 }
 
@@ -103,12 +105,12 @@ function setBackgroundByKey(key) {
   const preset = PRESETS[key];
   if (!preset) return;
 
-  currentBgKey = key;
   bgReady = false;
   bg.src = preset.image;
 
   bg.onload = () => {
     bgReady = true;
+    needsRender = true;
   };
 }
 
@@ -733,6 +735,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   await loadONNX();  // ←これを先に
 
   const bgKey = getBgParam() ?? "kishiwada-hare";
-  setBackgroundByKey(bgKey);
+  const preset = PRESETS[bgKey];
+  if (preset) {
+    setBackground(preset.image);
+  }
 
 });
