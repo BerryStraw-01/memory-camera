@@ -53,11 +53,19 @@ const btnText = document.querySelector("#camera-btn .btn-text");
 // ===== 状態 =====
 let cameraReady = false;
 let offsetY = 0;
-let scale = 0.6;
+let scale = 1.2;
 let showKishiko = false;
 let showPlace = false;
+let lastSegmentationResult = null;
+
+let cachedPersonCanvas = null;
+let cachedBounds = null;
+let cachedBackgroundReady = false;
+let needsRender = false;
 
 let finalImageURL = null;
+
+let onnxRunning = false;
 
 const OUTPUT_WIDTH = 1108;
 const OUTPUT_HEIGHT = 1477;
@@ -94,7 +102,6 @@ function setBackgroundByKey(key) {
   bg.src = preset.image;
 
   bg.onload = async () => {
-    await redraw();
   };
 }
 
@@ -139,80 +146,6 @@ async function startCamera() {
 const personWorkCanvas = document.createElement("canvas");
 
 async function drawBase() {
-  await fontReady;
-
-  const w = canvas.width;
-  const h = canvas.height;
-
-  const cw = w;
-  const ch = h;
-
-  const aspect = personCanvas.width / personCanvas.height;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // 背景
-  drawCover(ctx, bg, bg.width, bg.height, w, h);
-
-  // ✅ 元画像Canvas（新しく作る）
-  const rawCanvas = document.createElement("canvas");
-  rawCanvas.width = personCanvas.width;
-  rawCanvas.height = personCanvas.height;
-
-  const rctx = rawCanvas.getContext("2d");
-
-  // ✅ マスク前の元画像を描く
-  rctx.drawImage(video, 0, 0, rawCanvas.width, rawCanvas.height);
-
-  // ↓ ONNXはこれを使う
-  const smallImage = resizeTo256(rawCanvas);
-  const smallMask  = resizeTo256(maskCanvas);
-
-  const output = await runONNX(smallImage, smallMask);
-
-  // ✅ 元サイズ準備
-  // ① 元画像をコピー
-  personWorkCanvas.width = personCanvas.width;
-  personWorkCanvas.height = personCanvas.height;
-
-  const pwCtx = personWorkCanvas.getContext("2d");
-  pwCtx.clearRect(0, 0, personWorkCanvas.width, personWorkCanvas.height);
-  pwCtx.drawImage(personCanvas, 0, 0);
-
-  // ② ONNX結果を作る
-  if (output) {
-    const tmpCanvas = document.createElement("canvas");
-    tmpCanvas.width = 256;
-    tmpCanvas.height = 256;
-
-    tensorToCanvas(output, tmpCanvas);
-
-    // ③ 元サイズへ拡大
-    const upCanvas = document.createElement("canvas");
-    upCanvas.width = personCanvas.width;
-    upCanvas.height = personCanvas.height;
-
-    upsampleToOriginal(tmpCanvas, upCanvas);
-
-    // ④ 重ねる（ここが核心）
-    pwCtx.drawImage(upCanvas, 0, 0);
-
-    // ✅ 最後にmask適用
-    pwCtx.globalCompositeOperation = "destination-in";
-    pwCtx.drawImage(maskCanvas, 0, 0);
-    pwCtx.globalCompositeOperation = "source-over";
-  }
-
-  const faceY = baseH * faceYRatio;
-  const targetY = h * 0.6 - (offsetY / 100) * h;
-
-  // ✅ 透明な人物レイヤーを合成する
-  ctx.save();
-
-  // 人物を上に重ねる（透明を維持）
-  ctx.drawImage(personWorkCanvas, px, py, baseW, baseH);
-
-  ctx.restore();
 }
 
 function upsampleToOriginal(src256, targetCanvas) {
@@ -277,16 +210,92 @@ const personLightCanvas = document.createElement("canvas");
 const personLightCtx = personLightCanvas.getContext("2d");
 
 async function redraw() {
-  await fontReady;
-  if (!isBgReady()) return;
-  await drawBase();
-
-  // ✅ ここでは何も加工しない
-  // ✅ すでに人物は加工済み
-
-  finalImageURL = canvas.toDataURL("image/png");
-  previewImg.src = finalImageURL;
 }
+
+async function drawPersonWithSegmentation(res) {
+  const w = res.image.width;
+  const h = res.image.height;
+
+  personCanvas.width = w;
+  personCanvas.height = h;
+
+  personCtx.clearRect(0, 0, w, h);
+  personCtx.drawImage(res.image, 0, 0, w, h);
+
+  personCtx.globalCompositeOperation = "destination-in";
+  personCtx.drawImage(res.segmentationMask, 0, 0, w, h);
+  personCtx.globalCompositeOperation = "source-over";
+}
+
+
+function prepareONNXInput() {
+  const img256 = resizeTo256(personCanvas);
+  const mask256 = resizeTo256(maskCanvas); // segmentationMask を描いた canvas
+
+  return { img256, mask256 };
+}
+
+async function applyONNX() {
+  if (!ortSession) return null;
+  if (onnxRunning) return null;   // ★ 追加
+
+  onnxRunning = true;
+  try {
+    const { img256, mask256 } = prepareONNXInput();
+    const output = await runONNX(img256, mask256);
+    return output;
+  } finally {
+    onnxRunning = false;
+  }
+}
+
+function getPersonBoundsFromMask(maskCanvas) {
+  const ctx = maskCanvas.getContext("2d");
+  const { width, height } = maskCanvas;
+  const data = ctx.getImageData(0, 0, width, height).data;
+
+  let top = height, bottom = 0;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      if (data[i + 3] > 10) { // alpha がある = 人物
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+      }
+    }
+  }
+
+  if (bottom <= top) return null;
+
+  return {
+    top,
+    bottom,
+    height: bottom - top
+  };
+}
+
+function applyONNXResultToPerson(output) {
+  if (!output) return;
+
+  const tmpCanvas = document.createElement("canvas");
+  tmpCanvas.width = 256;
+  tmpCanvas.height = 256;
+  tensorToCanvas(output, tmpCanvas);
+
+  // 差分として弱く重ねる（自然合成）
+  personCtx.save();
+  personCtx.globalAlpha = 0.4;                // 0.3〜0.5で調整
+  personCtx.globalCompositeOperation = "overlay";
+  personCtx.drawImage(
+    tmpCanvas,
+    0, 0,
+    personCanvas.width,
+    personCanvas.height
+  );
+  personCtx.restore();
+}
+
 
 function isBgReady() {
   return bg.complete && bg.naturalWidth > 0;
@@ -404,14 +413,31 @@ shutterBtn.onclick = async () => {
   await segmentation.send({ image: tempCanvas });
 };
 
-offsetSlider.oninput = () => {
-  offsetY = +offsetSlider.value;
-  redraw();
-};
+function renderLoop() {
+  if (needsRender && lastSegmentationResult) {
+    renderLight();          // ← 軽量描画のみ
+    needsRender = false;
+  }
+  requestAnimationFrame(renderLoop);
+}
+
+// 起動時に1回呼ぶ
+renderLoop();
+
+function clamp(v, min, max) {
+  return Math.min(max, Math.max(min, v));
+}
+
 
 scaleSlider.oninput = () => {
   scale = +scaleSlider.value / 100;
-  redraw();
+  needsRender = true;
+};
+
+
+offsetSlider.oninput = () => {
+  offsetY = (+offsetSlider.value) / 100;
+  needsRender = true;
 };
 
 // ===== ボタンイベントの修正 =====
@@ -560,116 +586,132 @@ function tensorToCanvas(tensor, canvas) {
   ctx.putImageData(img, 0, 0);
 }
 
+async function renderWithCurrentParams(res) {
+  // 表示キャンバス確定
+  canvas.width = OUTPUT_WIDTH;
+  canvas.height = OUTPUT_HEIGHT;
+
+  const frameW = canvas.width;
+  const frameH = canvas.height;
+
+  // 人物切り抜き
+  await drawPersonWithSegmentation(res);
+
+  // ONNX（色）
+  const output = await applyONNX();
+  applyONNXResultToPerson(output);
+
+  // alpha 復元
+  personCtx.globalCompositeOperation = "destination-in";
+  personCtx.drawImage(res.segmentationMask, 0, 0);
+  personCtx.globalCompositeOperation = "source-over";
+
+  // mask → 人物実寸
+  maskCanvas.width = personCanvas.width;
+  maskCanvas.height = personCanvas.height;
+  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+  maskCtx.drawImage(res.segmentationMask, 0, 0);
+
+  const bounds = getPersonBoundsFromMask(maskCanvas);
+  if (!bounds) return;
+
+  // 自動スケール
+  const TARGET_PERSON_RATIO = 0.6;
+  const desiredPersonH = frameH * TARGET_PERSON_RATIO;
+  const scaleFromPerson = desiredPersonH / bounds.height;
+  const finalScale = scaleFromPerson * clamp(scale, 0.8, 1.2);
+
+  const baseW = personCanvas.width * finalScale;
+  const baseH = personCanvas.height * finalScale;
+
+  const px = (frameW - baseW) / 2;
+
+  const faceY =
+    (bounds.top + bounds.height * faceYRatio) * finalScale;
+
+  const targetY =
+    frameH * 0.6 - offsetY * frameH;
+
+  const py = targetY - faceY;
+
+  // 描画
+  ctx.clearRect(0, 0, frameW, frameH);
+  drawCover(ctx, bg, bg.width, bg.height, frameW, frameH);
+  ctx.drawImage(personCanvas, px, py, baseW, baseH);
+
+  previewImg.src = canvas.toDataURL();
+}
+
 const maskCanvas = document.createElement("canvas");
 const maskCtx = maskCanvas.getContext("2d");
 
-segmentation.onResults(async res => {
+function renderLight() {
+  if (!cachedPersonCanvas || !cachedBounds) return;
 
   canvas.width = OUTPUT_WIDTH;
   canvas.height = OUTPUT_HEIGHT;
 
-  const cw = canvas.width;
-  const ch = canvas.height;
+  const frameW = canvas.width;
+  const frameH = canvas.height;
 
-  const w = res.image.width;
-  const h = res.image.height;
+  const TARGET_PERSON_RATIO = 0.6;
+  const desiredPersonH = frameH * TARGET_PERSON_RATIO;
 
-  // ✅ サイズ確定
-  // ✅ サイズ確定
-  personCanvas.width = w;
-  personCanvas.height = h;
+  const scaleFromPerson = desiredPersonH / cachedBounds.height;
+  const finalScale = scaleFromPerson * clamp(scale, 0.8, 1.2);
 
-  maskCanvas.width = w;
-  maskCanvas.height = h;
+  const baseW = cachedPersonCanvas.width * finalScale;
+  const baseH = cachedPersonCanvas.height * finalScale;
 
-  // ✅ ここで1回だけ
-  const aspect = personCanvas.width / personCanvas.height;
+  const px = (frameW - baseW) / 2;
 
-  // ✅ 高さ基準（これが正しい）
-  const baseH = ch * scale;
-  const baseW = baseH * aspect;
+  const faceY =
+    (cachedBounds.top + cachedBounds.height * faceYRatio) * finalScale;
 
-  const px = (cw - baseW) / 2;
+  const targetY =
+    frameH * 0.6 - offsetY * frameH;
 
-  // ✅ 顔位置
-  const faceY = baseH * faceYRatio;
-
-  // ✅ 目標位置
-  const targetY = ch * 0.6 - (offsetY / 100) * ch;
-
-  // ✅ 最終位置
   const py = targetY - faceY;
 
-  // ✅ ② ここで初めて計算
-  maskCanvas.width = w;
-  maskCanvas.height = h;
-
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-
-  personCtx.imageSmoothingEnabled = true;
-  personCtx.imageSmoothingQuality = "high";
-
-  // ===== mask（alpha化）=====
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  maskCtx.drawImage(res.segmentationMask, 0, 0, w, h);
-
-  let m = maskCtx.getImageData(0, 0, w, h);
-
-  // ✅ 1. alphaを滑らかに作る（重要）
-  for (let i = 0; i < m.data.length; i += 4) {
-    let raw = m.data[i];
-
-    let v = raw * 1.1 - 50;
-    if (v < 0) v = 0;
-    if (v > 255) v = 255;
-
-    m.data[i] = 0;
-    m.data[i+1] = 0;
-    m.data[i+2] = 0;
-    m.data[i+3] = v;
-  }
-
-  // ✅ 2. 一旦別canvasに入れる（これが超重要）
-  const tempMask = document.createElement("canvas");
-  tempMask.width = w;
-  tempMask.height = h;
-  tempMask.getContext("2d").putImageData(m, 0, 0);
-
-  // ✅ 3. ぼかして描き直す（ここで初めて効く）
-  maskCtx.clearRect(0, 0, w, h);
-
-  // ① 1回目
-  maskCtx.filter = "blur(1.5px)";
-  maskCtx.drawImage(tempMask, 0, 0);
-
-  // ✅ ② もう一回「tempMask」を使う
-  maskCtx.filter = "blur(1px)";
-  maskCtx.drawImage(tempMask, 0, 0);
-
-  maskCtx.filter = "none";
-
-
-  // ===== 人物（alpha適用）=====
-  personCtx.clearRect(0, 0, w, h);
-  personCtx.drawImage(res.image, 0, 0, w, h);
-
-  personCtx.globalCompositeOperation = "destination-in";
-  personCtx.drawImage(maskCanvas, 0, 0);
-  personCtx.globalCompositeOperation = "source-over";
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // 背景
-  drawCover(ctx, bg, bg.width, bg.height, canvas.width, canvas.height);
-
-  // 人物
-  ctx.drawImage(personCanvas, px, py, baseW, baseH);
+  ctx.clearRect(0, 0, frameW, frameH);
+  drawCover(ctx, bg, bg.width, bg.height, frameW, frameH);
+  ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
 
   previewImg.src = canvas.toDataURL();
-  showScreen("preview");
+}
 
-  console.log("✅ 背景合成 OK");
+segmentation.onResults(async res => {
+  lastSegmentationResult = res;
+
+  // 人物切り抜き（重い）
+  await drawPersonWithSegmentation(res);
+
+  // ONNX（重い・1回）
+  const output = await applyONNX();
+  applyONNXResultToPerson(output);
+
+  // alpha 復元
+  personCtx.globalCompositeOperation = "destination-in";
+  personCtx.drawImage(res.segmentationMask, 0, 0);
+  personCtx.globalCompositeOperation = "source-over";
+
+  // mask → bounds（重い・1回）
+  maskCanvas.width = personCanvas.width;
+  maskCanvas.height = personCanvas.height;
+  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+  maskCtx.drawImage(res.segmentationMask, 0, 0);
+
+  cachedBounds = getPersonBoundsFromMask(maskCanvas);
+
+  // ✅ 人物結果をキャッシュ
+  cachedPersonCanvas = document.createElement("canvas");
+  cachedPersonCanvas.width = personCanvas.width;
+  cachedPersonCanvas.height = personCanvas.height;
+  cachedPersonCanvas.getContext("2d").drawImage(personCanvas, 0, 0);
+
+  // 初回描画
+  renderLight();
+  showScreen("preview");
 });
 
 window.addEventListener("DOMContentLoaded", async () => {
