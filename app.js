@@ -183,16 +183,6 @@ function applyVibrance(canvas, amount = 0.5) {
   ctx.putImageData(img, 0, 0);
 }
 
-function setBackground(url) {
-  // 背景画像を変更
-  bg.src = url;
-
-  // 背景ロード完了後に再描画
-  bg.onload = async () => {
-    await redraw();
-  };
-}
-
 // ===== プレビュー描画（文字なし） =====
 
 const workCanvas = document.createElement("canvas");
