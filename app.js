@@ -50,6 +50,10 @@ const togglePlaceBtn = document.getElementById("toggle-place");
 
 const btnText = document.querySelector("#camera-btn .btn-text");
 
+const kleeFontReady = document.fonts.load(
+  "600 100px 'Klee One'"
+);
+
 // ===== 状態 =====
 let cameraReady = false;
 let offsetY = 0;
@@ -91,27 +95,36 @@ function getBgParam() {
   return params.get("bg"); // 例: kishiwada-hare
 }
 
-function setBackground(url) {
-  bgReady = false;
-  bg.src = url;
-
-  bg.onload = () => {
-    bgReady = true;
-    needsRender = true;
-  };
-}
-
 function setBackgroundByKey(key) {
   const preset = PRESETS[key];
   if (!preset) return;
 
+  currentBgKey = key;
+
   bgReady = false;
   bg.src = preset.image;
 
-  bg.onload = () => {
+  bg.onload = async () => {
     bgReady = true;
-    needsRender = true;
+    await ensureFontsReady();   // ← ★必ず待つ
+    renderLight();              // ← ★ここでだけ描画
   };
+}
+
+let fontsReadyResolved = false;
+
+async function ensureFontsReady() {
+  if (fontsReadyResolved) return;
+
+  await Promise.all([
+    document.fonts.load("600 180px 'Klee One'"),
+    document.fonts.ready
+  ]);
+
+  // ✅ DOM で一度描画して glyph を確定させる
+  warmupKleeFont();
+
+  fontsReadyResolved = true;
 }
 
 function drawCover(ctx, src, sw, sh, dw, dh) {
@@ -304,34 +317,40 @@ function drawPin(ctx, x, y, size) {
   ctx.save();
   ctx.translate(x, y);
 
-  // 本体（しずく型）
+  // ✅ ふっくら用パラメータ
+  const BODY_W = size * 1.1;      // 横幅を太く
+  const BODY_H = size * 0.95;     // 縦を少し詰める
+  const TIP_H  = size * 0.75;     // 尖りを短く
+  const ROUND  = size * 0.95;     // 上の丸を大きく
+
+  // ===== 本体 =====
   ctx.beginPath();
-  ctx.moveTo(0, size);
+  ctx.moveTo(0, BODY_H + TIP_H);
 
   ctx.bezierCurveTo(
-    size, size * 0.4,
-    size * 0.8, -size,
-    0, -size
+    BODY_W, BODY_H * 0.7,
+    BODY_W * 0.9, -ROUND,
+    0, -ROUND
   );
 
   ctx.bezierCurveTo(
-    -size * 0.8, -size,
-    -size, size * 0.4,
-    0, size
+    -BODY_W * 0.9, -ROUND,
+    -BODY_W, BODY_H * 0.7,
+    0, BODY_H + TIP_H
   );
 
   ctx.fillStyle = "#ff7aa8";
   ctx.fill();
 
-  // 中央の丸
+  // ===== 中央の丸 =====
   ctx.beginPath();
-  ctx.arc(0, -size * 0.2, size * 0.35, 0, Math.PI * 2);
-
+  ctx.arc(0, -ROUND * 0.2, size * 0.45, 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
 
   ctx.restore();
 }
+
 
 // ===== 保存用描画（文字あり） =====
 async function redrawFinal() {
@@ -345,7 +364,7 @@ async function redrawFinal() {
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = "600 86px 'Klee One', cursive";
+  ctx.font = "600 90px 'Klee One', cursive";
 
   // ===== 上の文字 =====
   if (showKishiko) {
@@ -363,29 +382,111 @@ async function redrawFinal() {
 
   // ===== 下の場所 =====
   if (showPlace) {
+    ctx.save();
 
-    const textX = w / 2 + 40;  // 少し右にずらして中央バランス
-    const textY = h * 0.95;
+    const FONT = "600 90px 'Klee One'";
+    const PIN_SIZE = 30;
+    const PIN_GAP  = 20;
 
-    const pinX = textX - 230;  // ピン位置
-    const pinY = textY;
+    ctx.font = FONT;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "#fff";
+    ctx.fillStyle = "#ff7aa8";
 
-    // ✅ ピン描画
-    drawPin(ctx, pinX, pinY, 50);
+    const text = PRESETS[currentBgKey]?.place ?? "";
+    const baselineY = frameH - 50;
+
+    // ✅ 同一フォントで幅を測る
+    const metrics = ctx.measureText(text);
+
+    const PIN_OFFSET_X = -8;
+
+    // ✅ ピン＋文字の「全体幅」
+    const totalWidth =
+      PIN_SIZE + PIN_GAP + metrics.width;
+
+    // ✅ 全体を中央に配置
+    const groupLeftX =
+      frameW / 2 - totalWidth / 2;
+
+    // ✅ ピン中心
+
+    const pinX = groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
+
+
+    // ✅ 文字中心
+    const textX =
+      groupLeftX + PIN_SIZE + PIN_GAP + metrics.width / 2;
+
+    // ✅ 縦位置（文字の視覚中央）
+    const textCenterY =
+      baselineY - metrics.actualBoundingBoxAscent / 2;
+
+    // ✅ ピン
+    drawPin(ctx, pinX, textCenterY, PIN_SIZE);
 
     // ✅ 文字
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 10;
-    ctx.lineJoin = "round";
-    const preset = getCurrentPreset();
-    const placeText = preset.place ?? "";
+    ctx.strokeText(text, textX, baselineY);
+    ctx.fillText(text, textX, baselineY);
 
-    ctx.fillStyle = "#ff7aa8";
-    ctx.strokeText(placeText, textX, textY);
-    ctx.fillText(placeText, textY);
+    ctx.restore();
   }
 
   finalImageURL = canvas.toDataURL("image/png");
+}
+
+const textCanvas = document.createElement("canvas");
+const textCtx = textCanvas.getContext("2d");
+
+async function redrawTextLayer() {
+  resizeAllCanvases();
+  await fontReady;
+
+  textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+
+  textCtx.textAlign = "center";
+  textCtx.textBaseline = "middle";
+  textCtx.font = "600 90px 'Klee One'";
+
+  const w = textCanvas.width;
+  const h = textCanvas.height;
+
+  if (showKishiko) {
+    const y = h * 0.05;
+
+    textCtx.lineWidth = 10;
+    textCtx.strokeStyle = "#fff";
+    textCtx.strokeText("in 岸高同窓会", w / 2, y);
+
+    textCtx.fillStyle = "#ff7aa8";
+    textCtx.fillText("in 岸高同窓会", w / 2, y);
+  }
+
+  if (showPlace) {
+    const preset = PRESETS[currentBgKey];
+    const place = preset?.place ?? "";
+    const y = h * 0.95;
+
+    textCtx.lineWidth = 10;
+    textCtx.strokeStyle = "#fff";
+    textCtx.strokeText(place, w / 2, y);
+
+    textCtx.fillStyle = "#ff7aa8";
+    textCtx.fillText(place, w / 2, y);
+  }
+}
+
+function composeFinalPreview() {
+  // renderLight() で背景＋人物はすでに描かれている前提
+  ctx.drawImage(textCanvas, 0, 0);
+  previewImg.src = canvas.toDataURL("image/png");
+}
+
+function resizeAllCanvases() {
+  textCanvas.width = canvas.width;
+  textCanvas.height = canvas.height;
 }
 
 // ===== ボタン =====
@@ -412,17 +513,6 @@ shutterBtn.onclick = async () => {
   await segmentation.send({ image: tempCanvas });
 };
 
-function renderLoop() {
-  if (needsRender && lastSegmentationResult) {
-    renderLight();          // ← 軽量描画のみ
-    needsRender = false;
-  }
-  requestAnimationFrame(renderLoop);
-}
-
-// 起動時に1回呼ぶ
-renderLoop();
-
 function clamp(v, min, max) {
   return Math.min(max, Math.max(min, v));
 }
@@ -442,40 +532,32 @@ offsetSlider.oninput = () => {
 // ===== ボタンイベントの修正 =====
 
 // 「岸高同窓会」ボタンを押したとき
-toggleKishikoBtn.onclick = async () => {
+toggleKishikoBtn.onclick = () => {
   showKishiko = !showKishiko;
-
   toggleKishikoBtn.classList.toggle("active", showKishiko);
-
-  await redrawFinal();
-  editImg.src = finalImageURL;
+  renderLight();
 };
 
-togglePlaceBtn.onclick = async () => {
+togglePlaceBtn.onclick = () => {
   showPlace = !showPlace;
-
   togglePlaceBtn.classList.toggle("active", showPlace);
-
-  await redrawFinal();
-  editImg.src = finalImageURL;
+  renderLight();
 };
 
 // ✅ プレビュー画面から「編集画面（toEdit）」に移る瞬間の処理も最適化
-toEditBtn.onclick = async () => {
-  // 編集画面へ移る際、現在のボタンの状態（文字ON/OFF）を反映した画像を生成
-  await redrawFinal();
-  if (finalImageURL) editImg.src = finalImageURL;
+toEditBtn.onclick = () => {
+  // ✅ 今の canvas をそのまま編集画面に反映
+  editImg.src = canvas.toDataURL("image/png");
   showScreen("edit");
 };
 
 const saveBtn = document.getElementById("save-btn");
 
-saveBtn.onclick = async () => {
-  await redrawFinal();
-
+saveBtn.onclick = () => {
+  // ✅ すでに表示されている canvas をそのまま保存
+  finalImageURL = canvas.toDataURL("image/png");
   saveImg.src = finalImageURL;
-
-  showScreen("save"); // ✅ 保存画面へ
+  showScreen("save");
 };
 
 const saveBackBtn = document.getElementById("save-back-btn");
@@ -651,16 +733,29 @@ async function renderWithCurrentParams(res) {
 const maskCanvas = document.createElement("canvas");
 const maskCtx = maskCanvas.getContext("2d");
 
-function renderLight() {
+async function renderLight() {
   if (!bgReady) return;
   if (!cachedPersonCanvas || !cachedBounds) return;
   if (bg.naturalWidth === 0) return;
 
-  canvas.width = OUTPUT_WIDTH;
-  canvas.height = OUTPUT_HEIGHT;
+  await ensureFontsReady();
 
-  const frameW = canvas.width;
-  const frameH = canvas.height;
+  const dpr = window.devicePixelRatio || 1;
+
+  // 見た目サイズ（CSS px）
+  canvas.style.width  = OUTPUT_WIDTH + "px";
+  canvas.style.height = OUTPUT_HEIGHT + "px";
+
+  // 内部解像度（実ピクセル）
+  canvas.width  = OUTPUT_WIDTH * dpr;
+  canvas.height = OUTPUT_HEIGHT * dpr;
+
+  // ✅ DPR を1回だけここで吸収
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // ✅ 以降は「CSS px基準」で描画
+  const frameW = OUTPUT_WIDTH;
+  const frameH = OUTPUT_HEIGHT;
 
   const TARGET_PERSON_RATIO = 0.6;
   const desiredPersonH = frameH * TARGET_PERSON_RATIO;
@@ -681,8 +776,8 @@ function renderLight() {
 
   const py = targetY - faceY;
 
+  // ===== 背景＋人物 =====
   ctx.clearRect(0, 0, frameW, frameH);
-  console.log("bg:", bg.complete, bg.naturalWidth);
   drawCover(
     ctx,
     bg,
@@ -693,10 +788,111 @@ function renderLight() {
   );
   ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
 
-  previewImg.src = canvas.toDataURL();
+
+  // ===== ✅ 文字（ここで直接描画） =====
+  await fontReady;
+
+  ctx.save(); // ← ★超重要（状態をクリーンにする）
+
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1.0;
+
+  ctx.textAlign = "center";
+  ctx.font = "600 90px 'Klee One'";
+
+  if (showKishiko) {
+    ctx.save(); // ← ★ここ
+    ctx.textBaseline = "top";
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "#fff";
+    ctx.fillStyle = "#ff7aa8";
+
+    ctx.strokeText("in 岸高同窓会", frameW / 2, 50);
+    ctx.fillText("in 岸高同窓会", frameW / 2, 50);
+    ctx.restore();
+  }
+
+  if (showPlace) {
+    ctx.save();
+
+    const FONT = "600 90px 'Klee One'";
+    const PIN_SIZE = 30;
+    const PIN_GAP  = 20;
+
+    ctx.font = FONT;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "#fff";
+    ctx.fillStyle = "#ff7aa8";
+
+    const text = PRESETS[currentBgKey]?.place ?? "";
+    const baselineY = frameH - 50;
+
+    const PIN_OFFSET_X = -8;  // ← -5〜-12 くらいで好み調整
+
+    // ✅ 同一フォントで幅を測る
+    const metrics = ctx.measureText(text);
+
+    // ✅ ピン＋文字の「全体幅」
+    const totalWidth =
+      PIN_SIZE + PIN_GAP + metrics.width;
+
+    // ✅ 全体を中央に配置
+    const groupLeftX =
+      frameW / 2 - totalWidth / 2;
+
+    // ✅ ピン中心
+    const pinX = groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
+
+
+    // ✅ 文字中心
+    const textX =
+      groupLeftX + PIN_SIZE + PIN_GAP + metrics.width / 2;
+
+    // ✅ 縦位置（文字の視覚中央）
+    const textCenterY =
+      baselineY - metrics.actualBoundingBoxAscent / 2;
+
+    // ✅ ピン
+    drawPin(ctx, pinX, textCenterY, PIN_SIZE);
+
+    // ✅ 文字
+    ctx.strokeText(text, textX, baselineY);
+    ctx.fillText(text, textX, baselineY);
+
+    ctx.restore();
+  }
+
+  ctx.restore(); // ← ★状態を元に戻す
+
+  // ✅ 最後に確定
+  const url = canvas.toDataURL("image/png");
+
+  // プレビュー画面用
+  previewImg.src = url;
+
+  // ✅ 編集画面が表示中なら、編集用画像も更新
+  if (screens.edit.classList.contains("active")) {
+    editImg.src = url;
+  }
+}
+
+function warmupKleeFont() {
+  const span = document.createElement("span");
+  span.style.position = "absolute";
+  span.style.opacity = "0";
+  span.style.font = "600 90px 'Klee One'";
+  document.body.appendChild(span);
+
+  // 1フレーム待ってから削除
+  requestAnimationFrame(() => {
+    document.body.removeChild(span);
+  });
 }
 
 segmentation.onResults(async res => {
+  await ensureFontsReady();
   lastSegmentationResult = res;
 
   // 人物切り抜き（重い）
@@ -737,7 +933,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   const bgKey = getBgParam() ?? "kishiwada-hare";
   const preset = PRESETS[bgKey];
   if (preset) {
-    setBackground(preset.image);
+    setBackgroundByKey(bgKey);
   }
 
 });
