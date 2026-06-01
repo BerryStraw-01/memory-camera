@@ -396,7 +396,8 @@ async function redrawFinal() {
     ctx.fillStyle = "#ff7aa8";
 
     const text = PRESETS[currentBgKey]?.place ?? "";
-    const baselineY = frameH - 50;
+    const baselineY = h - 50;         // ✅ frameH → h
+    const groupLeftX = w / 2 - totalWidth / 2;  // ✅ frameW → w
 
     // ✅ 同一フォントで幅を測る
     const metrics = ctx.measureText(text);
@@ -406,10 +407,6 @@ async function redrawFinal() {
     // ✅ ピン＋文字の「全体幅」
     const totalWidth =
       PIN_SIZE + PIN_GAP + metrics.width;
-
-    // ✅ 全体を中央に配置
-    const groupLeftX =
-      frameW / 2 - totalWidth / 2;
 
     // ✅ ピン中心
 
@@ -520,13 +517,12 @@ function clamp(v, min, max) {
 
 scaleSlider.oninput = () => {
   scale = +scaleSlider.value / 100;
-  needsRender = true;
+  renderLight();   // ← これを追加
 };
-
 
 offsetSlider.oninput = () => {
   offsetY = (+offsetSlider.value) / 100;
-  needsRender = true;
+  renderLight();   // ← これを追加
 };
 
 // ===== ボタンイベントの修正 =====
@@ -818,6 +814,7 @@ async function renderLight() {
     const FONT = "600 90px 'Klee One'";
     const PIN_SIZE = 30;
     const PIN_GAP  = 20;
+    const PIN_OFFSET_X = -8;
 
     ctx.font = FONT;
     ctx.textAlign = "center";
@@ -829,12 +826,10 @@ async function renderLight() {
     const text = PRESETS[currentBgKey]?.place ?? "";
     const baselineY = frameH - 50;
 
-    const PIN_OFFSET_X = -8;  // ← -5〜-12 くらいで好み調整
-
     // ✅ 同一フォントで幅を測る
     const metrics = ctx.measureText(text);
 
-    // ✅ ピン＋文字の「全体幅」
+    // ✅ ピン＋文字の全体幅（← 先に計算）
     const totalWidth =
       PIN_SIZE + PIN_GAP + metrics.width;
 
@@ -843,8 +838,8 @@ async function renderLight() {
       frameW / 2 - totalWidth / 2;
 
     // ✅ ピン中心
-    const pinX = groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
-
+    const pinX =
+      groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
 
     // ✅ 文字中心
     const textX =
