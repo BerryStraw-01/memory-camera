@@ -549,11 +549,34 @@ toEditBtn.onclick = () => {
 
 const saveBtn = document.getElementById("save-btn");
 
-saveBtn.onclick = () => {
-  // ✅ すでに表示されている canvas をそのまま保存
+saveBtn.onclick = async () => {
+  const SCALE = 3; // ← 2〜4 がおすすめ（3 = 約A3相当）
+
+  // 元サイズを保存
+  const origWidth = canvas.width;
+  const origHeight = canvas.height;
+
+  // 高解像度に拡大
+  canvas.width = OUTPUT_WIDTH * SCALE;
+  canvas.height = OUTPUT_HEIGHT * SCALE;
+
+  // 座標系を拡大分だけ戻す
+  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+
+  // ✅ 保存用描画
+  await redrawFinal();
+
+  // PNG生成
   finalImageURL = canvas.toDataURL("image/png");
   saveImg.src = finalImageURL;
   showScreen("save");
+
+  // === 元に戻す ===
+  canvas.width = origWidth;
+  canvas.height = origHeight;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  renderLight(); // 画面用を描き直す
 };
 
 const saveBackBtn = document.getElementById("save-back-btn");
@@ -824,16 +847,18 @@ async function renderLight() {
     ctx.fillStyle = "#ff7aa8";
 
     const text = PRESETS[currentBgKey]?.place ?? "";
+
+    // ✅ 先に baseline を確定
     const baselineY = frameH - 50;
 
     // ✅ 同一フォントで幅を測る
     const metrics = ctx.measureText(text);
 
-    // ✅ ピン＋文字の全体幅（← 先に計算）
+    // ✅ 次に全体幅を計算
     const totalWidth =
       PIN_SIZE + PIN_GAP + metrics.width;
 
-    // ✅ 全体を中央に配置
+    // ✅ 次に左端を決める
     const groupLeftX =
       frameW / 2 - totalWidth / 2;
 
