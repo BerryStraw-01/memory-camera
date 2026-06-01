@@ -54,6 +54,8 @@ const kleeFontReady = document.fonts.load(
   "600 100px 'Klee One'"
 );
 
+const PLACE_FONT = "600 90px 'Klee One'";
+
 // ===== 状態 =====
 let cameraReady = false;
 let offsetY = 0;
@@ -355,6 +357,8 @@ function drawPin(ctx, x, y, size) {
 // ===== 保存用描画（文字あり） =====
 async function redrawFinal() {
 
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
   await fontReady;
 
   await drawBase();
@@ -364,7 +368,7 @@ async function redrawFinal() {
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = "600 90px 'Klee One', cursive";
+  ctx.font = PLACE_FONT;
 
   // ===== 上の文字 =====
   if (showKishiko) {
@@ -387,8 +391,9 @@ async function redrawFinal() {
     const FONT = "600 90px 'Klee One'";
     const PIN_SIZE = 30;
     const PIN_GAP  = 20;
+    const PIN_OFFSET_X = -8;
 
-    ctx.font = FONT;
+    ctx.font = PLACE_FONT;
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
     ctx.lineWidth = 10;
@@ -396,35 +401,35 @@ async function redrawFinal() {
     ctx.fillStyle = "#ff7aa8";
 
     const text = PRESETS[currentBgKey]?.place ?? "";
-    const baselineY = h - 50;         // ✅ frameH → h
-    const groupLeftX = w / 2 - totalWidth / 2;  // ✅ frameW → w
 
-    // ✅ 同一フォントで幅を測る
+    // ✅ 1. baseline
+    const baselineY = h - 50;
+
+    // ✅ 2. 幅を測る
     const metrics = ctx.measureText(text);
 
-    const PIN_OFFSET_X = -8;
-
-    // ✅ ピン＋文字の「全体幅」
+    // ✅ 3. 全体幅
     const totalWidth =
       PIN_SIZE + PIN_GAP + metrics.width;
 
-    // ✅ ピン中心
+    // ✅ 4. 左端
+    const groupLeftX =
+      w / 2 - totalWidth / 2;
 
-    const pinX = groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
+    // ✅ 5. ピン
+    const pinX =
+      groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
 
-
-    // ✅ 文字中心
+    // ✅ 6. 文字
     const textX =
       groupLeftX + PIN_SIZE + PIN_GAP + metrics.width / 2;
 
-    // ✅ 縦位置（文字の視覚中央）
+    // ✅ 7. 縦位置
     const textCenterY =
       baselineY - metrics.actualBoundingBoxAscent / 2;
 
-    // ✅ ピン
     drawPin(ctx, pinX, textCenterY, PIN_SIZE);
 
-    // ✅ 文字
     ctx.strokeText(text, textX, baselineY);
     ctx.fillText(text, textX, baselineY);
 
@@ -549,34 +554,11 @@ toEditBtn.onclick = () => {
 
 const saveBtn = document.getElementById("save-btn");
 
-saveBtn.onclick = async () => {
-  const SCALE = 3; // ← 2〜4 がおすすめ（3 = 約A3相当）
-
-  // 元サイズを保存
-  const origWidth = canvas.width;
-  const origHeight = canvas.height;
-
-  // 高解像度に拡大
-  canvas.width = OUTPUT_WIDTH * SCALE;
-  canvas.height = OUTPUT_HEIGHT * SCALE;
-
-  // 座標系を拡大分だけ戻す
-  ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
-
-  // ✅ 保存用描画
-  await redrawFinal();
-
-  // PNG生成
+saveBtn.onclick = () => {
+  // ✅ すでに表示されている canvas をそのまま保存
   finalImageURL = canvas.toDataURL("image/png");
   saveImg.src = finalImageURL;
   showScreen("save");
-
-  // === 元に戻す ===
-  canvas.width = origWidth;
-  canvas.height = origHeight;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-  renderLight(); // 画面用を描き直す
 };
 
 const saveBackBtn = document.getElementById("save-back-btn");
@@ -817,7 +799,7 @@ async function renderLight() {
   ctx.globalAlpha = 1.0;
 
   ctx.textAlign = "center";
-  ctx.font = "600 90px 'Klee One'";
+  ctx.font = PLACE_FONT;
 
   if (showKishiko) {
     ctx.save(); // ← ★ここ
@@ -832,57 +814,57 @@ async function renderLight() {
   }
 
   if (showPlace) {
-    ctx.save();
+      ctx.save();
 
-    const FONT = "600 90px 'Klee One'";
-    const PIN_SIZE = 30;
-    const PIN_GAP  = 20;
-    const PIN_OFFSET_X = -8;
+      const FONT = "600 90px 'Klee One'";
+      const PIN_SIZE = 30;
+      const PIN_GAP  = 20;
+      const PIN_OFFSET_X = -8;
 
-    ctx.font = FONT;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = "#fff";
-    ctx.fillStyle = "#ff7aa8";
+      ctx.font = PLACE_FONT;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = "#fff";
+      ctx.fillStyle = "#ff7aa8";
 
-    const text = PRESETS[currentBgKey]?.place ?? "";
+      const text = PRESETS[currentBgKey]?.place ?? "";
 
-    // ✅ 先に baseline を確定
-    const baselineY = frameH - 50;
+      // ✅ 先に baseline を確定
+      const baselineY = frameH - 50;
 
-    // ✅ 同一フォントで幅を測る
-    const metrics = ctx.measureText(text);
+      // ✅ 同一フォントで幅を測る
+      const metrics = ctx.measureText(text);
 
-    // ✅ 次に全体幅を計算
-    const totalWidth =
-      PIN_SIZE + PIN_GAP + metrics.width;
+      // ✅ 次に全体幅を計算
+      const totalWidth =
+        PIN_SIZE + PIN_GAP + metrics.width;
 
-    // ✅ 次に左端を決める
-    const groupLeftX =
-      frameW / 2 - totalWidth / 2;
+      // ✅ 次に左端を決める
+      const groupLeftX =
+        frameW / 2 - totalWidth / 2;
 
-    // ✅ ピン中心
-    const pinX =
-      groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
+      // ✅ ピン中心
+      const pinX =
+        groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
 
-    // ✅ 文字中心
-    const textX =
-      groupLeftX + PIN_SIZE + PIN_GAP + metrics.width / 2;
+      // ✅ 文字中心
+      const textX =
+        groupLeftX + PIN_SIZE + PIN_GAP + metrics.width / 2;
 
-    // ✅ 縦位置（文字の視覚中央）
-    const textCenterY =
-      baselineY - metrics.actualBoundingBoxAscent / 2;
+      // ✅ 縦位置（文字の視覚中央）
+      const textCenterY =
+        baselineY - metrics.actualBoundingBoxAscent / 2;
 
-    // ✅ ピン
-    drawPin(ctx, pinX, textCenterY, PIN_SIZE);
+      // ✅ ピン
+      drawPin(ctx, pinX, textCenterY, PIN_SIZE);
 
-    // ✅ 文字
-    ctx.strokeText(text, textX, baselineY);
-    ctx.fillText(text, textX, baselineY);
+      // ✅ 文字
+      ctx.strokeText(text, textX, baselineY);
+      ctx.fillText(text, textX, baselineY);
 
-    ctx.restore();
-  }
+      ctx.restore();
+    }
 
   ctx.restore(); // ← ★状態を元に戻す
 
