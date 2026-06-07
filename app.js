@@ -236,9 +236,28 @@ async function drawPersonWithSegmentation(res) {
   personCtx.clearRect(0, 0, w, h);
   personCtx.drawImage(res.image, 0, 0, w, h);
 
-  personCtx.globalCompositeOperation = "destination-in";
-  personCtx.drawImage(res.segmentationMask, 0, 0, w, h);
-  personCtx.globalCompositeOperation = "source-over";
+  maskCanvas.width = w;
+  maskCanvas.height = h;
+  maskCtx.clearRect(0, 0, w, h);
+
+  maskCtx.filter = "blur(1.5px)";
+  maskCtx.drawImage(res.segmentationMask, 0, 0, w, h);
+  maskCtx.filter = "none";
+
+  const maskData = maskCtx.getImageData(0, 0, w, h).data;
+  const imgData = personCtx.getImageData(0, 0, w, h);
+
+  for (let i = 0; i < maskData.length; i += 4) {
+    let alpha = maskData[i] / 255;
+
+    if (alpha < 0.2) alpha = 0;
+    else if (alpha > 0.85) alpha = 1;
+    else alpha = Math.pow(alpha, 0.8);
+
+    imgData.data[i + 3] = alpha * 255;
+  }
+
+  personCtx.putImageData(imgData, 0, 0);
 }
 
 
@@ -247,6 +266,59 @@ function prepareONNXInput() {
   const mask256 = resizeTo256(maskCanvas); // segmentationMask を描いた canvas
 
   return { img256, mask256 };
+}
+
+function defringe(canvas) {
+  const ctx = canvas.getContext("2d");
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = img.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    let alpha = data[i + 3] / 255;
+
+    // ★ エッジだけ処理
+    if (alpha > 0 && alpha < 0.9) {
+
+      // ✅ αを強制的に濃くする
+      alpha = Math.pow(alpha, 0.7);
+
+      data[i + 3] = alpha * 255;
+
+      // ✅ 白抜け対策（ここ重要）
+      data[i]   = data[i]   * alpha + 10;
+      data[i+1] = data[i+1] * alpha + 10;
+      data[i+2] = data[i+2] * alpha + 10;
+    }
+  }
+
+  ctx.putImageData(img, 0, 0);
+}
+
+function getAverageColor(image, w, h) {
+  const temp = document.createElement("canvas");
+  temp.width = 50;
+  temp.height = 50;
+
+  const tctx = temp.getContext("2d");
+  tctx.drawImage(image, 0, 0, 50, 50);
+
+  const data = tctx.getImageData(0, 0, 50, 50).data;
+
+  let r = 0, g = 0, b = 0;
+
+  for (let i = 0; i < data.length; i += 4) {
+    r += data[i];
+    g += data[i + 1];
+    b += data[i + 2];
+  }
+
+  const count = data.length / 4;
+
+  return {
+    r: r / count,
+    g: g / count,
+    b: b / count
+  };
 }
 
 async function applyONNX() {
@@ -297,16 +369,15 @@ function applyONNXResultToPerson(output) {
   tmpCanvas.height = 256;
   tensorToCanvas(output, tmpCanvas);
 
-  // 差分として弱く重ねる（自然合成）
   personCtx.save();
-  personCtx.globalAlpha = 0.4;                // 0.3〜0.5で調整
-  personCtx.globalCompositeOperation = "overlay";
-  personCtx.drawImage(
-    tmpCanvas,
-    0, 0,
+  personCtx.globalCompositeOperation = "soft-light";
+  personCtx.globalAlpha = 0.6;
+
+  personCtx.drawImage(tmpCanvas, 0, 0,
     personCanvas.width,
     personCanvas.height
   );
+
   personCtx.restore();
 }
 
@@ -743,24 +814,18 @@ async function renderLight() {
 
   const dpr = window.devicePixelRatio || 1;
 
-  // 見た目サイズ（CSS px）
   canvas.style.width  = OUTPUT_WIDTH + "px";
   canvas.style.height = OUTPUT_HEIGHT + "px";
 
-  // 内部解像度（実ピクセル）
   canvas.width  = OUTPUT_WIDTH * dpr;
   canvas.height = OUTPUT_HEIGHT * dpr;
 
-  // ✅ DPR を1回だけここで吸収
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  // ✅ 以降は「CSS px基準」で描画
   const frameW = OUTPUT_WIDTH;
   const frameH = OUTPUT_HEIGHT;
 
-  const TARGET_PERSON_RATIO = 0.6;
-  const desiredPersonH = frameH * TARGET_PERSON_RATIO;
-
+  const desiredPersonH = frameH * 0.6;
   const scaleFromPerson = desiredPersonH / cachedBounds.height;
   const finalScale = scaleFromPerson * clamp(scale, 0.8, 1.2);
 
@@ -772,109 +837,88 @@ async function renderLight() {
   const faceY =
     (cachedBounds.top + cachedBounds.height * faceYRatio) * finalScale;
 
-  const targetY =
-    frameH * 0.6 - offsetY * frameH;
-
+  const targetY = frameH * 0.6 - offsetY * frameH;
   const py = targetY - faceY;
 
-  // ===== 背景＋人物 =====
+  // ===== 背景 =====
   ctx.clearRect(0, 0, frameW, frameH);
-  drawCover(
-    ctx,
-    bg,
-    bg.naturalWidth,
-    bg.naturalHeight,
-    frameW,
-    frameH
-  );
+  drawCover(ctx, bg, bg.naturalWidth, bg.naturalHeight, frameW, frameH);
+
+  // ===== 背景平均色 =====
+  const avg = getAverageColor(bg, frameW, frameH);
+
+  // ===== 人物描画（影付き）=====
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.35)";
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 15;
+
   ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
+  ctx.restore();
 
+  // ===== ✅ 人物だけ色なじみ =====
+  ctx.save();
+  ctx.globalCompositeOperation = "color";
+  ctx.globalAlpha = 0.15;
+  ctx.fillStyle = `rgb(${avg.r},${avg.g},${avg.b})`;
+  ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
+  ctx.restore();
 
-  // ===== ✅ 文字（ここで直接描画） =====
+  // ===== ✅ ライティング（上から光）=====
+  ctx.save();
+
+  const light = ctx.createLinearGradient(0, py, 0, py + baseH);
+
+  // 上強い → 下暗い
+  light.addColorStop(0, "rgba(255,255,255,0.7)");
+  light.addColorStop(0.5, "rgba(255,255,255,0.1)");
+  light.addColorStop(1, "rgba(0,0,0,0.25)");
+
+  ctx.globalCompositeOperation = "soft-light";
+  ctx.fillStyle = light;
+
+  // ✅ 人物形状でマスク
+  ctx.globalCompositeOperation = "soft-light";
+  ctx.fillRect(px, py, baseW, baseH);
+
+  ctx.restore();
+
+  // ===== 文字 =====
   await fontReady;
 
-  ctx.save(); // ← ★超重要（状態をクリーンにする）
-
+  ctx.save();
   ctx.globalCompositeOperation = "source-over";
   ctx.globalAlpha = 1.0;
-
   ctx.textAlign = "center";
   ctx.font = PLACE_FONT;
 
   if (showKishiko) {
-    ctx.save(); // ← ★ここ
-    ctx.textBaseline = "top";
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "#fff";
+    ctx.fillStyle = "#ff7aa8";
+    ctx.strokeText("in 岸高同窓会", frameW / 2, 50);
+    ctx.fillText("in 岸高同窓会", frameW / 2, 50);
+  }
+
+  if (showPlace) {
+    ctx.textBaseline = "bottom";
     ctx.lineWidth = 10;
     ctx.strokeStyle = "#fff";
     ctx.fillStyle = "#ff7aa8";
 
-    ctx.strokeText("in 岸高同窓会", frameW / 2, 50);
-    ctx.fillText("in 岸高同窓会", frameW / 2, 50);
-    ctx.restore();
+    const text = PRESETS[currentBgKey]?.place ?? "";
+    const y = frameH - 50;
+
+    ctx.strokeText(text, frameW / 2, y);
+    ctx.fillText(text, frameW / 2, y);
   }
 
-  if (showPlace) {
-      ctx.save();
+  ctx.restore();
 
-      const FONT = "600 90px 'Klee One'";
-      const PIN_SIZE = 30;
-      const PIN_GAP  = 20;
-      const PIN_OFFSET_X = -8;
-
-      ctx.font = PLACE_FONT;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
-      ctx.lineWidth = 10;
-      ctx.strokeStyle = "#fff";
-      ctx.fillStyle = "#ff7aa8";
-
-      const text = PRESETS[currentBgKey]?.place ?? "";
-
-      // ✅ 先に baseline を確定
-      const baselineY = frameH - 50;
-
-      // ✅ 同一フォントで幅を測る
-      const metrics = ctx.measureText(text);
-
-      // ✅ 次に全体幅を計算
-      const totalWidth =
-        PIN_SIZE + PIN_GAP + metrics.width;
-
-      // ✅ 次に左端を決める
-      const groupLeftX =
-        frameW / 2 - totalWidth / 2;
-
-      // ✅ ピン中心
-      const pinX =
-        groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
-
-      // ✅ 文字中心
-      const textX =
-        groupLeftX + PIN_SIZE + PIN_GAP + metrics.width / 2;
-
-      // ✅ 縦位置（文字の視覚中央）
-      const textCenterY =
-        baselineY - metrics.actualBoundingBoxAscent / 2;
-
-      // ✅ ピン
-      drawPin(ctx, pinX, textCenterY, PIN_SIZE);
-
-      // ✅ 文字
-      ctx.strokeText(text, textX, baselineY);
-      ctx.fillText(text, textX, baselineY);
-
-      ctx.restore();
-    }
-
-  ctx.restore(); // ← ★状態を元に戻す
-
-  // ✅ 最後に確定
   const url = canvas.toDataURL("image/png");
 
-  // プレビュー画面用
   previewImg.src = url;
 
-  // ✅ 編集画面が表示中なら、編集用画像も更新
   if (screens.edit.classList.contains("active")) {
     editImg.src = url;
   }
@@ -908,6 +952,8 @@ segmentation.onResults(async res => {
   personCtx.globalCompositeOperation = "destination-in";
   personCtx.drawImage(res.segmentationMask, 0, 0);
   personCtx.globalCompositeOperation = "source-over";
+
+  defringe(personCanvas);
 
   // mask → bounds（重い・1回）
   maskCanvas.width = personCanvas.width;
