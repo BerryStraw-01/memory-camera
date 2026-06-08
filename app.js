@@ -3,13 +3,83 @@ const fontReady = document.fonts.ready;
 const PRESETS = {
   "kishiwada-hare": {
     image: "images/kishiwada-hare.png",
-    place: "岸和田城（晴れ）"
+    place: "岸和田城（晴れ）",
+    layout: {
+      mode: "bust",
+      personHeightRatio: 0.62,
+      faceTargetX: 0.5,
+      faceTargetY: 0.58
+    }
   },
+
   "kishiwada-kumori": {
     image: "images/kishiwada-kumori.jpg",
-    place: "岸和田城（曇り）"
+    place: "岸和田城（曇り）",
+    layout: {
+      mode: "bust",
+      personHeightRatio: 0.62,
+      faceTargetX: 0.5,
+      faceTargetY: 0.58
+    }
+  },
+
+  "ohori_miti": {
+    image: "images/ohori_miti.png",
+    place: "お堀の道",
+    layout: {
+      mode: "full",
+      personHeightRatio: 0.4,
+      footTargetX: 0.6,
+      footTargetY: 0.9
+    }
+  },
+
+  "siro_sakura": {
+    image: "images/siro_sakura.png",
+    place: "城と桜",
+    layout: {
+      mode: "full",
+      personHeightRatio: 0.55,
+      footTargetX: 0.5,
+      footTargetY: 0.9
+    }
+  },
+
+  "siro": {
+    image: "images/siro.jpg",
+    place: "岸和田城",
+    layout: {
+      mode: "full",
+      personHeightRatio: 0.6,
+      footTargetX: 0.5,
+      footTargetY: 1.2
+    }
+  },
+
+  "undojo": {
+    image: "images/undojo.jpg",
+    place: "運動場前",
+    layout: {
+      mode: "full",
+      personHeightRatio: 0.6,
+      footTargetX: 0.5,
+      footTargetY: 0.85
+    }
+  },
+
+  "wakimiti": {
+    image: "images/wakimiti.png",
+    place: "脇道",
+    layout: {
+      mode: "full",
+      personHeightRatio: 0.45,
+      footTargetX: 0.5,
+      footTargetY: 0.85
+    }
   }
 };
+
+
 
 let currentBgKey = "kishiwada-hare";
 
@@ -56,6 +126,7 @@ const kleeFontReady = document.fonts.load(
 
 const PLACE_FONT = "600 90px 'Klee One'";
 
+
 // ===== 状態 =====
 let cameraReady = false;
 let offsetY = 0;
@@ -75,6 +146,20 @@ let onnxRunning = false;
 
 const OUTPUT_WIDTH = 1108;
 const OUTPUT_HEIGHT = 1477;
+
+let srSession = null;
+let srRunning = false;
+
+// SRを使うかどうか
+const USE_SR = true;
+
+// SR入力サイズ
+// 学習が 256->512 なら 256
+// 512->1024 用にexportしているなら 512
+const SR_INPUT_SIZE = 512;
+
+// どれくらい拡大されるとSRを使うか
+const SR_SCALE_THRESHOLD = 1.25;
 
 // ===== 背景 =====
 const bg = new Image();
@@ -234,15 +319,57 @@ async function drawPersonWithSegmentation(res) {
   personCanvas.height = h;
 
   personCtx.clearRect(0, 0, w, h);
+  personCtx.imageSmoothingEnabled = true;
+  personCtx.imageSmoothingQuality = "high";
   personCtx.drawImage(res.image, 0, 0, w, h);
 
+  // =====================================================
+  // ✅ 高精細マスク生成：supersampling
+  // =====================================================
+  const SS = 2; // 2倍で処理。重ければ1、もっと綺麗にしたければ3
+
+  const hiMaskCanvas = document.createElement("canvas");
+  hiMaskCanvas.width = w * SS;
+  hiMaskCanvas.height = h * SS;
+
+  const hiMaskCtx = hiMaskCanvas.getContext("2d");
+  hiMaskCtx.clearRect(0, 0, hiMaskCanvas.width, hiMaskCanvas.height);
+
+  hiMaskCtx.imageSmoothingEnabled = true;
+  hiMaskCtx.imageSmoothingQuality = "high";
+
+  // 高解像度に拡大
+  hiMaskCtx.drawImage(
+    res.segmentationMask,
+    0,
+    0,
+    hiMaskCanvas.width,
+    hiMaskCanvas.height
+  );
+
+  // ✅ ぼかしは弱め。強くすると白モヤになる
+  hiMaskCtx.filter = "blur(0.7px)";
+  hiMaskCtx.drawImage(hiMaskCanvas, 0, 0);
+  hiMaskCtx.filter = "none";
+
+  // 元サイズのmaskCanvasに戻す
   maskCanvas.width = w;
   maskCanvas.height = h;
   maskCtx.clearRect(0, 0, w, h);
+  maskCtx.imageSmoothingEnabled = true;
+  maskCtx.imageSmoothingQuality = "high";
 
-  maskCtx.filter = "blur(1.5px)";
-  maskCtx.drawImage(res.segmentationMask, 0, 0, w, h);
-  maskCtx.filter = "none";
+  maskCtx.drawImage(
+    hiMaskCanvas,
+    0,
+    0,
+    hiMaskCanvas.width,
+    hiMaskCanvas.height,
+    0,
+    0,
+    w,
+    h
+  );
 
   const maskData = maskCtx.getImageData(0, 0, w, h).data;
   const imgData = personCtx.getImageData(0, 0, w, h);
@@ -250,9 +377,12 @@ async function drawPersonWithSegmentation(res) {
   for (let i = 0; i < maskData.length; i += 4) {
     let alpha = maskData[i] / 255;
 
-    if (alpha < 0.2) alpha = 0;
-    else if (alpha > 0.85) alpha = 1;
-    else alpha = Math.pow(alpha, 0.8);
+    // =====================================================
+    // ✅ エッジを細かく保ちつつ自然にする
+    // =====================================================
+    if (alpha < 0.08) alpha = 0;
+    else if (alpha > 0.92) alpha = 1;
+    else alpha = Math.pow(alpha, 0.9);
 
     imgData.data[i + 3] = alpha * 255;
   }
@@ -276,18 +406,19 @@ function defringe(canvas) {
   for (let i = 0; i < data.length; i += 4) {
     let alpha = data[i + 3] / 255;
 
-    // ★ エッジだけ処理
-    if (alpha > 0 && alpha < 0.9) {
+    // 半透明エッジだけ処理
+    if (alpha > 0 && alpha < 0.95) {
+      // ✅ エッジを少し締める
+      const newAlpha = Math.pow(alpha, 0.85);
+      data[i + 3] = newAlpha * 255;
 
-      // ✅ αを強制的に濃くする
-      alpha = Math.pow(alpha, 0.7);
+      // ✅ 白フリンジだけ軽く抑える
+      // RGBを強く潰しすぎない
+      const fringeReduce = 0.92 + 0.08 * newAlpha;
 
-      data[i + 3] = alpha * 255;
-
-      // ✅ 白抜け対策（ここ重要）
-      data[i]   = data[i]   * alpha + 10;
-      data[i+1] = data[i+1] * alpha + 10;
-      data[i+2] = data[i+2] * alpha + 10;
+      data[i] = data[i] * fringeReduce;
+      data[i + 1] = data[i + 1] * fringeReduce;
+      data[i + 2] = data[i + 2] * fringeReduce;
     }
   }
 
@@ -369,9 +500,10 @@ function applyONNXResultToPerson(output) {
   tmpCanvas.height = 256;
   tensorToCanvas(output, tmpCanvas);
 
+  // ✅ 高解像度に戻す（重要）
   personCtx.save();
   personCtx.globalCompositeOperation = "soft-light";
-  personCtx.globalAlpha = 0.6;
+  personCtx.globalAlpha = 0.3;
 
   personCtx.drawImage(tmpCanvas, 0, 0,
     personCanvas.width,
@@ -578,10 +710,27 @@ shutterBtn.onclick = async () => {
   const tempCanvas = document.createElement("canvas");
   const tctx = tempCanvas.getContext("2d");
 
-  tempCanvas.width = video.videoWidth;
-  tempCanvas.height = video.videoHeight;
+  // ✅ segmentation用の入力解像度を上げる
+  const SEG_LONG_SIDE = 1280;
 
-  tctx.drawImage(video, 0, 0);
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+
+  const segScale = SEG_LONG_SIDE / Math.max(vw, vh);
+
+  tempCanvas.width = Math.round(vw * segScale);
+  tempCanvas.height = Math.round(vh * segScale);
+
+  tctx.imageSmoothingEnabled = true;
+  tctx.imageSmoothingQuality = "high";
+
+  tctx.drawImage(
+    video,
+    0,
+    0,
+    tempCanvas.width,
+    tempCanvas.height
+  );
 
   await segmentation.send({ image: tempCanvas });
 };
@@ -660,6 +809,18 @@ async function loadONNX() {
   }
 }
 
+async function loadSRONNX() {
+  try {
+    srSession = await ort.InferenceSession.create("sr_x2_fixed.onnx");
+    console.log("✅ SR ONNX loaded");
+    console.log("SR inputNames:", srSession.inputNames);
+    console.log("SR outputNames:", srSession.outputNames);
+  } catch (e) {
+    console.error("❌ SR ONNX load failed:", e);
+    srSession = null;
+  }
+}
+
 function canvasToTensor(canvas) {
   const ctx = canvas.getContext("2d");
   const { width, height } = canvas;
@@ -676,6 +837,399 @@ function canvasToTensor(canvas) {
   return new ort.Tensor("float32", data, [1, 3, height, width]);
 }
 
+function canvasToSRTensor(canvas) {
+  const ctx = canvas.getContext("2d");
+  const { width, height } = canvas;
+  const imgData = ctx.getImageData(0, 0, width, height).data;
+
+  const data = new Float32Array(width * height * 3);
+
+  for (let i = 0; i < width * height; i++) {
+    data[i] = imgData[i * 4] / 255;
+    data[i + width * height] = imgData[i * 4 + 1] / 255;
+    data[i + width * height * 2] = imgData[i * 4 + 2] / 255;
+  }
+
+  return new ort.Tensor("float32", data, [1, 3, height, width]);
+}
+
+function srTensorToCanvas(tensor, targetCanvas, alphaSourceCanvas = null) {
+  const ctx = targetCanvas.getContext("2d");
+
+  const [_, __, h, w] = tensor.dims;
+  const data = tensor.data;
+
+  targetCanvas.width = w;
+  targetCanvas.height = h;
+
+  const img = ctx.createImageData(w, h);
+
+  let alphaData = null;
+
+  if (alphaSourceCanvas) {
+    const alphaCanvas = document.createElement("canvas");
+    alphaCanvas.width = w;
+    alphaCanvas.height = h;
+
+    const actx = alphaCanvas.getContext("2d");
+    actx.clearRect(0, 0, w, h);
+    actx.imageSmoothingEnabled = true;
+    actx.imageSmoothingQuality = "high";
+    actx.drawImage(alphaSourceCanvas, 0, 0, w, h);
+
+    alphaData = actx.getImageData(0, 0, w, h).data;
+  }
+
+  for (let i = 0; i < w * h; i++) {
+    img.data[i * 4] = Math.min(255, Math.max(0, data[i] * 255));
+    img.data[i * 4 + 1] = Math.min(255, Math.max(0, data[i + w * h] * 255));
+    img.data[i * 4 + 2] = Math.min(255, Math.max(0, data[i + w * h * 2] * 255));
+
+    // alphaは元の人物Canvasから拡大して使う
+    img.data[i * 4 + 3] = alphaData ? alphaData[i * 4 + 3] : 255;
+  }
+
+  ctx.putImageData(img, 0, 0);
+}
+
+function shouldUseSRForPerson(bounds) {
+  if (!USE_SR) return false;
+  if (!srSession) return false;
+  if (!bounds) return false;
+  if (!bgReady || bg.naturalWidth === 0) return false;
+
+  const frameH = OUTPUT_HEIGHT;
+
+  const desiredPersonH = frameH * 0.6;
+  const scaleFromPerson = desiredPersonH / bounds.height;
+  const finalScale = scaleFromPerson * clamp(scale, 0.8, 1.2);
+
+  const willUpscalePerson = finalScale >= SR_SCALE_THRESHOLD;
+
+  const cropLongSide = Math.max(bounds.width, bounds.height);
+  const canUseSRWithoutDownscale = cropLongSide <= SR_INPUT_SIZE;
+
+  console.log("SR判定:", {
+    finalScale,
+    willUpscalePerson,
+    cropLongSide,
+    SR_INPUT_SIZE,
+    canUseSRWithoutDownscale
+  });
+
+  // 重要：
+  // SR入力よりconst SEG_LONG_SIDE = 12大きいcropを無理にSRすると劣化するので使わない
+  return willUpscalePerson && canUseSRWithoutDownscale;
+}
+
+function drawContainWithInfo(srcCanvas, dstCanvas, size) {
+  dstCanvas.width = size;
+  dstCanvas.height = size;
+
+  const dctx = dstCanvas.getContext("2d");
+  dctx.clearRect(0, 0, size, size);
+
+  // SRはRGBのみなので透明部分は黒で埋める
+  dctx.fillStyle = "black";
+  dctx.fillRect(0, 0, size, size);
+
+  const sw = srcCanvas.width;
+  const sh = srcCanvas.height;
+
+  const scale = Math.min(size / sw, size / sh);
+
+  const dw = Math.round(sw * scale);
+  const dh = Math.round(sh * scale);
+
+  const dx = Math.round((size - dw) / 2);
+  const dy = Math.round((size - dh) / 2);
+
+  dctx.imageSmoothingEnabled = true;
+  dctx.imageSmoothingQuality = "high";
+
+  dctx.drawImage(srcCanvas, dx, dy, dw, dh);
+
+  return {
+    dx,
+    dy,
+    dw,
+    dh,
+    scale
+  };
+}
+
+function getAlphaBounds(canvas, threshold = 10) {
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const { width, height } = canvas;
+  const data = ctx.getImageData(0, 0, width, height).data;
+
+  let left = width;
+  let right = 0;
+  let top = height;
+  let bottom = 0;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const a = data[i + 3];
+
+      if (a > threshold) {
+        if (x < left) left = x;
+        if (x > right) right = x;
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+      }
+    }
+  }
+
+  if (right <= left || bottom <= top) {
+    return null;
+  }
+
+  return {
+    left,
+    top,
+    right,
+    bottom,
+    width: right - left + 1,
+    height: bottom - top + 1
+  };
+}
+
+function cropCanvasByBounds(srcCanvas, bounds, paddingRatio = 0.08) {
+  const padX = Math.round(bounds.width * paddingRatio);
+  const padY = Math.round(bounds.height * paddingRatio);
+
+  const x = Math.max(0, bounds.left - padX);
+  const y = Math.max(0, bounds.top - padY);
+
+  const right = Math.min(srcCanvas.width, bounds.right + padX);
+  const bottom = Math.min(srcCanvas.height, bounds.bottom + padY);
+
+  const w = right - x;
+  const h = bottom - y;
+
+  const cropCanvas = document.createElement("canvas");
+  cropCanvas.width = w;
+  cropCanvas.height = h;
+
+  const cctx = cropCanvas.getContext("2d");
+  cctx.clearRect(0, 0, w, h);
+  cctx.drawImage(
+    srcCanvas,
+    x,
+    y,
+    w,
+    h,
+    0,
+    0,
+    w,
+    h
+  );
+
+  return {
+    canvas: cropCanvas,
+    x,
+    y,
+    w,
+    h
+  };
+}
+
+function drawContainWithInfo(srcCanvas, dstCanvas, size) {
+  dstCanvas.width = size;
+  dstCanvas.height = size;
+
+  const dctx = dstCanvas.getContext("2d");
+  dctx.clearRect(0, 0, size, size);
+
+  dctx.fillStyle = "black";
+  dctx.fillRect(0, 0, size, size);
+
+  const sw = srcCanvas.width;
+  const sh = srcCanvas.height;
+
+  const fitScale = Math.min(size / sw, size / sh);
+
+  const dw = Math.round(sw * fitScale);
+  const dh = Math.round(sh * fitScale);
+
+  const dx = Math.round((size - dw) / 2);
+  const dy = Math.round((size - dh) / 2);
+
+  dctx.imageSmoothingEnabled = true;
+  dctx.imageSmoothingQuality = "high";
+
+  dctx.drawImage(srcCanvas, dx, dy, dw, dh);
+
+  return {
+    dx,
+    dy,
+    dw,
+    dh,
+    fitScale
+  };
+}
+
+async function applySRToPerson() {
+  if (!srSession) return false;
+  if (srRunning) return false;
+
+  srRunning = true;
+
+  try {
+    console.log("🔍 SR start");
+
+    const originalW = personCanvas.width;
+    const originalH = personCanvas.height;
+
+    // ===== 人物部分だけ取得 =====
+    const bounds = getAlphaBounds(personCanvas);
+    if (!bounds) {
+      console.warn("⚠️ SR skipped: alpha bounds not found");
+      return false;
+    }
+
+    const crop = cropCanvasByBounds(personCanvas, bounds, 0.08);
+    const cropLongSide = Math.max(crop.w, crop.h);
+
+    // 重要：
+    // crop自体が512より大きい場合、512に縮小してからSRするので逆に劣化する
+    if (cropLongSide > SR_INPUT_SIZE) {
+      console.warn("⚠️ SR skipped: crop is larger than SR input", {
+        crop: `${crop.w}x${crop.h}`,
+        SR_INPUT_SIZE
+      });
+      return false;
+    }
+
+    // ===== SR入力を作成 =====
+    const inputCanvas = document.createElement("canvas");
+    const fit = drawContainWithInfo(crop.canvas, inputCanvas, SR_INPUT_SIZE);
+
+    const inputTensor = canvasToSRTensor(inputCanvas);
+
+    const inputName = srSession.inputNames[0];
+    const outputName = srSession.outputNames[0];
+
+    const result = await srSession.run({
+      [inputName]: inputTensor
+    });
+
+    const outputTensor = result[outputName];
+
+    const srFullCanvas = document.createElement("canvas");
+    srTensorToCanvas(outputTensor, srFullCanvas, null);
+
+    // SR x2
+    const srScale = 2;
+
+    const srcX = fit.dx * srScale;
+    const srcY = fit.dy * srScale;
+    const srcW = fit.dw * srScale;
+    const srcH = fit.dh * srScale;
+
+    // SR後のcropを、元cropの2倍サイズに戻す
+    const srCropCanvas = document.createElement("canvas");
+    srCropCanvas.width = crop.w * srScale;
+    srCropCanvas.height = crop.h * srScale;
+
+    const srCropCtx = srCropCanvas.getContext("2d");
+    srCropCtx.imageSmoothingEnabled = true;
+    srCropCtx.imageSmoothingQuality = "high";
+
+    srCropCtx.drawImage(
+      srFullCanvas,
+      srcX,
+      srcY,
+      srcW,
+      srcH,
+      0,
+      0,
+      srCropCanvas.width,
+      srCropCanvas.height
+    );
+
+    // ===== alphaを元cropから2倍で作る =====
+    const alphaCanvas = document.createElement("canvas");
+    alphaCanvas.width = srCropCanvas.width;
+    alphaCanvas.height = srCropCanvas.height;
+
+    const alphaCtx = alphaCanvas.getContext("2d");
+    alphaCtx.clearRect(0, 0, alphaCanvas.width, alphaCanvas.height);
+    alphaCtx.imageSmoothingEnabled = true;
+    alphaCtx.imageSmoothingQuality = "high";
+
+    alphaCtx.drawImage(
+      crop.canvas,
+      0,
+      0,
+      crop.w,
+      crop.h,
+      0,
+      0,
+      alphaCanvas.width,
+      alphaCanvas.height
+    );
+
+    const rgbData = srCropCtx.getImageData(
+      0,
+      0,
+      srCropCanvas.width,
+      srCropCanvas.height
+    );
+
+    const alphaData = alphaCtx.getImageData(
+      0,
+      0,
+      alphaCanvas.width,
+      alphaCanvas.height
+    );
+
+    for (let i = 0; i < rgbData.data.length; i += 4) {
+      rgbData.data[i + 3] = alphaData.data[i + 3];
+    }
+
+    srCropCtx.putImageData(rgbData, 0, 0);
+
+    // ===== full canvasも2倍にして戻す =====
+    const newCanvas = document.createElement("canvas");
+    newCanvas.width = originalW * srScale;
+    newCanvas.height = originalH * srScale;
+
+    const nctx = newCanvas.getContext("2d");
+    nctx.clearRect(0, 0, newCanvas.width, newCanvas.height);
+
+    nctx.drawImage(
+      srCropCanvas,
+      crop.x * srScale,
+      crop.y * srScale
+    );
+
+    // personCanvasを置き換える
+    personCanvas.width = newCanvas.width;
+    personCanvas.height = newCanvas.height;
+
+    personCtx.clearRect(0, 0, personCanvas.width, personCanvas.height);
+    personCtx.drawImage(newCanvas, 0, 0);
+
+    console.log("✅ SR applied:", {
+      original: `${originalW}x${originalH}`,
+      crop: `${crop.w}x${crop.h}`,
+      after: `${personCanvas.width}x${personCanvas.height}`
+    });
+
+    return true;
+
+  } catch (e) {
+    console.error("❌ SR failed:", e);
+    return false;
+
+  } finally {
+    srRunning = false;
+  }
+}
+
 function maskToTensor(canvas) {
   const ctx = canvas.getContext("2d");
   const { width, height } = canvas;
@@ -688,6 +1242,39 @@ function maskToTensor(canvas) {
   }
 
   return new ort.Tensor("float32", data, [1, 1, height, width]);
+}
+
+function detectLightingType(image) {
+  const temp = document.createElement("canvas");
+  temp.width = 50;
+  temp.height = 50;
+
+  const ctx = temp.getContext("2d");
+  ctx.drawImage(image, 0, 0, 50, 50);
+
+  const data = ctx.getImageData(0, 0, 50, 50).data;
+
+  let top = 0;
+  let bottom = 0;
+
+  for (let y = 0; y < 50; y++) {
+    for (let x = 0; x < 50; x++) {
+      const i = (y * 50 + x) * 4;
+
+      const brightness =
+        (data[i] + data[i + 1] + data[i + 2]) / 3;
+
+      if (y < 25) {
+        top += brightness;
+      } else {
+        bottom += brightness;
+      }
+    }
+  }
+
+  if (top > bottom * 1.1) return "front";   // 上明るい
+  if (bottom > top * 1.1) return "back";    // 下明るい
+  return "neutral";
 }
 
 async function runONNX(imageCanvas, maskCanvas) {
@@ -805,6 +1392,83 @@ async function renderWithCurrentParams(res) {
 const maskCanvas = document.createElement("canvas");
 const maskCtx = maskCanvas.getContext("2d");
 
+
+function computePersonPlacement(frameW, frameH) {
+  const layout = getCurrentLayout();
+
+  const personW = cachedPersonCanvas.width;
+  const personH = cachedPersonCanvas.height;
+
+  const bounds = cachedBounds;
+
+  const personHeightRatio = layout.personHeightRatio ?? 0.6;
+
+  const desiredPersonH = frameH * personHeightRatio;
+  const scaleFromPerson = desiredPersonH / bounds.height;
+
+  const finalScale =
+    scaleFromPerson * clamp(scale, 0.8, 1.2);
+
+  const baseW = personW * finalScale;
+  const baseH = personH * finalScale;
+
+  let px;
+  let py;
+
+  if (layout.mode === "full") {
+    // ===== 全身モード =====
+    // 足元を指定位置へ合わせる
+    const footTargetX = layout.footTargetX ?? 0.5;
+    const footTargetY = layout.footTargetY ?? 0.93;
+
+    const footXInPerson = personW / 2;
+    const footYInPerson = bounds.bottom;
+
+    const targetX = frameW * footTargetX;
+    const targetY = frameH * footTargetY - offsetY * frameH;
+
+    px = targetX - footXInPerson * finalScale;
+    py = targetY - footYInPerson * finalScale;
+
+  } else {
+    // ===== 肩から上・上半身モード =====
+    // 顔位置を指定位置へ合わせる
+    const faceTargetX = layout.faceTargetX ?? 0.5;
+    const faceTargetY = layout.faceTargetY ?? 0.6;
+
+    const faceXInPerson = personW / 2;
+
+    const faceYInPerson =
+      bounds.top + bounds.height * faceYRatio;
+
+    const targetX = frameW * faceTargetX;
+    const targetY = frameH * faceTargetY - offsetY * frameH;
+
+    px = targetX - faceXInPerson * finalScale;
+    py = targetY - faceYInPerson * finalScale;
+  }
+
+  return {
+    px,
+    py,
+    baseW,
+    baseH,
+    finalScale,
+    layout
+  };
+}
+
+function getCurrentLayout() {
+  const preset = PRESETS[currentBgKey];
+
+  return preset?.layout ?? {
+    mode: "bust",
+    personHeightRatio: 0.6,
+    faceTargetX: 0.5,
+    faceTargetY: 0.6
+  };
+}
+
 async function renderLight() {
   if (!bgReady) return;
   if (!cachedPersonCanvas || !cachedBounds) return;
@@ -825,63 +1489,20 @@ async function renderLight() {
   const frameW = OUTPUT_WIDTH;
   const frameH = OUTPUT_HEIGHT;
 
-  const desiredPersonH = frameH * 0.6;
-  const scaleFromPerson = desiredPersonH / cachedBounds.height;
-  const finalScale = scaleFromPerson * clamp(scale, 0.8, 1.2);
+  // ✅ 背景ごとの配置設定を使う
+  const placement = computePersonPlacement(frameW, frameH);
 
-  const baseW = cachedPersonCanvas.width * finalScale;
-  const baseH = cachedPersonCanvas.height * finalScale;
-
-  const px = (frameW - baseW) / 2;
-
-  const faceY =
-    (cachedBounds.top + cachedBounds.height * faceYRatio) * finalScale;
-
-  const targetY = frameH * 0.6 - offsetY * frameH;
-  const py = targetY - faceY;
+  const px = placement.px;
+  const py = placement.py;
+  const baseW = placement.baseW;
+  const baseH = placement.baseH;
 
   // ===== 背景 =====
   ctx.clearRect(0, 0, frameW, frameH);
   drawCover(ctx, bg, bg.naturalWidth, bg.naturalHeight, frameW, frameH);
 
-  // ===== 背景平均色 =====
-  const avg = getAverageColor(bg, frameW, frameH);
-
-  // ===== 人物描画（影付き）=====
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 30;
-  ctx.shadowOffsetY = 15;
-
+  // ===== 人物 =====
   ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
-  ctx.restore();
-
-  // ===== ✅ 人物だけ色なじみ =====
-  ctx.save();
-  ctx.globalCompositeOperation = "color";
-  ctx.globalAlpha = 0.15;
-  ctx.fillStyle = `rgb(${avg.r},${avg.g},${avg.b})`;
-  ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
-  ctx.restore();
-
-  // ===== ✅ ライティング（上から光）=====
-  ctx.save();
-
-  const light = ctx.createLinearGradient(0, py, 0, py + baseH);
-
-  // 上強い → 下暗い
-  light.addColorStop(0, "rgba(255,255,255,0.7)");
-  light.addColorStop(0.5, "rgba(255,255,255,0.1)");
-  light.addColorStop(1, "rgba(0,0,0,0.25)");
-
-  ctx.globalCompositeOperation = "soft-light";
-  ctx.fillStyle = light;
-
-  // ✅ 人物形状でマスク
-  ctx.globalCompositeOperation = "soft-light";
-  ctx.fillRect(px, py, baseW, baseH);
-
-  ctx.restore();
 
   // ===== 文字 =====
   await fontReady;
@@ -916,7 +1537,6 @@ async function renderLight() {
   ctx.restore();
 
   const url = canvas.toDataURL("image/png");
-
   previewImg.src = url;
 
   if (screens.edit.classList.contains("active")) {
@@ -955,11 +1575,26 @@ segmentation.onResults(async res => {
 
   defringe(personCanvas);
 
-  // mask → bounds（重い・1回）
+  // ===== SR判定用に一度bounds取得 =====
   maskCanvas.width = personCanvas.width;
   maskCanvas.height = personCanvas.height;
   maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-  maskCtx.drawImage(res.segmentationMask, 0, 0);
+
+  // personCanvasのalphaからboundsを取る
+  maskCtx.drawImage(personCanvas, 0, 0);
+
+  let boundsBeforeSR = getPersonBoundsFromMask(maskCanvas);
+
+  // ===== 必要ならSRで人物を高画質化 =====
+  if (shouldUseSRForPerson(boundsBeforeSR)) {
+    await applySRToPerson();
+  }
+
+  // ===== SR後にboundsを取り直す =====
+  maskCanvas.width = personCanvas.width;
+  maskCanvas.height = personCanvas.height;
+  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+  maskCtx.drawImage(personCanvas, 0, 0);
 
   cachedBounds = getPersonBoundsFromMask(maskCanvas);
 
@@ -976,7 +1611,8 @@ segmentation.onResults(async res => {
 
 window.addEventListener("DOMContentLoaded", async () => {
 
-  await loadONNX();  // ←これを先に
+  await loadONNX();
+  await loadSRONNX();
 
   const bgKey = getBgParam() ?? "kishiwada-hare";
   const preset = PRESETS[bgKey];
