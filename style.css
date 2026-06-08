@@ -837,7 +837,6 @@ input[type="range"]::-moz-range-thumb {
 
   overflow: hidden;
 }
-``
 
 #camera-video {
   position: absolute;
@@ -1082,11 +1081,6 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 700;
   color: #ff7aa8;
 }
-
-ご提示いただいたHTML構造に合わせて、ご要望の「十字ガイドの2色化」と「グリッド線の点線（破線）化」を反映しました。
-外枠（.preview-frame）のボーダー色である rgba(255, 210, 225, 0.95) をグリッド線の点線に適用し、中央の十字（.cross）も4隅と同じく「外側ピンク＋内側白」の構造にブラッシュアップしています。
-## 変更・追加するCSSコード
-以下のコードを、先ほどのCSSの該当するパーツ部分と差し替えてください。
 
 /* ==========================================================================
    ===== プレビュー写真枠 ＆ カメラガイド（修正版） =====
@@ -1910,4 +1904,156 @@ input[type="range"]::-moz-range-thumb {
 .control-icon svg {
   width: 22px;
   height: 22px;
+}
+
+.camera-guide-text {
+  margin: 8px 0 10px;
+  text-align: center;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #ff7aa8;
+  letter-spacing: 0.03em;
+}
+
+.camera-guide-area {
+  position: relative;
+  overflow: hidden;
+}
+
+.camera-guide-area video {
+  position: relative;
+  z-index: 1;
+}
+
+/* 共通シルエット */
+.camera-silhouette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: none;
+  opacity: 0.62;
+}
+
+.camera-silhouette.active {
+  display: block;
+}
+
+/* ===== 肩から上シルエット ===== */
+/* ===== 肩から上シルエット：スクショ寄せ版 ===== */
+.camera-silhouette.bust .silhouette-head {
+  position: absolute;
+
+  /* 顔枠：スクショくらい大きめ */
+  width: 46%;
+  aspect-ratio: 1 / 1.18;
+
+  left: 50%;
+  top: 13%;
+
+  transform: translateX(-50%);
+
+  border: 3px dashed rgba(255, 122, 168, 0.9);
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 10px rgba(255, 122, 168, 0.22),
+    0 0 0 2px rgba(255, 255, 255, 0.28);
+}
+
+.camera-silhouette.bust .silhouette-neck {
+  position: absolute;
+
+  /* 首：頭と肩の間に軽く見える程度 */
+  width: 15%;
+  height: 10%;
+
+  left: 50%;
+  top: 50%;
+
+  transform: translateX(-50%);
+
+  border-left: 3px dashed rgba(255, 122, 168, 0.65);
+  border-right: 3px dashed rgba(255, 122, 168, 0.65);
+}
+
+.camera-silhouette.bust .silhouette-shoulders {
+  position: absolute;
+
+  /* 肩ライン：画面いっぱいすぎず、スクショくらい */
+  width: 82%;
+  height: 24%;
+
+  left: 50%;
+  top: 66%;
+
+  transform: translateX(-50%);
+
+  border-top: 3px dashed rgba(255, 122, 168, 0.9);
+  border-radius: 50% 50% 0 0;
+
+  box-shadow: 0 -2px 8px rgba(255, 122, 168, 0.16);
+}
+
+/* ===== 全身シルエット ===== */
+.camera-silhouette.full .full-head {
+  position: absolute;
+  width: 18%;
+  aspect-ratio: 1 / 1.15;
+  left: 50%;
+  top: 12%;
+  transform: translateX(-50%);
+  border: 3px dashed rgba(255, 122, 168, 0.9);
+  border-radius: 50%;
+}
+
+.camera-silhouette.full .full-body {
+  position: absolute;
+  width: 26%;
+  height: 36%;
+  left: 50%;
+  top: 31%;
+  transform: translateX(-50%);
+  border: 3px dashed rgba(255, 122, 168, 0.85);
+  border-radius: 45% 45% 30% 30%;
+}
+
+.camera-silhouette.full .full-leg {
+  position: absolute;
+  width: 8%;
+  height: 25%;
+  top: 66%;
+  border: 3px dashed rgba(255, 122, 168, 0.8);
+  border-radius: 999px;
+}
+
+.camera-silhouette.full .full-leg.left {
+  left: 39%;
+}
+
+.camera-silhouette.full .full-leg.right {
+  right: 39%;
+}
+
+#camera-guide-text {
+  width: 100%;
+  display: block;
+
+  text-align: center !important;
+
+  margin: 8px 0 12px !important;
+
+  font-family: 'Zen Maru Gothic', 'Klee One', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #8f747f !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.6;
+}
+
+#camera-guide-text::before,
+#camera-guide-text::after {
+  content: none !important;
+  display: none !important;
 }

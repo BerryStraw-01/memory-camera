@@ -23,7 +23,7 @@ const PRESETS = {
     }
   },
 
-  "ohori_miti": {
+  "ohori-miti": {
     image: "images/ohori_miti.png",
     place: "お堀の道",
     layout: {
@@ -34,7 +34,7 @@ const PRESETS = {
     }
   },
 
-  "siro_sakura": {
+  "siro-sakura": {
     image: "images/siro_sakura.png",
     place: "城と桜",
     layout: {
@@ -81,7 +81,12 @@ const PRESETS = {
 
 
 
-let currentBgKey = "kishiwada-hare";
+const initialBgKey =
+  new URLSearchParams(window.location.search).get("bg") ?? "kishiwada-hare";
+
+let currentBgKey = PRESETS[initialBgKey]
+  ? initialBgKey
+  : "kishiwada-hare";
 
 // 顔は画像の上30%くらいと仮定
 const faceYRatio = 0.25;
@@ -187,6 +192,8 @@ function setBackgroundByKey(key) {
   if (!preset) return;
 
   currentBgKey = key;
+
+  updateCameraGuide();
 
   bgReady = false;
   bg.src = preset.image;
@@ -1458,6 +1465,32 @@ function computePersonPlacement(frameW, frameH) {
   };
 }
 
+function getCameraGuideType() {
+  const layout = getCurrentLayout();
+  return layout.guide ?? layout.mode ?? "bust";
+}
+
+function updateCameraGuide() {
+  const guideText = document.getElementById("camera-guide-text");
+  const guideBust = document.getElementById("guide-bust");
+  const guideFull = document.getElementById("guide-full");
+
+  if (!guideText || !guideBust || !guideFull) return;
+
+  const guideType = getCameraGuideType();
+
+  if (guideType === "full") {
+    guideText.textContent = "全身が入るように撮ってね";
+    guideBust.classList.remove("active");
+    guideFull.classList.add("active");
+  } else {
+    guideText.textContent = "顔と肩が入るように撮ってね";
+    guideBust.classList.add("active");
+    guideFull.classList.remove("active");
+  }
+}
+
+
 function getCurrentLayout() {
   const preset = PRESETS[currentBgKey];
 
@@ -1610,14 +1643,20 @@ segmentation.onResults(async res => {
 });
 
 window.addEventListener("DOMContentLoaded", async () => {
+  // ✅ まず現在の背景キーを確定
+  const bgKey = getBgParam() ?? currentBgKey;
 
-  await loadONNX();
-  await loadSRONNX();
-
-  const bgKey = getBgParam() ?? "kishiwada-hare";
-  const preset = PRESETS[bgKey];
-  if (preset) {
-    setBackgroundByKey(bgKey);
+  if (PRESETS[bgKey]) {
+    currentBgKey = bgKey;
   }
 
+  // ✅ ONNXより先に撮影ガイドを即時更新
+  updateCameraGuide();
+
+  // ✅ 背景画像もすぐ読み込み開始
+  setBackgroundByKey(currentBgKey);
+
+  // ✅ 重いAI読み込みは後でOK
+  await loadONNX();
+  await loadSRONNX();
 });

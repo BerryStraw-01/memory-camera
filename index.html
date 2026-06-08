@@ -156,12 +156,31 @@
             <h1 class="title-text">思い出カメラ</h1>
             <p class="subtitle">大切な瞬間を写真に残しましょう</p>
 
-                <!-- 撮影枠 -->
+            <!-- 撮影ガイド文 -->
+            <p id="camera-guide-text" class="camera-guide-text"></p>
+
+            <!-- 撮影枠 -->
             <div class="screen-content">
-                <div class="image-area">
+                <div class="image-area camera-guide-area">
                     <video id="camera-video" muted playsinline></video>
+
+                    <!-- 肩から上ガイド -->
+                    <div id="guide-bust" class="camera-silhouette bust" aria-hidden="true">
+                        <div class="silhouette-head"></div>
+                        <div class="silhouette-neck"></div>
+                        <div class="silhouette-shoulders"></div>
+                    </div>
+
+                    <!-- 全身ガイド -->
+                    <div id="guide-full" class="camera-silhouette full" aria-hidden="true">
+                        <div class="full-head"></div>
+                        <div class="full-body"></div>
+                        <div class="full-leg left"></div>
+                        <div class="full-leg right"></div>
+                    </div>
                 </div>
             </div>
+
             <button id="camera-btn" class="camera-btn">
 
                 <!-- 左アイコン -->
