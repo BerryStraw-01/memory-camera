@@ -76,10 +76,85 @@ const PRESETS = {
       footTargetX: 0.5,
       footTargetY: 0.85
     }
-  }
+  },
+
+  "eki": {
+    image: "images/eki.JPG",
+    place: "蛸地蔵駅",
+    layout: {
+      mode: "full",
+      personHeightRatio: 0.35,
+      footTargetX: 0.5,
+      footTargetY: 0.95
+    }
+  },
+
+  "jinja": {
+      image: "images/jinja.JPG",
+      place: "岸城神社",
+      layout: {
+        mode: "full",
+        personHeightRatio: 0.3,
+        footTargetX: 0.6,
+        footTargetY: 0.8
+      }
+  },
+
+  "koen": {
+    image: "images/koen.png",
+    place: "二の丸広場",
+    layout: {
+      mode: "full",
+      personHeightRatio: 0.4,
+      footTargetX: 0.3,
+      footTargetY: 0.75
+    }
+  },
+
+  "koen-mae": {
+    image: "images/koen_mae.JPG",
+    place: "二の丸広場前",
+    layout: {
+      mode: "full",
+      personHeightRatio: 0.5,
+      footTargetX: 0.5,
+      footTargetY: 0.9
+    }
+  },
+
+   "komon": {
+      image: "images/komon.png",
+      place: "校門前",
+      layout: {
+        mode: "full",
+        personHeightRatio: 0.5,
+        footTargetX: 0.6,
+        footTargetY: 0.9
+      }
+   },
+
+   "kosya-yoko": {
+     image: "images/kosya_yoko.png",
+     place: "校舎横",
+     layout: {
+       mode: "full",
+       personHeightRatio: 0.4,
+       footTargetX: 0.5,
+       footTargetY: 0.8
+     }
+  },
+
+  "kosya": {
+       image: "images/kosya.JPG",
+       place: "校舎",
+       layout: {
+         mode: "full",
+         personHeightRatio: 0.4,
+         footTargetX: 0.7,
+         footTargetY: 0.8
+       }
+    }
 };
-
-
 
 const initialBgKey =
   new URLSearchParams(window.location.search).get("bg") ?? "kishiwada-hare";
@@ -333,7 +408,7 @@ async function drawPersonWithSegmentation(res) {
   // =====================================================
   // ✅ 高精細マスク生成：supersampling
   // =====================================================
-  const SS = 2; // 2倍で処理。重ければ1、もっと綺麗にしたければ3
+  const SS = 2;
 
   const hiMaskCanvas = document.createElement("canvas");
   hiMaskCanvas.width = w * SS;
@@ -345,21 +420,17 @@ async function drawPersonWithSegmentation(res) {
   hiMaskCtx.imageSmoothingEnabled = true;
   hiMaskCtx.imageSmoothingQuality = "high";
 
-  // 高解像度に拡大
   hiMaskCtx.drawImage(
     res.segmentationMask,
-    0,
-    0,
+    0, 0,
     hiMaskCanvas.width,
     hiMaskCanvas.height
   );
 
-  // ✅ ぼかしは弱め。強くすると白モヤになる
   hiMaskCtx.filter = "blur(0.7px)";
   hiMaskCtx.drawImage(hiMaskCanvas, 0, 0);
   hiMaskCtx.filter = "none";
 
-  // 元サイズのmaskCanvasに戻す
   maskCanvas.width = w;
   maskCanvas.height = h;
   maskCtx.clearRect(0, 0, w, h);
@@ -368,30 +439,36 @@ async function drawPersonWithSegmentation(res) {
 
   maskCtx.drawImage(
     hiMaskCanvas,
-    0,
-    0,
-    hiMaskCanvas.width,
-    hiMaskCanvas.height,
-    0,
-    0,
-    w,
-    h
+    0, 0, hiMaskCanvas.width, hiMaskCanvas.height,
+    0, 0, w, h
   );
 
+  // =====================================================
+  // ✅ 下部ほど閾値を緩くして足を残す
+  // =====================================================
   const maskData = maskCtx.getImageData(0, 0, w, h).data;
   const imgData = personCtx.getImageData(0, 0, w, h);
 
-  for (let i = 0; i < maskData.length; i += 4) {
-    let alpha = maskData[i] / 255;
+  for (let y = 0; y < h; y++) {
+    // 画像の上70%は通常閾値、下30%は徐々に緩くする
+    const yRatio = y / h;
+    const lowerZone = Math.max(0, (yRatio - 0.7) / 0.3); // 0～1（下30%で増加）
 
-    // =====================================================
-    // ✅ エッジを細かく保ちつつ自然にする
-    // =====================================================
-    if (alpha < 0.08) alpha = 0;
-    else if (alpha > 0.92) alpha = 1;
-    else alpha = Math.pow(alpha, 0.9);
+    // 下に行くほど閾値を下げる（0.08 → 0.02）
+    const cutoffLow  = 0.08 - lowerZone * 0.06;  // 0.08 → 0.02
+    const cutoffHigh = 0.92 + lowerZone * 0.06;   // 0.92 → 0.98
+    const gammaVal   = 0.9  - lowerZone * 0.2;    // 0.9  → 0.7（より残す）
 
-    imgData.data[i + 3] = alpha * 255;
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      let alpha = maskData[i] / 255;
+
+      if (alpha < cutoffLow) alpha = 0;
+      else if (alpha > cutoffHigh) alpha = 1;
+      else alpha = Math.pow(alpha, gammaVal);
+
+      imgData.data[i + 3] = alpha * 255;
+    }
   }
 
   personCtx.putImageData(imgData, 0, 0);
