@@ -999,12 +999,12 @@ function clamp(v, min, max) {
 
 scaleSlider.oninput = () => {
   scale = +scaleSlider.value / 100;
-  renderLight();
+  renderLightFast();
 };
 
 offsetSlider.oninput = () => {
   offsetY = (+offsetSlider.value) / 100;
-  renderLight();
+  renderLightFast();
 };
 
 // ===== ボタンイベントの修正 =====
@@ -1012,13 +1012,13 @@ offsetSlider.oninput = () => {
 toggleKishikoBtn.onclick = () => {
   showKishiko = !showKishiko;
   toggleKishikoBtn.classList.toggle("active", showKishiko);
-  renderLight();
+  renderLightFast();
 };
 
 togglePlaceBtn.onclick = () => {
   showPlace = !showPlace;
   togglePlaceBtn.classList.toggle("active", showPlace);
-  renderLight();
+  renderLightFast();
 };
 
 toEditBtn.onclick = () => {
@@ -1686,6 +1686,81 @@ function getCurrentLayout() {
     faceTargetY: 0.6
   };
 }
+
+// ✅ スライダー操作中の軽量描画（toDataURLを省略）
+let rafId = null;
+
+function renderLightFast() {
+  if (rafId) return; // 既にスケジュール済みならスキップ
+
+  rafId = requestAnimationFrame(() => {
+    rafId = null;
+
+    if (!bgReady) return;
+    if (!cachedPersonCanvas || !cachedBounds) return;
+    if (bg.naturalWidth === 0) return;
+
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.style.width  = OUTPUT_WIDTH + "px";
+    canvas.style.height = OUTPUT_HEIGHT + "px";
+
+    canvas.width  = OUTPUT_WIDTH * dpr;
+    canvas.height = OUTPUT_HEIGHT * dpr;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const frameW = OUTPUT_WIDTH;
+    const frameH = OUTPUT_HEIGHT;
+
+    const placement = computePersonPlacement(frameW, frameH);
+
+    // ===== 背景 =====
+    ctx.clearRect(0, 0, frameW, frameH);
+    drawCover(ctx, bg, bg.naturalWidth, bg.naturalHeight, frameW, frameH);
+
+    // ===== 人物 =====
+    ctx.drawImage(cachedPersonCanvas, placement.px, placement.py, placement.baseW, placement.baseH);
+
+    // ===== 文字（フォントは既にロード済み前提） =====
+    if (showKishiko || showPlace) {
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1.0;
+      ctx.textAlign = "center";
+      ctx.font = PLACE_FONT;
+
+      if (showKishiko) {
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = "#fff";
+        ctx.fillStyle = "#ff7aa8";
+        ctx.strokeText("in 岸高同窓会", frameW / 2, 50);
+        ctx.fillText("in 岸高同窓会", frameW / 2, 50);
+      }
+
+      if (showPlace) {
+        ctx.textBaseline = "bottom";
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = "#fff";
+        ctx.fillStyle = "#ff7aa8";
+
+        const text = PRESETS[currentBgKey]?.place ?? "";
+        ctx.strokeText(text, frameW / 2, frameH - 50);
+        ctx.fillText(text, frameW / 2, frameH - 50);
+      }
+
+      ctx.restore();
+    }
+
+    // ★ toDataURL は呼ばない（これが一番重い）
+  });
+}
+
+// ✅ 完全版（toDataURL含む、指を離した時だけ）
+async function renderLightFull() {
+  await renderLight(); // 既存のrenderLight
+}
+
 
 async function renderLight() {
   if (!bgReady) return;
