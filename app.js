@@ -234,8 +234,6 @@ let srRunning = false;
 const USE_SR = true;
 
 // SR入力サイズ
-// 学習が 256->512 なら 256
-// 512->1024 用にexportしているなら 512
 const SR_INPUT_SIZE = 512;
 
 // どれくらい拡大されるとSRを使うか
@@ -244,14 +242,117 @@ const SR_SCALE_THRESHOLD = 1.25;
 // ===== 背景 =====
 const bg = new Image();
 
-// ===== MediaPipe =====
-const segmentation = new SelfieSegmentation({
-  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`
-});
-segmentation.setOptions({
-  modelSelection: 1,
-  selfieMode: false
-});
+// ===== MODNet =====
+let modnetSession = null;
+const MODNET_SIZE = 512;
+
+async function loadMODNet() {
+  try {
+    modnetSession = await ort.InferenceSession.create("modnet.onnx");
+    console.log("✅ MODNet loaded");
+    console.log("MODNet inputNames:", modnetSession.inputNames);
+    console.log("MODNet outputNames:", modnetSession.outputNames);
+  } catch (e) {
+    console.error("❌ MODNet load failed:", e);
+    modnetSession = null;
+  }
+}
+
+/**
+ * Canvas → MODNet用テンソル
+ * 前処理: RGB, (pixel/255 - 0.5) / 0.5
+ */
+function canvasToMODNetTensor(canvas) {
+  const size = MODNET_SIZE;
+
+  const tmp = document.createElement("canvas");
+  tmp.width = size;
+  tmp.height = size;
+
+  const tctx = tmp.getContext("2d");
+  tctx.imageSmoothingEnabled = true;
+  tctx.imageSmoothingQuality = "high";
+  tctx.drawImage(canvas, 0, 0, size, size);
+
+  const imgData = tctx.getImageData(0, 0, size, size).data;
+  const float32 = new Float32Array(3 * size * size);
+
+  for (let i = 0; i < size * size; i++) {
+    float32[i]                     = (imgData[i * 4]     / 255.0 - 0.5) / 0.5;
+    float32[i + size * size]       = (imgData[i * 4 + 1] / 255.0 - 0.5) / 0.5;
+    float32[i + size * size * 2]   = (imgData[i * 4 + 2] / 255.0 - 0.5) / 0.5;
+  }
+
+  return new ort.Tensor("float32", float32, [1, 3, size, size]);
+}
+
+/**
+ * MODNetの出力（アルファマット）をCanvasに描画
+ * 出力: [1, 1, H, W]、値は0〜1
+ */
+function modnetOutputToMaskCanvas(outputTensor, targetW, targetH) {
+  const [_, __, h, w] = outputTensor.dims;
+  const data = outputTensor.data;
+
+  const tmp = document.createElement("canvas");
+  tmp.width = w;
+  tmp.height = h;
+
+  const tctx = tmp.getContext("2d");
+  const imgData = tctx.createImageData(w, h);
+
+  for (let i = 0; i < w * h; i++) {
+    const alpha = Math.min(1, Math.max(0, data[i]));
+    const v = Math.round(alpha * 255);
+
+    imgData.data[i * 4]     = v;
+    imgData.data[i * 4 + 1] = v;
+    imgData.data[i * 4 + 2] = v;
+    imgData.data[i * 4 + 3] = v;  // ← ★ 255 → v に変更
+  }
+
+  tctx.putImageData(imgData, 0, 0);
+
+  const result = document.createElement("canvas");
+  result.width = targetW;
+  result.height = targetH;
+
+  const rctx = result.getContext("2d");
+  rctx.imageSmoothingEnabled = true;
+  rctx.imageSmoothingQuality = "high";
+  rctx.drawImage(tmp, 0, 0, targetW, targetH);
+
+  return result;
+}
+
+/**
+ * MODNetでセグメンテーションを実行
+ */
+async function runMODNet(imageCanvas) {
+  if (!modnetSession) {
+    console.error("MODNet not loaded");
+    return null;
+  }
+
+  const inputTensor = canvasToMODNetTensor(imageCanvas);
+
+  const inputName = modnetSession.inputNames[0];
+  const outputName = modnetSession.outputNames[0];
+
+  const result = await modnetSession.run({
+    [inputName]: inputTensor
+  });
+
+  const outputTensor = result[outputName];
+
+  const alphaMask = modnetOutputToMaskCanvas(
+    outputTensor,
+    imageCanvas.width,
+    imageCanvas.height
+  );
+
+  return alphaMask;
+}
 
 // ===== 切り抜き =====
 const personCanvas = document.createElement("canvas");
@@ -259,7 +360,7 @@ const personCtx = personCanvas.getContext("2d");
 
 function getBgParam() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("bg"); // 例: kishiwada-hare
+  return params.get("bg");
 }
 
 function setBackgroundByKey(key) {
@@ -275,8 +376,8 @@ function setBackgroundByKey(key) {
 
   bg.onload = async () => {
     bgReady = true;
-    await ensureFontsReady();   // ← ★必ず待つ
-    renderLight();              // ← ★ここでだけ描画
+    await ensureFontsReady();
+    renderLight();
   };
 }
 
@@ -290,7 +391,6 @@ async function ensureFontsReady() {
     document.fonts.ready
   ]);
 
-  // ✅ DOM で一度描画して glyph を確定させる
   warmupKleeFont();
 
   fontsReadyResolved = true;
@@ -333,7 +433,6 @@ async function startCamera() {
 }
 
 // ===== 共通描画（背景＋人物） =====
-// ===== 元のCanvas =====
 const personWorkCanvas = document.createElement("canvas");
 
 async function drawBase() {
@@ -366,7 +465,6 @@ function applyVibrance(canvas, amount = 0.5) {
 
     const sat = max === 0 ? 0 : (max - min) / max;
 
-    // ✅ 彩度が低いほど強く補正
     const boost = 1 + amount * (1 - sat);
 
     r = r + (r - max) * (boost - 1);
@@ -479,7 +577,7 @@ function dilateBottom(canvas, ctx, expandPx = 10) {
     new Uint8ClampedArray(src.data), width, height
   );
 
-  const startY = Math.floor(height * 0.55); // ★ 少し上から開始
+  const startY = Math.floor(height * 0.55);
 
   for (let y = startY; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -490,7 +588,6 @@ function dilateBottom(canvas, ctx, expandPx = 10) {
       let maxAlpha = 0;
       let srcR = 0, srcG = 0, srcB = 0;
 
-      // ★ 全方向を探索（上下左右）
       for (let dy = -expandPx; dy <= expandPx; dy++) {
         for (let dx = -expandPx; dx <= expandPx; dx++) {
           const nx = x + dx;
@@ -511,7 +608,6 @@ function dilateBottom(canvas, ctx, expandPx = 10) {
       }
 
       if (maxAlpha > 20) {
-        // ★ 近傍の色を使う（黒ずみ防止）
         dst.data[i]     = srcR;
         dst.data[i + 1] = srcG;
         dst.data[i + 2] = srcB;
@@ -525,7 +621,7 @@ function dilateBottom(canvas, ctx, expandPx = 10) {
 
 function prepareONNXInput() {
   const img256 = resizeTo256(personCanvas);
-  const mask256 = resizeTo256(maskCanvas); // segmentationMask を描いた canvas
+  const mask256 = resizeTo256(maskCanvas);
 
   return { img256, mask256 };
 }
@@ -538,14 +634,10 @@ function defringe(canvas) {
   for (let i = 0; i < data.length; i += 4) {
     let alpha = data[i + 3] / 255;
 
-    // 半透明エッジだけ処理
     if (alpha > 0 && alpha < 0.95) {
-      // ✅ エッジを少し締める
       const newAlpha = Math.pow(alpha, 0.85);
       data[i + 3] = newAlpha * 255;
 
-      // ✅ 白フリンジだけ軽く抑える
-      // RGBを強く潰しすぎない
       const fringeReduce = 0.92 + 0.08 * newAlpha;
 
       data[i] = data[i] * fringeReduce;
@@ -586,7 +678,7 @@ function getAverageColor(image, w, h) {
 
 async function applyONNX() {
   if (!ortSession) return null;
-  if (onnxRunning) return null;   // ★ 追加
+  if (onnxRunning) return null;
 
   onnxRunning = true;
   try {
@@ -608,7 +700,7 @@ function getPersonBoundsFromMask(maskCanvas) {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * 4;
-      if (data[i + 3] > 10) { // alpha がある = 人物
+      if (data[i + 3] > 10) {
         if (y < top) top = y;
         if (y > bottom) bottom = y;
       }
@@ -632,7 +724,6 @@ function applyONNXResultToPerson(output) {
   tmpCanvas.height = 256;
   tensorToCanvas(output, tmpCanvas);
 
-  // ✅ 高解像度に戻す（重要）
   personCtx.save();
   personCtx.globalCompositeOperation = "soft-light";
   personCtx.globalAlpha = 0.3;
@@ -654,13 +745,11 @@ function drawPin(ctx, x, y, size) {
   ctx.save();
   ctx.translate(x, y);
 
-  // ✅ ふっくら用パラメータ
-  const BODY_W = size * 1.1;      // 横幅を太く
-  const BODY_H = size * 0.95;     // 縦を少し詰める
-  const TIP_H  = size * 0.75;     // 尖りを短く
-  const ROUND  = size * 0.95;     // 上の丸を大きく
+  const BODY_W = size * 1.1;
+  const BODY_H = size * 0.95;
+  const TIP_H  = size * 0.75;
+  const ROUND  = size * 0.95;
 
-  // ===== 本体 =====
   ctx.beginPath();
   ctx.moveTo(0, BODY_H + TIP_H);
 
@@ -679,7 +768,6 @@ function drawPin(ctx, x, y, size) {
   ctx.fillStyle = "#ff7aa8";
   ctx.fill();
 
-  // ===== 中央の丸 =====
   ctx.beginPath();
   ctx.arc(0, -ROUND * 0.2, size * 0.45, 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
@@ -705,7 +793,6 @@ async function redrawFinal() {
   ctx.textBaseline = "middle";
   ctx.font = PLACE_FONT;
 
-  // ===== 上の文字 =====
   if (showKishiko) {
     const x = w / 2;
     const y = h * 0.05;
@@ -719,7 +806,6 @@ async function redrawFinal() {
     ctx.fillText("in 岸高同窓会", x, y);
   }
 
-  // ===== 下の場所 =====
   if (showPlace) {
     ctx.save();
 
@@ -737,29 +823,22 @@ async function redrawFinal() {
 
     const text = PRESETS[currentBgKey]?.place ?? "";
 
-    // ✅ 1. baseline
     const baselineY = h - 50;
 
-    // ✅ 2. 幅を測る
     const metrics = ctx.measureText(text);
 
-    // ✅ 3. 全体幅
     const totalWidth =
       PIN_SIZE + PIN_GAP + metrics.width;
 
-    // ✅ 4. 左端
     const groupLeftX =
       w / 2 - totalWidth / 2;
 
-    // ✅ 5. ピン
     const pinX =
       groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
 
-    // ✅ 6. 文字
     const textX =
       groupLeftX + PIN_SIZE + PIN_GAP + metrics.width / 2;
 
-    // ✅ 7. 縦位置
     const textCenterY =
       baselineY - metrics.actualBoundingBoxAscent / 2;
 
@@ -816,7 +895,6 @@ async function redrawTextLayer() {
 }
 
 function composeFinalPreview() {
-  // renderLight() で背景＋人物はすでに描かれている前提
   ctx.drawImage(textCanvas, 0, 0);
   previewImg.src = canvas.toDataURL("image/png");
 }
@@ -835,6 +913,11 @@ shutterBtn.onclick = async () => {
 
   showScreen("loading");
 
+
+  // ✅ ブラウザに1フレーム描画させてからMODNet実行
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+
   previewImg.src = "";
   editImg.src = "";
   saveImg.src = "";
@@ -842,7 +925,6 @@ shutterBtn.onclick = async () => {
   const tempCanvas = document.createElement("canvas");
   const tctx = tempCanvas.getContext("2d");
 
-  // ✅ segmentation用の入力解像度を上げる
   const SEG_LONG_SIDE = 1280;
 
   const vw = video.videoWidth;
@@ -864,7 +946,23 @@ shutterBtn.onclick = async () => {
     tempCanvas.height
   );
 
-  await segmentation.send({ image: tempCanvas });
+  // ✅ MODNetでアルファマスクを取得
+  const alphaMaskCanvas = await runMODNet(tempCanvas);
+
+  if (!alphaMaskCanvas) {
+    console.error("MODNet failed");
+    showScreen("camera");
+    return;
+  }
+
+  // ✅ MediaPipeと同じ形式の結果オブジェクトを作る
+  const res = {
+    image: tempCanvas,
+    segmentationMask: alphaMaskCanvas
+  };
+
+  // ✅ 共通の後処理を呼ぶ
+  await handleSegmentationResult(res);
 };
 
 function clamp(v, min, max) {
@@ -874,17 +972,16 @@ function clamp(v, min, max) {
 
 scaleSlider.oninput = () => {
   scale = +scaleSlider.value / 100;
-  renderLight();   // ← これを追加
+  renderLight();
 };
 
 offsetSlider.oninput = () => {
   offsetY = (+offsetSlider.value) / 100;
-  renderLight();   // ← これを追加
+  renderLight();
 };
 
 // ===== ボタンイベントの修正 =====
 
-// 「岸高同窓会」ボタンを押したとき
 toggleKishikoBtn.onclick = () => {
   showKishiko = !showKishiko;
   toggleKishikoBtn.classList.toggle("active", showKishiko);
@@ -897,9 +994,7 @@ togglePlaceBtn.onclick = () => {
   renderLight();
 };
 
-// ✅ プレビュー画面から「編集画面（toEdit）」に移る瞬間の処理も最適化
 toEditBtn.onclick = () => {
-  // ✅ 今の canvas をそのまま編集画面に反映
   editImg.src = canvas.toDataURL("image/png");
   showScreen("edit");
 };
@@ -907,7 +1002,6 @@ toEditBtn.onclick = () => {
 const saveBtn = document.getElementById("save-btn");
 
 saveBtn.onclick = () => {
-  // ✅ すでに表示されている canvas をそのまま保存
   finalImageURL = canvas.toDataURL("image/png");
   saveImg.src = finalImageURL;
   showScreen("save");
@@ -917,7 +1011,7 @@ const saveBackBtn = document.getElementById("save-back-btn");
 
 if (saveBackBtn) {
   saveBackBtn.onclick = () => {
-    showScreen("edit"); // ✅ 編集画面に戻る
+    showScreen("edit");
   };
 }
 
@@ -927,7 +1021,7 @@ const editBackBtn = document.getElementById("edit-back-btn");
 retryBtn.onclick = () => showScreen("camera");
 
 editBackBtn.onclick = () => {
-showScreen("preview");
+  showScreen("preview");
 };
 
 let ortSession;
@@ -1017,7 +1111,6 @@ function srTensorToCanvas(tensor, targetCanvas, alphaSourceCanvas = null) {
     img.data[i * 4 + 1] = Math.min(255, Math.max(0, data[i + w * h] * 255));
     img.data[i * 4 + 2] = Math.min(255, Math.max(0, data[i + w * h * 2] * 255));
 
-    // alphaは元の人物Canvasから拡大して使う
     img.data[i * 4 + 3] = alphaData ? alphaData[i * 4 + 3] : 255;
   }
 
@@ -1049,45 +1142,7 @@ function shouldUseSRForPerson(bounds) {
     canUseSRWithoutDownscale
   });
 
-  // 重要：
-  // SR入力よりconst SEG_LONG_SIDE = 12大きいcropを無理にSRすると劣化するので使わない
   return willUpscalePerson && canUseSRWithoutDownscale;
-}
-
-function drawContainWithInfo(srcCanvas, dstCanvas, size) {
-  dstCanvas.width = size;
-  dstCanvas.height = size;
-
-  const dctx = dstCanvas.getContext("2d");
-  dctx.clearRect(0, 0, size, size);
-
-  // SRはRGBのみなので透明部分は黒で埋める
-  dctx.fillStyle = "black";
-  dctx.fillRect(0, 0, size, size);
-
-  const sw = srcCanvas.width;
-  const sh = srcCanvas.height;
-
-  const scale = Math.min(size / sw, size / sh);
-
-  const dw = Math.round(sw * scale);
-  const dh = Math.round(sh * scale);
-
-  const dx = Math.round((size - dw) / 2);
-  const dy = Math.round((size - dh) / 2);
-
-  dctx.imageSmoothingEnabled = true;
-  dctx.imageSmoothingQuality = "high";
-
-  dctx.drawImage(srcCanvas, dx, dy, dw, dh);
-
-  return {
-    dx,
-    dy,
-    dw,
-    dh,
-    scale
-  };
 }
 
 function getAlphaBounds(canvas, threshold = 10) {
@@ -1215,7 +1270,6 @@ async function applySRToPerson() {
     const originalW = personCanvas.width;
     const originalH = personCanvas.height;
 
-    // ===== 人物部分だけ取得 =====
     const bounds = getAlphaBounds(personCanvas);
     if (!bounds) {
       console.warn("⚠️ SR skipped: alpha bounds not found");
@@ -1225,8 +1279,6 @@ async function applySRToPerson() {
     const crop = cropCanvasByBounds(personCanvas, bounds, 0.08);
     const cropLongSide = Math.max(crop.w, crop.h);
 
-    // 重要：
-    // crop自体が512より大きい場合、512に縮小してからSRするので逆に劣化する
     if (cropLongSide > SR_INPUT_SIZE) {
       console.warn("⚠️ SR skipped: crop is larger than SR input", {
         crop: `${crop.w}x${crop.h}`,
@@ -1235,7 +1287,6 @@ async function applySRToPerson() {
       return false;
     }
 
-    // ===== SR入力を作成 =====
     const inputCanvas = document.createElement("canvas");
     const fit = drawContainWithInfo(crop.canvas, inputCanvas, SR_INPUT_SIZE);
 
@@ -1253,7 +1304,6 @@ async function applySRToPerson() {
     const srFullCanvas = document.createElement("canvas");
     srTensorToCanvas(outputTensor, srFullCanvas, null);
 
-    // SR x2
     const srScale = 2;
 
     const srcX = fit.dx * srScale;
@@ -1261,7 +1311,6 @@ async function applySRToPerson() {
     const srcW = fit.dw * srScale;
     const srcH = fit.dh * srScale;
 
-    // SR後のcropを、元cropの2倍サイズに戻す
     const srCropCanvas = document.createElement("canvas");
     srCropCanvas.width = crop.w * srScale;
     srCropCanvas.height = crop.h * srScale;
@@ -1282,7 +1331,6 @@ async function applySRToPerson() {
       srCropCanvas.height
     );
 
-    // ===== alphaを元cropから2倍で作る =====
     const alphaCanvas = document.createElement("canvas");
     alphaCanvas.width = srCropCanvas.width;
     alphaCanvas.height = srCropCanvas.height;
@@ -1324,7 +1372,6 @@ async function applySRToPerson() {
 
     srCropCtx.putImageData(rgbData, 0, 0);
 
-    // ===== full canvasも2倍にして戻す =====
     const newCanvas = document.createElement("canvas");
     newCanvas.width = originalW * srScale;
     newCanvas.height = originalH * srScale;
@@ -1338,7 +1385,6 @@ async function applySRToPerson() {
       crop.y * srScale
     );
 
-    // personCanvasを置き換える
     personCanvas.width = newCanvas.width;
     personCanvas.height = newCanvas.height;
 
@@ -1404,30 +1450,28 @@ function detectLightingType(image) {
     }
   }
 
-  if (top > bottom * 1.1) return "front";   // 上明るい
-  if (bottom > top * 1.1) return "back";    // 下明るい
+  if (top > bottom * 1.1) return "front";
+  if (bottom > top * 1.1) return "back";
   return "neutral";
 }
 
 async function runONNX(imageCanvas, maskCanvas) {
-  const image = canvasToTensor(imageCanvas); // [1,3,H,W]
-  const mask = maskToTensor(maskCanvas);     // [1,1,H,W]
+  const image = canvasToTensor(imageCanvas);
+  const mask = maskToTensor(maskCanvas);
 
   const H = image.dims[2];
   const W = image.dims[3];
 
   const inputData = new Float32Array(4 * H * W);
 
-  // ✅ RGBコピー
   inputData.set(image.data, 0);
 
-  // ✅ maskを4ch目に追加
   inputData.set(mask.data, 3 * H * W);
 
   const inputTensor = new ort.Tensor("float32", inputData, [1, 4, H, W]);
 
   const result = await ortSession.run({
-    input: inputTensor   // ← 名前も一致させる
+    input: inputTensor
   });
 
   return result.output;
@@ -1459,26 +1503,21 @@ function tensorToCanvas(tensor, canvas) {
 }
 
 async function renderWithCurrentParams(res) {
-  // 表示キャンバス確定
   canvas.width = OUTPUT_WIDTH;
   canvas.height = OUTPUT_HEIGHT;
 
   const frameW = canvas.width;
   const frameH = canvas.height;
 
-  // 人物切り抜き
   await drawPersonWithSegmentation(res);
 
-  // ONNX（色）
   const output = await applyONNX();
   applyONNXResultToPerson(output);
 
-  // alpha 復元
   personCtx.globalCompositeOperation = "destination-in";
   personCtx.drawImage(res.segmentationMask, 0, 0);
   personCtx.globalCompositeOperation = "source-over";
 
-  // mask → 人物実寸
   maskCanvas.width = personCanvas.width;
   maskCanvas.height = personCanvas.height;
   maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
@@ -1487,7 +1526,6 @@ async function renderWithCurrentParams(res) {
   const bounds = getPersonBoundsFromMask(maskCanvas);
   if (!bounds) return;
 
-  // 自動スケール
   const TARGET_PERSON_RATIO = 0.6;
   const desiredPersonH = frameH * TARGET_PERSON_RATIO;
   const scaleFromPerson = desiredPersonH / bounds.height;
@@ -1506,7 +1544,6 @@ async function renderWithCurrentParams(res) {
 
   const py = targetY - faceY;
 
-  // 描画
   ctx.clearRect(0, 0, frameW, frameH);
   drawCover(
     ctx,
@@ -1548,8 +1585,6 @@ function computePersonPlacement(frameW, frameH) {
   let py;
 
   if (layout.mode === "full") {
-    // ===== 全身モード =====
-    // 足元を指定位置へ合わせる
     const footTargetX = layout.footTargetX ?? 0.5;
     const footTargetY = layout.footTargetY ?? 0.93;
 
@@ -1563,8 +1598,6 @@ function computePersonPlacement(frameW, frameH) {
     py = targetY - footYInPerson * finalScale;
 
   } else {
-    // ===== 肩から上・上半身モード =====
-    // 顔位置を指定位置へ合わせる
     const faceTargetX = layout.faceTargetX ?? 0.5;
     const faceTargetY = layout.faceTargetY ?? 0.6;
 
@@ -1647,7 +1680,6 @@ async function renderLight() {
   const frameW = OUTPUT_WIDTH;
   const frameH = OUTPUT_HEIGHT;
 
-  // ✅ 背景ごとの配置設定を使う
   const placement = computePersonPlacement(frameW, frameH);
 
   const px = placement.px;
@@ -1655,14 +1687,11 @@ async function renderLight() {
   const baseW = placement.baseW;
   const baseH = placement.baseH;
 
-  // ===== 背景 =====
   ctx.clearRect(0, 0, frameW, frameH);
   drawCover(ctx, bg, bg.naturalWidth, bg.naturalHeight, frameW, frameH);
 
-  // ===== 人物 =====
   ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
 
-  // ===== 文字 =====
   await fontReady;
 
   ctx.save();
@@ -1709,22 +1738,23 @@ function warmupKleeFont() {
   span.style.font = "600 90px 'Klee One'";
   document.body.appendChild(span);
 
-  // 1フレーム待ってから削除
   requestAnimationFrame(() => {
     document.body.removeChild(span);
   });
 }
 
-segmentation.onResults(async res => {
+// ===== MODNet / MediaPipe 共通の後処理 =====
+async function handleSegmentationResult(res) {
   await ensureFontsReady();
   lastSegmentationResult = res;
 
-  // 人物切り抜き（重い）
+  // 人物切り抜き
   await drawPersonWithSegmentation(res);
 
+  // 足元のマスクを膨張させる
   dilateBottom(personCanvas, personCtx, 8);
 
-  // ONNX（重い・1回）
+  // ONNX harmonization
   const output = await applyONNX();
   applyONNXResultToPerson(output);
 
@@ -1735,22 +1765,21 @@ segmentation.onResults(async res => {
 
   defringe(personCanvas);
 
-  // ===== SR判定用に一度bounds取得 =====
+  // SR判定用にbounds取得
   maskCanvas.width = personCanvas.width;
   maskCanvas.height = personCanvas.height;
   maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
 
-  // personCanvasのalphaからboundsを取る
   maskCtx.drawImage(personCanvas, 0, 0);
 
   let boundsBeforeSR = getPersonBoundsFromMask(maskCanvas);
 
-  // ===== 必要ならSRで人物を高画質化 =====
+  // 必要ならSRで人物を高画質化
   if (shouldUseSRForPerson(boundsBeforeSR)) {
     await applySRToPerson();
   }
 
-  // ===== SR後にboundsを取り直す =====
+  // SR後にboundsを取り直す
   maskCanvas.width = personCanvas.width;
   maskCanvas.height = personCanvas.height;
   maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
@@ -1758,7 +1787,7 @@ segmentation.onResults(async res => {
 
   cachedBounds = getPersonBoundsFromMask(maskCanvas);
 
-  // ✅ 人物結果をキャッシュ
+  // 人物結果をキャッシュ
   cachedPersonCanvas = document.createElement("canvas");
   cachedPersonCanvas.width = personCanvas.width;
   cachedPersonCanvas.height = personCanvas.height;
@@ -1767,23 +1796,22 @@ segmentation.onResults(async res => {
   // 初回描画
   renderLight();
   showScreen("preview");
-});
+}
 
 window.addEventListener("DOMContentLoaded", async () => {
-  // ✅ まず現在の背景キーを確定
   const bgKey = getBgParam() ?? currentBgKey;
 
   if (PRESETS[bgKey]) {
     currentBgKey = bgKey;
   }
 
-  // ✅ ONNXより先に撮影ガイドを即時更新
   updateCameraGuide();
 
-  // ✅ 背景画像もすぐ読み込み開始
   setBackgroundByKey(currentBgKey);
 
-  // ✅ 重いAI読み込みは後でOK
+  // ✅ MODNetを読み込む
+  await loadMODNet();
+
   await loadONNX();
   await loadSRONNX();
 });
