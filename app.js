@@ -28,7 +28,7 @@ const PRESETS = {
     place: "お堀の道",
     layout: {
       mode: "full",
-      personHeightRatio: 0.4,
+      personHeightRatio: 0.3,
       footTargetX: 0.6,
       footTargetY: 0.9
     }
@@ -39,7 +39,7 @@ const PRESETS = {
     place: "城と桜",
     layout: {
       mode: "full",
-      personHeightRatio: 0.55,
+      personHeightRatio: 0.45,
       footTargetX: 0.5,
       footTargetY: 0.9
     }
@@ -61,7 +61,7 @@ const PRESETS = {
     place: "運動場前",
     layout: {
       mode: "full",
-      personHeightRatio: 0.6,
+      personHeightRatio: 0.5,
       footTargetX: 0.5,
       footTargetY: 0.85
     }
@@ -72,9 +72,9 @@ const PRESETS = {
     place: "脇道",
     layout: {
       mode: "full",
-      personHeightRatio: 0.45,
-      footTargetX: 0.5,
-      footTargetY: 0.85
+      personHeightRatio: 0.3,
+      footTargetX: 0.3,
+      footTargetY: 0.9
     }
   },
 
@@ -83,7 +83,7 @@ const PRESETS = {
     place: "蛸地蔵駅",
     layout: {
       mode: "full",
-      personHeightRatio: 0.35,
+      personHeightRatio: 0.3,
       footTargetX: 0.5,
       footTargetY: 0.95
     }
@@ -94,9 +94,9 @@ const PRESETS = {
       place: "岸城神社",
       layout: {
         mode: "full",
-        personHeightRatio: 0.3,
+        personHeightRatio: 0.2,
         footTargetX: 0.6,
-        footTargetY: 0.8
+        footTargetY: 0.95
       }
   },
 
@@ -105,9 +105,9 @@ const PRESETS = {
     place: "二の丸広場",
     layout: {
       mode: "full",
-      personHeightRatio: 0.4,
+      personHeightRatio: 0.5,
       footTargetX: 0.3,
-      footTargetY: 0.75
+      footTargetY: 1.2
     }
   },
 
