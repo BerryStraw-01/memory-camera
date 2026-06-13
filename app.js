@@ -61,9 +61,9 @@ const PRESETS = {
       place: "岸和田城の上",
       layout: {
         mode: "full",
-        personHeightRatio: 0.2,
-        footTargetX: 0.4,
-        footTargetY: 0.3
+        personHeightRatio: 0.4,
+        footTargetX: 0.5,
+        footTargetY: 0.5
       }
     },
 
