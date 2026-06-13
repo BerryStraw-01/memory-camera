@@ -246,9 +246,36 @@ const bg = new Image();
 let modnetSession = null;
 const MODNET_SIZE = 512;
 
+// ===== WASM設定（モバイル対応） =====
+function configureORTForMobile() {
+  if (!window.ort) return;
+
+  // スレッド数を1に（モバイルで安定）
+  ort.env.wasm.numThreads = 1;
+
+  // iOSの場合SIMDを無効化
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  if (isIOS) {
+    ort.env.wasm.simd = false;
+    console.log("📱 iOS detected → SIMD disabled");
+  }
+
+  console.log("⚙️ ORT WASM config:", {
+    numThreads: ort.env.wasm.numThreads,
+    simd: ort.env.wasm.simd
+  });
+}
+
 async function loadMODNet() {
   try {
-    modnetSession = await ort.InferenceSession.create("modnet.onnx");
+    modnetSession = await ort.InferenceSession.create("modnet.onnx", {
+      executionProviders: ["wasm"],
+      graphOptimizationLevel: "all",
+      enableCpuMemArena: false,     // ★ モバイルのメモリ節約
+      enableMemPattern: false       // ★ モバイルのメモリ節約
+    });
     console.log("✅ MODNet loaded");
     console.log("MODNet inputNames:", modnetSession.inputNames);
     console.log("MODNet outputNames:", modnetSession.outputNames);
@@ -1806,10 +1833,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   updateCameraGuide();
-
   setBackgroundByKey(currentBgKey);
 
-  // ✅ MODNetを読み込む
+  // ✅ モバイル対応のWASM設定を最初に適用
+  configureORTForMobile();
+
+  // ✅ MODNetを読み込む（失敗してもMediaPipeで動く）
   await loadMODNet();
 
   await loadONNX();
