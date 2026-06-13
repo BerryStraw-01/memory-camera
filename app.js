@@ -105,7 +105,7 @@ const PRESETS = {
     place: "二の丸広場",
     layout: {
       mode: "full",
-      personHeightRatio: 0.5,
+      personHeightRatio: 0.8,
       footTargetX: 0.3,
       footTargetY: 1.2
     }
