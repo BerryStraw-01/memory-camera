@@ -450,14 +450,12 @@ async function drawPersonWithSegmentation(res) {
   const imgData = personCtx.getImageData(0, 0, w, h);
 
   for (let y = 0; y < h; y++) {
-    // 画像の上70%は通常閾値、下30%は徐々に緩くする
     const yRatio = y / h;
-    const lowerZone = Math.max(0, (yRatio - 0.7) / 0.3); // 0～1（下30%で増加）
+    const lowerZone = Math.max(0, (yRatio - 0.6) / 0.4);
 
-    // 下に行くほど閾値を下げる（0.08 → 0.02）
-    const cutoffLow  = 0.08 - lowerZone * 0.06;  // 0.08 → 0.02
-    const cutoffHigh = 0.92 + lowerZone * 0.06;   // 0.92 → 0.98
-    const gammaVal   = 0.9  - lowerZone * 0.2;    // 0.9  → 0.7（より残す）
+    const cutoffLow  = 0.08 - lowerZone * 0.07;
+    const cutoffHigh = 0.92 + lowerZone * 0.07;
+    const gammaVal   = 0.9  - lowerZone * 0.35;
 
     for (let x = 0; x < w; x++) {
       const i = (y * w + x) * 4;
@@ -474,24 +472,26 @@ async function drawPersonWithSegmentation(res) {
   personCtx.putImageData(imgData, 0, 0);
 }
 
-function dilateBottom(canvas, ctx, expandPx = 8) {
+function dilateBottom(canvas, ctx, expandPx = 10) {
   const { width, height } = canvas;
   const src = ctx.getImageData(0, 0, width, height);
-  const dst = ctx.getImageData(0, 0, width, height);
+  const dst = new ImageData(
+    new Uint8ClampedArray(src.data), width, height
+  );
 
-  // 画像の下40%だけ処理（足元付近のみ）
-  const startY = Math.floor(height * 0.6);
+  const startY = Math.floor(height * 0.55); // ★ 少し上から開始
 
   for (let y = startY; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * 4;
 
-      if (src.data[i + 3] > 0) continue; // すでにあるピクセルはスキップ
+      if (dst.data[i + 3] > 0) continue;
 
-      // 近傍にアルファがあるか探す（下方向に重み）
       let maxAlpha = 0;
+      let srcR = 0, srcG = 0, srcB = 0;
 
-      for (let dy = -expandPx; dy <= 0; dy++) {       // ★ 上方向だけ探す
+      // ★ 全方向を探索（上下左右）
+      for (let dy = -expandPx; dy <= expandPx; dy++) {
         for (let dx = -expandPx; dx <= expandPx; dx++) {
           const nx = x + dx;
           const ny = y + dy;
@@ -501,13 +501,21 @@ function dilateBottom(canvas, ctx, expandPx = 8) {
           const ni = (ny * width + nx) * 4;
           const a = src.data[ni + 3];
 
-          if (a > maxAlpha) maxAlpha = a;
+          if (a > maxAlpha) {
+            maxAlpha = a;
+            srcR = src.data[ni];
+            srcG = src.data[ni + 1];
+            srcB = src.data[ni + 2];
+          }
         }
       }
 
-      if (maxAlpha > 30) {
-        // 元画像のRGBをそのまま使い、アルファだけ付ける
-        dst.data[i + 3] = Math.round(maxAlpha * 0.6); // 少し弱めに
+      if (maxAlpha > 20) {
+        // ★ 近傍の色を使う（黒ずみ防止）
+        dst.data[i]     = srcR;
+        dst.data[i + 1] = srcG;
+        dst.data[i + 2] = srcB;
+        dst.data[i + 3] = Math.round(maxAlpha * 0.5);
       }
     }
   }
