@@ -46,7 +46,7 @@ body {
   width: 100%;
   max-width: 390px;
   height: 100svh;
-  padding:40px 0;   /* クイズ画面と同じ */
+  padding:40px 0;
 
   overflow: hidden;
 }
@@ -71,7 +71,6 @@ textarea {
   color: inherit;
 }
 
-/* Firefox の謎の余白 */
 button::-moz-focus-inner {
   border: 0;
   padding: 0;
@@ -84,7 +83,7 @@ button::-moz-focus-inner {
   width: 100%;
   max-width: 320px;
   margin: 20px auto 0;
-  padding: 0 16px;   /* ✅ ボタンだけ余白 */
+  padding: 0 16px;
 }
 
 /* =====================================================
@@ -106,36 +105,30 @@ button::-moz-focus-inner {
               transform 0.05s ease;
 }
 
-/* 押下時（全端末共通） */
 .btn:active {
   transform: scale(0.97);
 }
 
-/* ✅ primary：薄い水色 */
 .primary {
   background-color: #90caf9;
   color: #ffffff;
 }
 
-/* ✅ secondary */
 .secondary {
   background-color: #eeeeee;
   color: #000000;
 }
 
-/* ✅ toggle OFF */
 .toggle {
   background-color: #dddddd;
   color: #000000;
 }
 
-/* ✅ toggle ON（オレンジ） */
 .toggle.active {
   background-color: #ffb74d;
   color: #ffffff;
 }
 
-/* 横並び */
 .toggle-row {
   display: flex;
   gap: 12px;
@@ -173,7 +166,6 @@ button::-moz-focus-inner {
   text-align: right;
 }
 
-/* track */
 input[type="range"] {
   flex: 1;
   height: 6px;
@@ -181,7 +173,6 @@ input[type="range"] {
   background-color: #dddddd;
 }
 
-/* WebKit thumb */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 24px;
@@ -190,7 +181,6 @@ input[type="range"]::-webkit-slider-thumb {
   background-color: #90caf9;
 }
 
-/* Firefox thumb */
 input[type="range"]::-moz-range-thumb {
   width: 24px;
   height: 24px;
@@ -232,7 +222,6 @@ input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 20px;
 
-  /* 花びらの色（中心やや濃い） */
   background: radial-gradient(
     circle at 50% 30%,
     #ffd6e5 0%,
@@ -240,7 +229,6 @@ input[type="range"]::-moz-range-thumb {
     #ff6fa5 80%
   );
 
-  /* 雫型ベース */
   border-radius: 60% 60% 70% 70% / 55% 55% 90% 90%;
 
   opacity: 0.9;
@@ -255,24 +243,20 @@ input[type="range"]::-moz-range-thumb {
   content:"";
   position:absolute;
 
-  /* 切れ込み位置 */
   top: -2px;
   left: 50%;
 
   width: 6px;
   height: 6px;
 
-  /* 「削れた」ように見せる色 */
-  background: #fff0f6; /* 背景と同系色 */
+  background: #fff0f6;
 
   border-radius: 50%;
   transform: translateX(-50%);
 
-  /* 自然に見せる */
   box-shadow: 0 1px 0 rgba(255,255,255,0.6);
 }
 
-/* ふわっと落ちる */
 @keyframes sakura-fall{
   0%{
     transform:
@@ -327,18 +311,16 @@ input[type="range"]::-moz-range-thumb {
   100% { rotate: 260deg; }
 }
 
-/* タイトル */
 .app-title{
   text-align: center;
   font-size: 34px;
   margin: 24px 0 12px;
   color: #e2558f;
   text-shadow: 0 2px 4px rgba(255,255,255,0.8);
-  flex: 0 0 auto;     /* ✅ 高さを奪わない */
+  flex: 0 0 auto;
   margin: 8px 0 12px;
 }
 
-/* ボタン */
 .btn{
   width: 100%;
   height: 52px;
@@ -349,14 +331,12 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* メイン */
 .btn.primary{
   background: linear-gradient(90deg,#ff8fb3,#ff6fa5);
   color: white;
   box-shadow: 0 6px 18px rgba(255,120,160,0.4);
 }
 
-/* サブ */
 .btn.secondary{
   background: rgba(255,255,255,0.8);
   color: #e2558f;
@@ -408,7 +388,6 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
-/* 花弁1枚 */
 .sakura-flower span{
   position:absolute;
   top:50%;
@@ -427,7 +406,6 @@ input[type="range"]::-moz-range-thumb {
   transform-origin: bottom center;
 }
 
-/* 5枚を放射状に配置 */
 .sakura-flower span:nth-child(1){ transform: rotate(0deg)   translateY(-6px); }
 .sakura-flower span:nth-child(2){ transform: rotate(72deg)  translateY(-6px); }
 .sakura-flower span:nth-child(3){ transform: rotate(144deg) translateY(-6px); }
@@ -440,7 +418,6 @@ input[type="range"]::-moz-range-thumb {
   justify-content: center;
 }
 
-/* screen 内の縦レイアウト */
 .screen-inner {
   height: 100%;
   display: flex;
@@ -449,7 +426,6 @@ input[type="range"]::-moz-range-thumb {
   padding-top: 16px;
   padding-bottom: 16px;
 
-  /* ✅ 左右は 0 にする */
   padding-left: 0;
   padding-right: 0;
 }
@@ -462,7 +438,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 #screen-loading p {
-  margin: 0;                 /* 余計なズレ防止 */
+  margin: 0;
   font-size: 22px;
   color: #e2558f;
 }
@@ -475,7 +451,7 @@ input[type="range"]::-moz-range-thumb {
   position: absolute;
   inset: 0;
 
-  width: 100%;      /* ✅ phone 基準 */
+  width: 100%;
   height: 100%;
 
   display: none;
@@ -483,46 +459,38 @@ input[type="range"]::-moz-range-thumb {
 
 .screen.active {
   display: flex;
-  flex-direction: column;    /* 縦並びにする */
-  align-items: center;       /* 横方向の中央寄せ */
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
 }
 
-/* ✅ viewport を基準にした中央配置 */
 .viewport-center {
   position: fixed;
   inset: 0;
 
   display: grid;
-  place-items: start center; /* 上寄せ＋横中央 */
+  place-items: start center;
 
-  pointer-events: auto; /* 背景扱い */
+  pointer-events: auto;
 }
 
 .phone {
   pointer-events: auto;
 }
 
-/* 背景レイヤー */
 .spring-bg{
   position: fixed;
   inset: 0;
   z-index: -1;
 
-  /* ✅ 背景画像 */
   background-image: url("images/bg-sakura.png");
 
-  /* ✅ 画面全体に自然にフィット */
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
 
-  /* ✅ スクロールやズレ防止 */
   background-attachment: fixed;
 }
-
-
-
 
 
 .screen-camera{
@@ -544,14 +512,14 @@ input[type="range"]::-moz-range-thumb {
   width: 48px;
   height: 48px;
   color: #ff9bbd;
-  margin: 0 auto 6px; /* 左右の余白を auto にして中央寄せ */
+  margin: 0 auto 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .title-text{
-  font-size:36px;                 /* ✅ 大きく */
+  font-size:36px;
   font-weight:500;
   letter-spacing:0.14em;
 
@@ -564,25 +532,24 @@ input[type="range"]::-moz-range-thumb {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-align: center; /* 文字を中央に寄せる *//* ✅ 文字グラデ */
+  text-align: center;
 
   margin:6px 0 8px;
 }
 
 .title-text{
-  color:#ff7aa8;               /* くすみピンク */
-  font-weight:500;             /* 細め */
-  letter-spacing:0.12em;       /* 画像とほぼ一致 */
+  color:#ff7aa8;
+  font-weight:500;
+  letter-spacing:0.12em;
   margin:6px 0 4px;
 }
 
 .subtitle{
   font-size:14px;
   color:#ff7aa8;
-  text-align: center; /* 文字を中央に寄せる */
+  text-align: center;
 }
 
-/* ===== ボタン ===== */
 .camera-btn{
   width:100%;
   max-width:320px;
@@ -610,21 +577,19 @@ input[type="range"]::-moz-range-thumb {
   transform:scale(0.97);
 }
 
-/* ===== 注意文 ===== */
 .note-text{
   margin-top:12px;
   font-size:13px;
   color:#b88a9f;
-  /* 中央寄せと横並びのレイアウトを追加 */
     display: flex;
-    justify-content: center; /* 左右の中央に寄せる */
-    align-items: center;     /* 上下の中央を揃える */
-    gap: 5px;                /* アイコンと文字の間のすき間 */
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
 }
 
 .subtitle{
   font-size:13px;
-  color:#b8a3ad;               /* グレー寄り */
+  color:#b8a3ad;
   letter-spacing:0.08em;
   position:relative;
 }
@@ -643,7 +608,7 @@ input[type="range"]::-moz-range-thumb {
   background:black;
 
   border-radius:26px;
-  border:7px solid rgba(255,255,255,0.92); /* 白枠を太く */
+  border:7px solid rgba(255,255,255,0.92);
 
   box-shadow:
     0 12px 26px rgba(255,160,190,0.35),
@@ -666,10 +631,10 @@ input[type="range"]::-moz-range-thumb {
     );
 
   border-radius:999px;
-  border:2px solid rgba(255,255,255,0.55); /* ✅ 外枠 */
+  border:2px solid rgba(255,255,255,0.55);
 
   color:white;
-  font-size:17px;              /* 少し小さく */
+  font-size:17px;
   font-weight:500;
   letter-spacing:0.1em;
 
@@ -735,15 +700,15 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .title-text{
-  font-size:36px;              /* しっかり大きく */
+  font-size:36px;
   font-weight:500;
   letter-spacing:0.14em;
 
   background: linear-gradient(
-    135deg,                    /* 左上 → 右下 */
-    #c85c8e 0%,                /* 紫寄りの赤 */
+    135deg,
+    #c85c8e 0%,
     #ff7aa8 45%,
-    #ff9fc5 100%               /* ピンク寄り */
+    #ff9fc5 100%
   );
 
   -webkit-background-clip: text;
@@ -754,7 +719,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .title-text{
-  font-size:32px;          /* ← 36px → 32px */
+  font-size:32px;
   font-weight:500;
   letter-spacing:0.14em;
 
@@ -768,51 +733,46 @@ input[type="range"]::-moz-range-thumb {
   background-clip: text;
   color: transparent;
 
-  margin:4px 0 6px;        /* 上下を詰める */
+  margin:4px 0 6px;
 }
 
 .title-icon svg{
-  width:110px;   /* ← 130px → 110px */
+  width:110px;
   height:auto;
   margin-bottom:2px;
 }
 
 .title-text{
-  font-size:28px;        /* ← 32px → 28px */
+  font-size:28px;
   letter-spacing:0.12em;
-  margin:2px 0 4px;     /* 上下を詰める */
+  margin:2px 0 4px;
 }
 
 .subtitle{
-  font-size:12px;        /* ← 13px → 12px */
-  margin-bottom:8px;    /* カメラ枠との距離を縮める */
+  font-size:12px;
+  margin-bottom:8px;
 }
 
 .screen-header{
-  margin-bottom:4px;   /* ← デフォルトよりかなり詰める */
+  margin-bottom:4px;
 }
 
-/* ビデオ映像の設定 */
 #camera-video {
   width: 100%;
   height: 100%;
-  object-fit: cover;       /* 映像を切り抜いて黒枠いっぱいにフィットさせる */
+  object-fit: cover;
   display: block;
 }
-
-
 
 
 .screen-content {
   width: 100%;
   max-width: 290px;
   height: 406px;
-  /* 4:3の黄金比率にするため、横幅290pxに合わせて縦幅を217pxに自動計算させます */
   aspect-ratio: 3 / 4;
   background: black;
   border-radius: 26px;
 
-  /* ✅ 薄いピンクの枠 */
   border: 6px solid rgba(255, 210, 225, 0.95);
 
   box-shadow:
@@ -822,11 +782,9 @@ input[type="range"]::-moz-range-thumb {
   margin: 20px auto 20px;
   display: flex;
 
-  /* 中身がはみ出さないための設定 */
   overflow: hidden;
 }
 
-/* 親要素（screen-content）と完全に同じ大きさに連動させる設定 */
 .image-area {
   display: flex;
   justify-content: center;
@@ -846,7 +804,7 @@ input[type="range"]::-moz-range-thumb {
   height: 100% !important;
   min-width: 100% !important;
   min-height: 100% !important;
-  object-fit: cover !important; /* 👈 映像を潰さずに枠いっぱいに広げる */
+  object-fit: cover !important;
   display: block;
 }
 
@@ -859,7 +817,6 @@ input[type="range"]::-moz-range-thumb {
   text-align: center;
 }
 
-/* タイトル・サブタイトル */
 .preview-title {
   font-size: 26px;
   color: #ff7aa8;
@@ -872,7 +829,6 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 16px;
 }
 
-/* 戻るボタン */
 .preview-back-btn {
   position: absolute;
   top: 16px;
@@ -895,21 +851,19 @@ input[type="range"]::-moz-range-thumb {
   fill: #ff7aa8;
 }
 
-/* 背景無効化用クラス */
 .spring-bg {
   pointer-events: none;
 }
 
 
 /* ==========================================================================
-   ===== プレビュー写真枠 ＆ カメラガイド =====
+   ===== プレビュー写真枠 & カメラガイド =====
    ========================================================================== */
-/* プレビュー外枠 */
 .preview-frame {
   position: relative;
   width: 100%;
   max-width: 320px;
-  aspect-ratio: 3 / 4; /* ✅ ここが重要 */
+  aspect-ratio: 3 / 4;
   margin: 0 auto 16px;
   background: #000;
   border-radius: 22px;
@@ -917,7 +871,6 @@ input[type="range"]::-moz-range-thumb {
   overflow: hidden;
 }
 
-/* 写真画像 */
 .preview-frame img {
   width: 100%;
   height: 100%;
@@ -926,15 +879,13 @@ input[type="range"]::-moz-range-thumb {
   display: block;
 }
 
-/* 4隅のL字ガイド（ベース設定） */
 .corner {
   position: absolute;
-  width: 24px; /* 全体のサイズ調整 */
+  width: 24px;
   height: 24px;
   background: transparent;
 }
 
-/* 外側の太いピンク線 */
 .corner::before {
   content: "";
   position: absolute;
@@ -942,7 +893,6 @@ input[type="range"]::-moz-range-thumb {
   border: 5px solid #ff7aa8;
 }
 
-/* 内側の白い芯線 */
 .corner::after {
   content: "";
   position: absolute;
@@ -953,22 +903,18 @@ input[type="range"]::-moz-range-thumb {
   border: 2px solid #fff;
 }
 
-/* 4隅の各個別位置・角丸・不要な辺の除去調整 */
 .tl { top: 12px; left: 12px; }
 .tl::before { border-right: none; border-bottom: none; border-top-left-radius: 7px; }
 .tl::after  { border-right: none; border-bottom: none; border-top-left-radius: 5px; }
 
-/* 右上 */
 .tr { top: 12px; right: 12px; }
 .tr::before { border-left: none; border-bottom: none; border-top-right-radius: 7px; }
 .tr::after  { border-left: none; border-bottom: none; border-top-right-radius: 5px; }
 
-/* 左下 */
 .bl { bottom: 12px; left: 12px; }
 .bl::before { border-right: none; border-top: none; border-bottom-left-radius: 7px; }
 .bl::after  { border-right: none; border-top: none; border-bottom-left-radius: 5px; }
 
-/* 右下 */
 .br { bottom: 12px; right: 12px; }
 .br::before { border-left: none; border-top: none; border-bottom-right-radius: 7px; }
 .br::after  { border-left: none; border-top: none; border-bottom-right-radius: 5px; }
@@ -977,7 +923,6 @@ input[type="range"]::-moz-range-thumb {
 /* ==========================================================================
    ===== 操作エリア（コントロール） =====
    ========================================================================== */
-/* 操作コンテナ */
 .preview-controls {
   display: flex;
   flex-direction: column;
@@ -990,7 +935,6 @@ input[type="range"]::-moz-range-thumb {
   fill: white;
 }
 
-/* コントロールカード枠 */
 .control-card {
   padding: 10px 14px;
 }
@@ -1004,58 +948,48 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 18px;
 }
 
-/* ==========================================================================
-   ===== 操作エリア（コントロール）修正版 =====
-   ========================================================================== */
-
-/* 左側：アイコン＆タイトルエリア（縦並び・完全中央寄せに変更） */
 .control-left {
   display: flex;
-  flex-direction: column;  /* 縦並びにして中央に配置 */
-  align-items: center;     /* 左右方向の中央寄せ */
-  justify-content: center; /* 上下方向の中央寄せ */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
-  min-width: 100px;        /* 縦並び化に伴い幅を最適化 */
+  min-width: 100px;
 }
 
-/* アイコン（さらに太く大きく・中央ズレを完全修正） */
 .control-icon {
-  width: 44px;             /* 40px -> 44px に拡大 */
+  width: 44px;
   height: 44px;
   border-radius: 50%;
   background: #ffe3ee;
   color: #ff7aa8;
 
-  display: inline-flex;    /* flexより中央配置が安定するインラインフレックス */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 24px;         /* 20px -> 24px に拡大 */
-  font-weight: 900;        /* 最高強度に太く設定 */
-  line-height: 1;          /* 文字自体の上下余白をリセットしてズレを防止 */
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
 }
 
-/* 左側の説明文字（サイズ拡大） */
-/* 右側：シークバーエリア */
 .control-right {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* バーの上下位置を中央に安定させる */
+  justify-content: center;
 }
 
-/* シークバー（レンジ）の共通スタイル */
 .preview-controls input[type="range"],
 .control-right input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
-  height: 6px;             /* バー自体も少し太くして安定感を向上 */
+  height: 6px;
   border-radius: 4px;
   background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
   display: block;
 }
 
-/* つまみ（スライダーサム：上にずれる現象を修正） */
 .preview-controls input[type="range"]::-webkit-slider-thumb,
 .control-right input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -1065,26 +999,21 @@ input[type="range"]::-moz-range-thumb {
   background: #ff7aa8;
   border: 3px solid #fff;
 
-  /* 【修正】バーの高さ(6px)とつまみ(18px)の中心を完全に一致させる計算値 */
   margin-top: -6px;
 
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
 
-/* 下部キャプション・数値表記（サイズ拡大） */
 .range-caption {
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
-  font-size: 14px;         /* 13px -> 14px に拡大 */
+  font-size: 14px;
   font-weight: 700;
   color: #ff7aa8;
 }
 
-/* ==========================================================================
-   ===== プレビュー写真枠 ＆ カメラガイド（修正版） =====
-   ========================================================================== *//* プレビュー外枠 */
 .preview-frame {
   position: relative;
   width: 100%;
@@ -1093,10 +1022,10 @@ input[type="range"]::-moz-range-thumb {
   margin: 0 auto 16px;
   background: #000;
   border-radius: 22px;
-  border: 6px solid rgba(255, 210, 225, 0.95); /* この色を点線に使用 */
+  border: 6px solid rgba(255, 210, 225, 0.95);
   overflow: hidden;
 }
-/* 写真画像 */
+
 .preview-frame img {
   width: 100%;
   height: 100%;
@@ -1106,7 +1035,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* ==========================================================================
-   ===== 3分割グリッド線（にじみバグを完全解決した決定版） =====
+   ===== 3分割グリッド線 =====
    ========================================================================== */
 .preview-frame .grid {
   position: absolute;
@@ -1115,17 +1044,13 @@ input[type="range"]::-moz-range-thumb {
   z-index: 2;
 }
 
-/* --- 横の点線（2本とも完全に同じクッキリとした破線にする調整） --- */
-/* 上から1/3の位置（一番上の線） */
 .preview-frame .grid::before {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   top: 33.333%;
-  height: 2px; /* 1.5pxから2pxにわずかに太くして、ブラウザのにじみバグをシャットアウト */
-
-  /* ✅ グラデーションの色の変わり目を「0px」で完全固定し、にじみを強制リセット */
+  height: 2px;
   background-image: linear-gradient(
     to right,
     rgba(255, 210, 225, 0.95) 0px,
@@ -1133,10 +1058,9 @@ input[type="range"]::-moz-range-thumb {
     transparent 5px,
     transparent 10px
   );
-  background-size: 10px 2px; /* 5px描画・5px空白のパターンを確実に繰り返す */
+  background-size: 10px 2px;
 }
 
-/* 上から2/3の位置（下の横線） */
 .preview-frame .grid::after {
   content: "";
   position: absolute;
@@ -1154,7 +1078,6 @@ input[type="range"]::-moz-range-thumb {
   background-size: 10px 2px;
 }
 
-/* --- 縦の点線（追加していただいたタグ用） --- */
 .preview-frame .grid-v1,
 .preview-frame .grid-v2 {
   position: absolute;
@@ -1176,8 +1099,6 @@ input[type="range"]::-moz-range-thumb {
 .preview-frame .grid-v2 { left: 66.666%; }
 
 
-
-/* 4隅のL字ガイド（ベース設定 - 変更なし） */
 .corner {
   position: absolute;
   width: 24px;
@@ -1199,7 +1120,6 @@ input[type="range"]::-moz-range-thumb {
   bottom: 1.5px;
   border: 2px solid #fff;
 }
-/* 各位置ごとの調整（変更なし） */
 .tl { top: 12px; left: 12px; }
 .tl::before { border-right: none; border-bottom: none; border-top-left-radius: 7px; }
 .tl::after  { border-right: none; border-bottom: none; border-top-left-radius: 5px; }
@@ -1216,11 +1136,11 @@ input[type="range"]::-moz-range-thumb {
 .br::before { border-left: none; border-top: none; border-bottom-right-radius: 7px; }
 .br::after  { border-left: none; border-top: none; border-bottom-right-radius: 5px; }
 
+
 /* ==========================================================================
-   ===== 操作エリア（コントロール）シークバー完全修正版 =====
+   ===== 操作エリア完全修正版 =====
    ========================================================================== */
 
-/* 右側：シークバーエリア */
 .control-right {
   flex: 1;
   display: flex;
@@ -1228,28 +1148,25 @@ input[type="range"]::-moz-range-thumb {
   justify-content: center;
 }
 
-/* シークバー（レンジ本体）のスタイル共通化と初期化 */
 .preview-controls input[type="range"],
 .control-right input[type="range"] {
   -webkit-appearance: none;
-  background: transparent; /* 背景のベースを透明にしてズレを防ぐ */
+  background: transparent;
   width: 100%;
-  height: 28px;            /* つまみが絶対に隠れない、少し高めの領域を確保 */
-  margin: 0;               /* ブラウザ固有の余白を完全にリセット */
+  height: 28px;
+  margin: 0;
   padding: 0;
   display: block;
 }
 
-/* スライダーの「線（トラック）」部分のスタイルを厳密に定義 */
 .preview-controls input[type="range"]::-webkit-slider-runnable-track,
 .control-right input[type="range"]::-webkit-slider-runnable-track {
   width: 100%;
-  height: 6px;             /* 線の太さ */
+  height: 6px;
   background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
   border-radius: 4px;
 }
 
-/* つまみ（スライダーサム：白枠をスリムに、中心配置を完全固定） */
 .preview-controls input[type="range"]::-webkit-slider-thumb,
 .control-right input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -1258,18 +1175,14 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 50%;
   background: #ff7aa8;
 
-  /* ✅ 白枠をスリムに変更（3px → 1.5px） */
   border: 1.5px solid #fff;
 
-  /* ✅ 上下の中央にぴったり重ねるための厳密な計算値 */
-  /* つまみの高さ(18px) から 線の太さ(6px) を引き、2で割った値をマイナスにする */
   margin-top: -6px;
 
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
 
-/* Firefox用の対応（Firefoxでも同じ見た目をキープするために追加） */
 .preview-controls input[type="range"]::-moz-range-track,
 .control-right input[type="range"]::-moz-range-track {
   width: 100%;
@@ -1283,115 +1196,35 @@ input[type="range"]::-moz-range-thumb {
   height: 18px;
   border-radius: 50%;
   background: #ff7aa8;
-  border: 1.5px solid #fff; /* 白枠スリム化 */
+  border: 1.5px solid #fff;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
 
-/* ==========================================================================
-   ===== 操作エリア（コントロール）シークバー完全修正版 =====
-   ========================================================================== */
-
-/* 右側：シークバーエリア */
-.control-right {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* シークバー（レンジ本体）の初期化 */
-.preview-controls input[type="range"],
-.control-right input[type="range"] {
-  -webkit-appearance: none;
-  background: transparent;  /* 本体背景を透明にしてズレを防止 */
-  width: 100%;
-  height: 24px;             /* つまみがはみ出さない高さを確保 */
-  margin: 0;                /* ブラウザ固有の余白をリセット */
-  padding: 0;
-  display: block;
-}
-
-/* フォーム選択時の青い枠を消す */
 .preview-controls input[type="range"]:focus,
 .control-right input[type="range"]:focus {
   outline: none;
 }
 
-/* 【重要】スライダーの「線」部分に直接高さを指定して位置を固定 */
-.preview-controls input[type="range"]::-webkit-slider-runnable-track,
-.control-right input[type="range"]::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 6px;              /* スライダーの線の太さ */
-  background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
-  border-radius: 4px;
-}
-
-/* つまみ：白枠をスリム化＆位置を線の中心に強制ロック */
-.preview-controls input[type="range"]::-webkit-slider-thumb,
-.control-right input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ff7aa8;
-
-  /* ✅ 白枠をさらにスリムに変更 */
-  border: 1.5px solid #fff;
-
-  /* ✅ 上下の中心位置をミリ単位で完璧に合わせる計算値 */
-  /* つまみの高さ(18px) - 線の太さ(6px) = 12px → それを2で割った「6px」を引く */
-  margin-top: -6px;
-
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-}
-
-/* ===== Firefox用の位置調整対応 ===== */
-.preview-controls input[type="range"]::-moz-range-track,
-.control-right input[type="range"]::-moz-range-track {
-  width: 100%;
-  height: 6px;
-  background: linear-gradient(90deg, #ffb6cf, #ffdbe7);
-  border-radius: 4px;
-}
-.preview-controls input[type="range"]::-moz-range-thumb,
-.control-right input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ff7aa8;
-  border: 1.5px solid #fff; /* 白枠スリム化 */
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-}
-
-/* ==========================================================================
-   ===== 操作エリア（コントロール）位置・バランス完全調整版 =====
-   ========================================================================== */
-
-/* コンテナ全体の並びと高さを均等に揃える */
 .control-card.horizontal {
   display: flex;
-  align-items: center;     /* 左右のボックス自体を上下中央で綺麗に揃える */
-  gap: 16px;               /* 左右の間隔を少し広げて見やすく */
-  padding: 16px 14px;      /* 上下の余白を広げて中の要素が潰れるのを防ぐ */
+  align-items: center;
+  gap: 16px;
+  padding: 16px 14px;
   background: rgba(255, 255, 255, 0.85);
   border-radius: 18px;
 }
 
-/* 左側：アイコン＆タイトルエリア（縦並び・中央配置） */
 .control-left {
   display: flex;
   flex-direction: column;
-  align-items: center;     /* 横方向の中央揃え */
-  justify-content: center; /* 縦方向の中隔を中央揃え */
+  align-items: center;
+  justify-content: center;
   gap: 6px;
-  min-width: 90px;         /* 右側のシークバー領域を広くするために幅を最適化 */
-  flex-shrink: 0;          /* 横幅が潰れないように固定 */
+  min-width: 90px;
+  flex-shrink: 0;
 }
 
-/* アイコン（真円の維持と中央ズレを完全リセット） */
 .control-icon {
   width: 44px;
   height: 44px;
@@ -1399,7 +1232,7 @@ input[type="range"]::-moz-range-thumb {
   background: #ffe3ee;
   color: #ff7aa8;
 
-  display: inline-flex;    /* 内部の文字を確実にど真ん中に配置 */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 
@@ -1408,42 +1241,33 @@ input[type="range"]::-moz-range-thumb {
   line-height: 1;
 }
 
-/* 左側の説明文字（サイズ・位置調整） */
 .control-title {
-  font-size: 16px;         /* 18pxから16pxに微調整しスマートに */
+  font-size: 16px;
   font-weight: 800;
   color: #ff7aa8;
   text-align: center;
   line-height: 1.2;
 }
 
-/* 右側：シークバーエリア（高さを左側と綺麗に同期） */
 .control-right {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* 内部パーツ全体の中心線を揃える */
-  height: 100%;            /* 親の高さに合わせる */
+  justify-content: center;
+  height: 100%;
 }
 
-/* シークバー（レンジ本体）の初期化 */
 .preview-controls input[type="range"],
 .control-right input[type="range"] {
   -webkit-appearance: none;
   background: transparent;
   width: 100%;
-  height: 24px;             /* つまみがはみ出さない高さを維持 */
+  height: 24px;
   margin: 0;
   padding: 0;
   display: block;
 }
 
-.preview-controls input[type="range"]:focus,
-.control-right input[type="range"]:focus {
-  outline: none;
-}
-
-/* スライダーの「線」部分に高さを指定 */
 .preview-controls input[type="range"]::-webkit-slider-runnable-track,
 .control-right input[type="range"]::-webkit-slider-runnable-track {
   width: 100%;
@@ -1452,7 +1276,6 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 4px;
 }
 
-/* つまみ：スリムな白枠＆中心にロック */
 .preview-controls input[type="range"]::-webkit-slider-thumb,
 .control-right input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -1460,13 +1283,12 @@ input[type="range"]::-moz-range-thumb {
   height: 18px;
   border-radius: 50%;
   background: #ff7aa8;
-  border: 1.5px solid #fff; /* スリムな白枠 */
-  margin-top: -6px;         /* 線の中心にジャストフィットさせる計算値 */
+  border: 1.5px solid #fff;
+  margin-top: -6px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
 
-/* ===== Firefox用の位置調整対応 ===== */
 .preview-controls input[type="range"]::-moz-range-track,
 .control-right input[type="range"]::-moz-range-track {
   width: 100%;
@@ -1485,27 +1307,24 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* 下部キャプション・数値表記 */
 .range-caption {
   display: flex;
   justify-content: space-between;
-  margin-top: 4px;         /* スライダーとの隙間を程よく詰めて一体感を出す */
+  margin-top: 4px;
   font-size: 14px;
   font-weight: 700;
   color: #ff7aa8;
   line-height: 1;
 }
 
-/* シークバー全体を少し左に寄せる */
 .control-right {
-  margin-left: -24px;   /* ← 6〜12px の間で好みに調整 */
-  margin-right: 24px;   /* ← 6〜12px の間で好みに調整 */
+  margin-left: -24px;
+  margin-right: 24px;
 }
 
-/* シークバー全体を少し左に寄せる */
 .control-left {
-  margin-left: -12px;   /* ← 6〜12px の間で好みに調整 */
-  margin-right: 12px;   /* ← 6〜12px の間で好みに調整 */
+  margin-left: -12px;
+  margin-right: 12px;
 }
 
 #edit-image {
@@ -1522,13 +1341,12 @@ input[type="range"]::-moz-range-thumb {
   justify-content: center;
 }
 
-/* ===== 全体 ===== */
+/* ===== 編集画面 ===== */
 .edit-ui {
   text-align: center;
   padding: 16px;
 }
 
-/* ===== ヘッダー ===== */
 .edit-header {
   position: relative;
   margin-bottom: 8px;
@@ -1539,7 +1357,6 @@ input[type="range"]::-moz-range-thumb {
   color: #ff7aa8;
 }
 
-/* 戻る */
 .back-btn {
   position: absolute;
   left: 0;
@@ -1553,27 +1370,23 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-/* サブ */
 .edit-sub {
   font-size: 14px;
   color: #999;
   margin-bottom: 16px;
 }
 
-/* ===== 画像 ===== */
 .edit-frame {
   border: 8px solid white;
   border-radius: 22px;
 }
 
-/* ===== ヒント ===== */
 .edit-hint {
   margin: 12px 0;
   color: #999;
   font-size: 13px;
 }
 
-/* ===== カード ===== */
 .edit-cards {
   display: flex;
   gap: 12px;
@@ -1601,7 +1414,6 @@ input[type="range"]::-moz-range-thumb {
   background: linear-gradient(135deg, #f1e5ff, #fff);
 }
 
-/* アイコン */
 .card-icon {
   width: 40px;
   height: 40px;
@@ -1616,7 +1428,6 @@ input[type="range"]::-moz-range-thumb {
   font-weight: bold;
 }
 
-/* テキスト */
 .card-title {
   font-size: 14px;
   font-weight: bold;
@@ -1627,7 +1438,6 @@ input[type="range"]::-moz-range-thumb {
   color: #888;
 }
 
-/* ===== ボタン ===== */
 .btn.large {
   height: 60px;
   font-size: 18px;
@@ -1662,14 +1472,12 @@ input[type="range"]::-moz-range-thumb {
   z-index: 10;
 }
 
-/* ===== カード全体 ===== */
 .edit-cards {
   display: flex;
   gap: 14px;
   margin: 16px 0;
 }
 
-/* ===== カード本体 ===== */
 .edit-card {
   flex: 1;
   display: flex;
@@ -1682,10 +1490,8 @@ input[type="range"]::-moz-range-thumb {
   border: none;
   cursor: pointer;
 
-  /* ガラス感 */
   backdrop-filter: blur(10px);
 
-  /* 影 */
   box-shadow:
     0 10px 25px rgba(255, 120, 160, 0.25);
 
@@ -1696,7 +1502,6 @@ input[type="range"]::-moz-range-thumb {
   transform: scale(0.96);
 }
 
-/* ===== ピンク ===== */
 .edit-card.pink {
   background: linear-gradient(
     135deg,
@@ -1705,7 +1510,6 @@ input[type="range"]::-moz-range-thumb {
   );
 }
 
-/* ===== 紫 ===== */
 .edit-card.purple {
   background: linear-gradient(
     135deg,
@@ -1714,7 +1518,6 @@ input[type="range"]::-moz-range-thumb {
   );
 }
 
-/* ===== アイコン ===== */
 .card-icon {
   width: 48px;
   height: 48px;
@@ -1738,7 +1541,6 @@ input[type="range"]::-moz-range-thumb {
   height: 30px;
 }
 
-/* ===== テキスト ===== */
 .card-text {
   text-align: left;
 }
@@ -1758,28 +1560,24 @@ input[type="range"]::-moz-range-thumb {
   color: #999;
 }
 
-/* 左（ピンク） */
 .edit-card.pink.active {
   box-shadow:
     0 0 0 2px #ff7aa8,
     0 10px 25px rgba(255,120,160,0.4);
 }
 
-/* 右（紫 / 青系） */
 .edit-card.purple.active {
   box-shadow:
-    0 0 0 2px #8b5cf6, /* 外枠 */
+    0 0 0 2px #8b5cf6,
     0 10px 25px rgba(139,92,246,0.4);
 }
 
 .edit-frame {
   width: 100%;
-  /* 4:3の黄金比率にするため、横幅290pxに合わせて縦幅を217pxに自動計算させます */
   aspect-ratio: 3 / 4;
   background: black;
   border-radius: 26px;
 
-  /* ✅ 薄いピンクの枠 */
   border: 6px solid rgba(255, 210, 225, 0.95);
 
   box-shadow:
@@ -1789,7 +1587,6 @@ input[type="range"]::-moz-range-thumb {
   margin: 20px auto 20px;
   display: flex;
 
-  /* 中身がはみ出さないための設定 */
   overflow: hidden;
 }
 
@@ -1803,7 +1600,6 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 900;
 }
 
-/* ===== ボタンの中のSVGアイコンのサイズを強制的に56pxに固定 ===== */
 .action-area button svg,
 .toggle-row button svg,
 .btn-icon {
@@ -1812,15 +1608,14 @@ input[type="range"]::-moz-range-thumb {
   display: block;
 }
 
-/* アイコンが大きくなった分、ボタンの横幅や高さも自動で広がるように調整 */
 .toggle-row .btn.toggle {
   display: flex;
-  flex-direction: column; /* アイコンと文字を縦並びに */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 16px;     /* 大きなアイコンが入るようにボタンの余白を確保 */
-  height: auto;           /* 高さを固定せず自動で広げる */
+  padding: 12px 16px;
+  height: auto;
 }
 
 .btn-icon {
@@ -1829,7 +1624,6 @@ input[type="range"]::-moz-range-thumb {
   margin-right: 8px;
 }
 
-/* 横並びにする */
 #save-btn {
   display: flex;
   align-items: center;
@@ -1856,7 +1650,6 @@ input[type="range"]::-moz-range-thumb {
   z-index: 10;
 }
 
-/* ===== 長押しカード ===== */
 .save-instruction {
   margin-top: 16px;
 
@@ -1879,26 +1672,23 @@ input[type="range"]::-moz-range-thumb {
   color: #666;
 }
 
-/* 桜 */
-
 .sakura-icon {
   width: 22px;
   height: 22px;
 }
 
-/* 桜アイコンとテキストの横並びバランスを美しく整える */
 .save-instruction {
   display: flex;
-  align-items: center;    /* 桜と文字の上下の真ん中をぴったり揃える */
+  align-items: center;
   justify-content: center;
-  gap: 8px;               /* 桜と文字の間のすき間 */
+  gap: 8px;
   margin-top: 20px;
 }
 
 .sakura-icon {
   width: 24px;
   height: 24px;
-  flex-shrink: 0;         /* 画面幅が狭くなっても桜が潰れないように固定 */
+  flex-shrink: 0;
 }
 
 .control-icon svg {
@@ -1926,7 +1716,6 @@ input[type="range"]::-moz-range-thumb {
   z-index: 1;
 }
 
-/* 共通シルエット */
 .camera-silhouette {
   position: absolute;
   inset: 0;
@@ -1940,23 +1729,15 @@ input[type="range"]::-moz-range-thumb {
   display: block;
 }
 
-/* ===== 肩から上シルエット ===== */
-/* ===== 肩から上シルエット：スクショ寄せ版 ===== */
 .camera-silhouette.bust .silhouette-head {
   position: absolute;
-
-  /* 顔枠：スクショくらい大きめ */
   width: 46%;
   aspect-ratio: 1 / 1.18;
-
   left: 50%;
   top: 13%;
-
   transform: translateX(-50%);
-
   border: 3px dashed rgba(255, 122, 168, 0.9);
   border-radius: 50%;
-
   box-shadow:
     0 0 10px rgba(255, 122, 168, 0.22),
     0 0 0 2px rgba(255, 255, 255, 0.28);
@@ -1964,39 +1745,27 @@ input[type="range"]::-moz-range-thumb {
 
 .camera-silhouette.bust .silhouette-neck {
   position: absolute;
-
-  /* 首：頭と肩の間に軽く見える程度 */
   width: 15%;
   height: 10%;
-
   left: 50%;
   top: 50%;
-
   transform: translateX(-50%);
-
   border-left: 3px dashed rgba(255, 122, 168, 0.65);
   border-right: 3px dashed rgba(255, 122, 168, 0.65);
 }
 
 .camera-silhouette.bust .silhouette-shoulders {
   position: absolute;
-
-  /* 肩ライン：画面いっぱいすぎず、スクショくらい */
   width: 82%;
   height: 24%;
-
   left: 50%;
   top: 66%;
-
   transform: translateX(-50%);
-
   border-top: 3px dashed rgba(255, 122, 168, 0.9);
   border-radius: 50% 50% 0 0;
-
   box-shadow: 0 -2px 8px rgba(255, 122, 168, 0.16);
 }
 
-/* ===== 全身シルエット ===== */
 .camera-silhouette.full .full-head {
   position: absolute;
   width: 18%;
@@ -2056,4 +1825,23 @@ input[type="range"]::-moz-range-thumb {
 #camera-guide-text::after {
   content: none !important;
   display: none !important;
+}
+
+
+/* --- テキスト --- */
+#screen-loading .loading-text {
+  font-family: 'Zen Maru Gothic', sans-serif !important;
+  font-size: 17px !important;
+  color: #ff7aa8 !important;
+  text-align: center !important;
+  margin: 0 !important;
+  display: block !important;
+  visibility: visible !important;
+  animation: ld-pulse 1.8s ease-in-out infinite !important;
+}
+
+/* ✅ 既存の #screen-loading p を上書き */
+#screen-loading p.loading-text {
+  font-size: 17px !important;
+  color: #ff7aa8 !important;
 }

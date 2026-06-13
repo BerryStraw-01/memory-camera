@@ -28,7 +28,7 @@ const PRESETS = {
     place: "お堀の道",
     layout: {
       mode: "full",
-      personHeightRatio: 0.6,
+      personHeightRatio: 0.7,
       footTargetX: 0.6,
       footTargetY: 1.3
     }
@@ -39,9 +39,9 @@ const PRESETS = {
     place: "城と桜",
     layout: {
       mode: "full",
-      personHeightRatio: 0.45,
+      personHeightRatio: 0.7,
       footTargetX: 0.5,
-      footTargetY: 0.95
+      footTargetY: 1.2
     }
   },
 
@@ -89,7 +89,7 @@ const PRESETS = {
     }
   },
 
-  "jinja": {
+  "jinja": { // o
       image: "images/jinja.JPG",
       place: "岸城神社",
       layout: {
@@ -107,7 +107,7 @@ const PRESETS = {
       mode: "full",
       personHeightRatio: 0.8,
       footTargetX: 0.3,
-      footTargetY: 1.2
+      footTargetY: 1.4
     }
   },
 
@@ -129,7 +129,7 @@ const PRESETS = {
         mode: "full",
         personHeightRatio: 0.7,
         footTargetX: 0.3,
-        footTargetY: 0.9
+        footTargetY: 1.2
       }
    },
 
@@ -149,9 +149,9 @@ const PRESETS = {
        place: "校舎",
        layout: {
          mode: "full",
-         personHeightRatio: 0.6,
+         personHeightRatio: 0.8,
          footTargetX: 0.7,
-         footTargetY: 1.2
+         footTargetY: 1.4
        }
     }
 };
@@ -1604,7 +1604,7 @@ function computePersonPlacement(frameW, frameH) {
   const scaleFromPerson = desiredPersonH / bounds.height;
 
   const finalScale =
-    scaleFromPerson * clamp(scale, 0.8, 1.2);
+    scaleFromPerson * clamp(scale, 0.7, 1.5);
 
   const baseW = personW * finalScale;
   const baseH = personH * finalScale;

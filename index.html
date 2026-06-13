@@ -12,6 +12,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* ===== ローディングアニメーション ===== */
+        #screen-loading .ld-back {
+            animation: ldBack 3s ease-in-out infinite;
+        }
+        #screen-loading .ld-front {
+            animation: ldFront 3s ease-in-out infinite;
+        }
+        #screen-loading .ld-s1 { animation: ldSparkle 3s ease-in-out 0.2s infinite; opacity: 0; }
+        #screen-loading .ld-s2 { animation: ldSparkle 3s ease-in-out 0.8s infinite; opacity: 0; }
+        #screen-loading .ld-s3 { animation: ldSparkle 3s ease-in-out 1.4s infinite; opacity: 0; }
+        #screen-loading .ld-text { animation: ldPulse 1.8s ease-in-out infinite; }
+
+        @keyframes ldBack {
+            0%, 100% { transform: translate(0, 0) rotate(-5deg); }
+            50%      { transform: translate(25px, 0) rotate(-1deg); }
+        }
+        @keyframes ldFront {
+            0%, 100% { transform: translate(0, 0) rotate(4deg); }
+            50%      { transform: translate(-25px, 0) rotate(1deg); }
+        }
+        @keyframes ldSparkle {
+            0%, 20%   { opacity: 0; transform: scale(0); }
+            40%       { opacity: 1; transform: scale(1.3); }
+            60%       { opacity: 1; transform: scale(1); }
+            80%, 100% { opacity: 0; transform: scale(0); }
+        }
+        @keyframes ldPulse {
+            0%, 100% { opacity: 0.35; }
+            50%      { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
 
@@ -224,7 +257,57 @@
     <!-- ===== ローディング ===== -->
     <div id="screen-loading" class="screen">
         <div class="screen-inner center">
-            <p>思い出と重ねています…</p>
+
+            <div id="ld-stage" style="position:relative; width:200px; height:150px; margin:0 auto 20px; overflow:visible;">
+
+                <!-- 背景写真（奥）：HTMLのdivをアニメーション -->
+                <div class="ld-back" style="position:absolute; top:0; left:0; width:120px; height:90px; border-radius:12px; overflow:hidden; box-shadow:0 3px 12px rgba(0,0,0,0.12);">
+                    <svg viewBox="0 0 105 80" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="ldSky2" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#7EC8E3"/>
+                                <stop offset="100%" stop-color="#B5E8F7"/>
+                            </linearGradient>
+                            <linearGradient id="ldGnd2" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#90C695"/>
+                                <stop offset="100%" stop-color="#7AB87E"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="105" height="45" fill="url(#ldSky2)"/>
+                        <polygon points="52,28 22,55 82,55" fill="#8FBC8F" opacity="0.7"/>
+                        <rect y="48" width="105" height="32" fill="url(#ldGnd2)"/>
+                        <ellipse cx="22" cy="38" rx="8" ry="10" fill="#FFB7C5"/>
+                        <rect x="20" y="47" width="3" height="8" rx="1" fill="#8B7355"/>
+                        <ellipse cx="78" cy="40" rx="7" ry="9" fill="#FF9BB5"/>
+                        <rect x="76" y="48" width="3" height="7" rx="1" fill="#8B7355"/>
+                    </svg>
+                </div>
+
+                <!-- 人物写真（手前）：HTMLのdivをアニメーション -->
+                <div class="ld-front" style="position:absolute; bottom:0; right:0; width:120px; height:90px; border-radius:12px; overflow:hidden; box-shadow:0 3px 12px rgba(0,0,0,0.12);">
+                    <svg viewBox="0 0 105 80" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="ldPBg2" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#FFF0F5"/>
+                                <stop offset="100%" stop-color="#FFE4EC"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="105" height="80" fill="url(#ldPBg2)"/>
+                        <circle cx="52" cy="26" r="13" fill="#FFD5C8"/>
+                        <rect x="36" y="39" width="32" height="24" rx="12" fill="#FF9BB5"/>
+                        <rect x="40" y="60" width="8" height="14" rx="4" fill="#FF7AA8"/>
+                        <rect x="56" y="60" width="8" height="14" rx="4" fill="#FF7AA8"/>
+                    </svg>
+                </div>
+
+                <!-- キラキラ（HTML span） -->
+                <span class="ld-s1" style="position:absolute; top:0; right:10px; font-size:18px; color:#ff7aa8; pointer-events:none;">✦</span>
+                <span class="ld-s2" style="position:absolute; top:45%; left:42%; font-size:13px; color:#ffb6c1; pointer-events:none;">✦</span>
+                <span class="ld-s3" style="position:absolute; bottom:5px; left:15%; font-size:15px; color:#fca1cc; pointer-events:none;">✦</span>
+            </div>
+
+            <p class="ld-text" style="font-family:'Zen Maru Gothic',sans-serif; font-size:17px; color:#ff7aa8; text-align:center; margin:0;">思い出と重ねています…</p>
+
         </div>
     </div>
 
@@ -234,169 +317,69 @@
 
             <button id="retry-btn" class="preview-back-btn" aria-label="戻る">
                 <svg viewBox="0 0 24 24">
-                    <path d="M15 6 L9 12 L15 18"
-                          fill="none"
-                          stroke="#ff7aa8"
-                          stroke-width="2.8"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"/>
+                    <path d="M15 6 L9 12 L15 18" fill="none" stroke="#ff7aa8"
+                          stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
 
-            <!-- 写真だけ -->
-            <!-- 写真と各種ガイドラインを重ねる枠 -->
             <div class="preview-frame">
                 <img id="captured-image">
-
-                <!-- ✅ グリッド（横線） -->
                 <div class="grid"></div>
-
-                <!-- ⚠️ 追加：縦線用の2つのタグをここにコピペしてください -->
                 <div class="grid-v1"></div>
                 <div class="grid-v2"></div>
-
-                <!-- 4隅のL字ガイド -->
                 <span class="corner tl"></span>
                 <span class="corner tr"></span>
                 <span class="corner bl"></span>
                 <span class="corner br"></span>
             </div>
 
-            <!-- ✅ シークバー UI はここ -->
             <div class="preview-controls">
-
                 <div class="control-card horizontal">
                     <div class="control-left">
                         <div class="control-icon">
-                            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%; aspect-ratio: 1 / 1; flex-shrink: 0;">
-                                <!-- 縦棒 -->
-                                <path d="M16 6v20"
-                                      stroke="#ff7aa8" stroke-width="2.5"
-                                      stroke-linecap="round"/>
-
-                                <!-- 上矢印（左側・右側の羽） -->
-                                <path d="M10 11l6-6"
-                                      stroke="#ff7aa8" stroke-width="2.5"
-                                      stroke-linecap="round"/>
-                                <path d="M22 11l-6-6"
-                                      stroke="#ff7aa8" stroke-width="2.5"
-                                      stroke-linecap="round"/>
-
-                                <!-- 下矢印（✅ 座標のズレを修正し、綺麗に下を向くように修正） -->
-                                <path d="M10 21l6 5"
-                                      stroke="#ff7aa8" stroke-width="2.5"
-                                      stroke-linecap="round"/>
-                                <path d="M22 21l-6 5"
-                                      stroke="#ff7aa8" stroke-width="2.5"
-                                      stroke-linecap="round"/>
+                            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;aspect-ratio:1/1;flex-shrink:0;">
+                                <path d="M16 6v20" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
+                                <path d="M10 11l6-6" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
+                                <path d="M22 11l-6-6" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
+                                <path d="M10 21l6 5" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
+                                <path d="M22 21l-6 5" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
                             </svg>
-
                         </div>
                     </div>
                     <div class="control-right">
                         <input type="range" id="offset-slider" min="-20" max="20" value="0">
-                        <div class="range-caption">
-                            <span>下</span>
-                            <span>上</span>
-                        </div>
+                        <div class="range-caption"><span>下</span><span>上</span></div>
                     </div>
                 </div>
 
                 <div class="control-card horizontal">
                     <div class="control-left">
                         <div class="control-icon">
-                            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%; aspect-ratio: 1 / 1; flex-shrink: 0;">
-                                <!-- 外側の大きい四角（拡大後のイメージ：綺麗に見せるため角丸仕様） -->
-                                <rect x="4" y="4" width="24" height="24" rx="3"
-                                      fill="none"
-                                      stroke="#ff7aa8" stroke-width="2.5"
-                                      stroke-dasharray="4 3"/> <!-- 破線にして変化前/後を表現 -->
-
-                                <!-- 内側の小さい四角（縮小時のイメージ） -->
-                                <rect x="11" y="11" width="10" height="10" rx="1.5"
-                                      fill="none"
-                                      stroke="#ff7aa8" stroke-width="2.5"/>
-
-                                <!-- 右上方向への拡大を示す矢印（対角線） -->
-                                <path d="M19 13l6-6"
-                                      fill="none"
-                                      stroke="#ff7aa8" stroke-width="2.5"
-                                      stroke-linecap="round"/>
-
-                                <!-- 矢印の先端（右上） -->
-                                <path d="M21 7h4v4"
-                                      fill="none"
-                                      stroke="#ff7aa8" stroke-width="2.5"
-                                      stroke-linecap="round" stroke-linejoin="round"/>
+                            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;aspect-ratio:1/1;flex-shrink:0;">
+                                <rect x="4" y="4" width="24" height="24" rx="3" fill="none" stroke="#ff7aa8" stroke-width="2.5" stroke-dasharray="4 3"/>
+                                <rect x="11" y="11" width="10" height="10" rx="1.5" fill="none" stroke="#ff7aa8" stroke-width="2.5"/>
+                                <path d="M19 13l6-6" fill="none" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
+                                <path d="M21 7h4v4" fill="none" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-
-
-
                         </div>
                     </div>
                     <div class="control-right">
-                        <input
-                                id="scale-slider"
-                                type="range"
-                                min="80"
-                                max="120"
-                                step="1"
-                                value="100"
-                        />
-                        <div class="range-caption">
-                            <span>小</span>
-                            <span>大</span>
-                        </div>
+                        <input id="scale-slider" type="range" min="70" max="170" step="1" value="120"/>
+                        <div class="range-caption"><span>小</span><span>大</span></div>
                     </div>
                 </div>
 
-                <button id="to-edit-btn" class="btn primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-                    <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg" style="aspect-ratio: 1 / 1; flex-shrink: 0;">
-                        <!-- ペン軸の左側の辺 -->
-                        <line x1="10" y1="21" x2="21" y2="10"
-                              stroke="white" stroke-width="2" stroke-linecap="round"/>
-
-                        <!-- ペン軸の右側の辺 -->
-                        <line x1="13" y1="24" x2="24" y2="13"
-                              stroke="white" stroke-width="2" stroke-linecap="round"/>
-
-                        <!-- ペンのお尻のフタ -->
-                        <line x1="21" y1="10" x2="24" y2="13"
-                              stroke="white" stroke-width="2" stroke-linecap="round"/>
-
-                        <!-- ペン先 -->
-                        <path d="M10 21l-4 7 7-4"
-                              fill="none"
-                              stroke="white" stroke-width="2"
-                              stroke-linecap="round" stroke-linejoin="round"/>
-
-                        <!-- ✨右下の大キラキラ（右上から右下の安全な位置へ移動） -->
-                        <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
-                              fill="none"
-                              stroke="white" stroke-width="2"
-                              stroke-linecap="round" stroke-linejoin="round"
-                              opacity="0.95"
-                              transform="translate(22, 20) scale(1.0)" />
-
-                        <!-- ✨左下の小キラキラ（全体のバランスを整えるため維持） -->
-                        <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
-                              fill="none"
-                              stroke="white" stroke-width="2"
-                              stroke-linecap="round" stroke-linejoin="round"
-                              opacity="0.75"
-                              transform="translate(2, 14) scale(0.7)" />
+                <button id="to-edit-btn" class="btn primary" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;">
+                    <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg" style="aspect-ratio:1/1;flex-shrink:0;">
+                        <line x1="10" y1="21" x2="21" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="13" y1="24" x2="24" y2="13" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="21" y1="10" x2="24" y2="13" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M10 21l-4 7 7-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-
-
                     <span>次：文字を入れる</span>
                 </button>
-
-
             </div>
         </div>
-
-
-    </div>
     </div>
 
     <!-- ===== 編集 ===== -->
