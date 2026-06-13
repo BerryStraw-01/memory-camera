@@ -474,6 +474,46 @@ async function drawPersonWithSegmentation(res) {
   personCtx.putImageData(imgData, 0, 0);
 }
 
+function dilateBottom(canvas, ctx, expandPx = 8) {
+  const { width, height } = canvas;
+  const src = ctx.getImageData(0, 0, width, height);
+  const dst = ctx.getImageData(0, 0, width, height);
+
+  // 画像の下40%だけ処理（足元付近のみ）
+  const startY = Math.floor(height * 0.6);
+
+  for (let y = startY; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+
+      if (src.data[i + 3] > 0) continue; // すでにあるピクセルはスキップ
+
+      // 近傍にアルファがあるか探す（下方向に重み）
+      let maxAlpha = 0;
+
+      for (let dy = -expandPx; dy <= 0; dy++) {       // ★ 上方向だけ探す
+        for (let dx = -expandPx; dx <= expandPx; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+
+          if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+
+          const ni = (ny * width + nx) * 4;
+          const a = src.data[ni + 3];
+
+          if (a > maxAlpha) maxAlpha = a;
+        }
+      }
+
+      if (maxAlpha > 30) {
+        // 元画像のRGBをそのまま使い、アルファだけ付ける
+        dst.data[i + 3] = Math.round(maxAlpha * 0.6); // 少し弱めに
+      }
+    }
+  }
+
+  ctx.putImageData(dst, 0, 0);
+}
 
 function prepareONNXInput() {
   const img256 = resizeTo256(personCanvas);
@@ -1673,6 +1713,8 @@ segmentation.onResults(async res => {
 
   // 人物切り抜き（重い）
   await drawPersonWithSegmentation(res);
+
+  dilateBottom(personCanvas, personCtx, 8);
 
   // ONNX（重い・1回）
   const output = await applyONNX();
