@@ -23,7 +23,7 @@ const PRESETS = {
     }
   },
 
-  "ohori-miti": {
+  "ohori-miti": { // o
     image: "images/ohori_miti.png",
     place: "お堀の道",
     layout: {
@@ -41,11 +41,11 @@ const PRESETS = {
       mode: "full",
       personHeightRatio: 0.45,
       footTargetX: 0.5,
-      footTargetY: 0.9
+      footTargetY: 0.95
     }
   },
 
-  "siro": {
+  "siro": { // o
     image: "images/siro.jpg",
     place: "岸和田城",
     layout: {
@@ -56,7 +56,7 @@ const PRESETS = {
     }
   },
 
-  "undojo": {
+  "undojo": { // o
     image: "images/undojo.jpg",
     place: "運動場前",
     layout: {
@@ -72,13 +72,13 @@ const PRESETS = {
     place: "脇道",
     layout: {
       mode: "full",
-      personHeightRatio: 0.6,
-      footTargetX: 0.3,
-      footTargetY: 1.2
+      personHeightRatio: 0.7,
+      footTargetX: 0.5,
+      footTargetY: 1.4
     }
   },
 
-  "eki": {
+  "eki": { // o
     image: "images/eki.JPG",
     place: "蛸地蔵駅",
     layout: {
@@ -96,7 +96,7 @@ const PRESETS = {
         mode: "full",
         personHeightRatio: 0.8,
         footTargetX: 0.6,
-        footTargetY: 1.3
+        footTargetY: 1.5
       }
   },
 
@@ -105,7 +105,7 @@ const PRESETS = {
     place: "二の丸広場",
     layout: {
       mode: "full",
-      personHeightRatio: 1.0,
+      personHeightRatio: 0.8,
       footTargetX: 0.3,
       footTargetY: 1.2
     }
@@ -127,13 +127,13 @@ const PRESETS = {
       place: "校門前",
       layout: {
         mode: "full",
-        personHeightRatio: 0.5,
-        footTargetX: 0.6,
+        personHeightRatio: 0.7,
+        footTargetX: 0.3,
         footTargetY: 0.9
       }
    },
 
-   "kosya-yoko": {
+   "kosya-yoko": { // o
      image: "images/kosya_yoko.png",
      place: "校舎横",
      layout: {
@@ -149,7 +149,7 @@ const PRESETS = {
        place: "校舎",
        layout: {
          mode: "full",
-         personHeightRatio: 0.8,
+         personHeightRatio: 0.6,
          footTargetX: 0.7,
          footTargetY: 1.2
        }
