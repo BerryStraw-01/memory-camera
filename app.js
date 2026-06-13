@@ -56,6 +56,17 @@ const PRESETS = {
     }
   },
 
+  "siro-neta": { // o
+      image: "images/siro_ue.jpg",
+      place: "岸和田城の上",
+      layout: {
+        mode: "full",
+        personHeightRatio: 0.2,
+        footTargetX: 0.4,
+        footTargetY: 0.3
+      }
+    },
+
   "undojo": { // o
     image: "images/undojo.jpg",
     place: "運動場前",
@@ -1009,16 +1020,27 @@ offsetSlider.oninput = () => {
 
 // ===== ボタンイベントの修正 =====
 
-toggleKishikoBtn.onclick = () => {
+toggleKishikoBtn.onclick = async () => {
   showKishiko = !showKishiko;
   toggleKishikoBtn.classList.toggle("active", showKishiko);
-  scheduleRenderLight();
+
+  // ✅ テキスト表示時にフォントを確実に読み込んでから描画
+  if (showKishiko || showPlace) {
+    await document.fonts.load(PLACE_FONT);
+    await document.fonts.ready;
+  }
+  renderLight();
 };
 
-togglePlaceBtn.onclick = () => {
+togglePlaceBtn.onclick = async () => {
   showPlace = !showPlace;
   togglePlaceBtn.classList.toggle("active", showPlace);
-  scheduleRenderLight();
+
+  if (showKishiko || showPlace) {
+    await document.fonts.load(PLACE_FONT);
+    await document.fonts.ready;
+  }
+  renderLight();
 };
 
 toEditBtn.onclick = () => {
@@ -1734,32 +1756,62 @@ async function renderLight() {
 
   await fontReady;
 
-  ctx.save();
-  ctx.globalCompositeOperation = "source-over";
-  ctx.globalAlpha = 1.0;
-  ctx.textAlign = "center";
-  ctx.font = PLACE_FONT;
+  if (showKishiko || showPlace) {
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1.0;
+      ctx.textAlign = "center";
+      ctx.font = PLACE_FONT;
 
-  if (showKishiko) {
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = "#fff";
-    ctx.fillStyle = "#ff7aa8";
-    ctx.strokeText("in 岸高同窓会", frameW / 2, 50);
-    ctx.fillText("in 岸高同窓会", frameW / 2, 50);
-  }
+      if (showKishiko) {
+        // ✅ textBaseline を "top" にして上端基準で描画
+        ctx.textBaseline = "top";
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = "#fff";
+        ctx.fillStyle = "#ff7aa8";
+        ctx.strokeText("in 岸高同窓会", frameW / 2, 20);
+        ctx.fillText("in 岸高同窓会", frameW / 2, 20);
+      }
 
-  if (showPlace) {
-    ctx.textBaseline = "bottom";
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = "#fff";
-    ctx.fillStyle = "#ff7aa8";
+      if (showPlace) {
+            ctx.save();
 
-    const text = PRESETS[currentBgKey]?.place ?? "";
-    const y = frameH - 50;
+            const PIN_SIZE = 30;
+            const PIN_GAP  = 20;
+            const PIN_OFFSET_X = -8;
 
-    ctx.strokeText(text, frameW / 2, y);
-    ctx.fillText(text, frameW / 2, y);
-  }
+            ctx.font = PLACE_FONT;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = "#fff";
+            ctx.fillStyle = "#ff7aa8";
+
+            const text = PRESETS[currentBgKey]?.place ?? "";
+            const baselineY = frameH - 50;
+
+            // ✅ テキスト幅を測定してピン＋テキストを中央配置
+            const metrics = ctx.measureText(text);
+            const totalWidth = PIN_SIZE + PIN_GAP + metrics.width;
+            const groupLeftX = frameW / 2 - totalWidth / 2;
+
+            const pinX = groupLeftX + PIN_SIZE / 2 + PIN_OFFSET_X;
+            const textX = groupLeftX + PIN_SIZE + PIN_GAP + metrics.width / 2;
+
+            const textCenterY = baselineY - metrics.actualBoundingBoxAscent / 2;
+
+            // ✅ ピンを描画
+            drawPin(ctx, pinX, textCenterY, PIN_SIZE);
+
+            // テキストを描画
+            ctx.strokeText(text, textX, baselineY);
+            ctx.fillText(text, textX, baselineY);
+
+            ctx.restore();
+          }
+
+      ctx.restore();
+    }
 
   ctx.restore();
 
