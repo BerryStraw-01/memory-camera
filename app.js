@@ -25,7 +25,7 @@ const PRESETS = {
 
   "ohori-miti": { // o
     image: "images/ohori_miti.png",
-    place: "お堀の道",
+    place: "お堀の桜道",
     layout: {
       mode: "full",
       personHeightRatio: 0.7,
@@ -36,7 +36,7 @@ const PRESETS = {
 
   "siro-sakura": {
     image: "images/siro_sakura.png",
-    place: "城と桜",
+    place: "岸和田城と桜",
     layout: {
       mode: "full",
       personHeightRatio: 0.7,
@@ -58,7 +58,7 @@ const PRESETS = {
 
   "siro-neta": { // o
       image: "images/siro_ue.jpg",
-      place: "岸和田城の上",
+      place: "岸和田城のてっぺん",
       layout: {
         mode: "full",
         personHeightRatio: 0.4,
@@ -69,7 +69,7 @@ const PRESETS = {
 
   "undojo": { // o
     image: "images/undojo.jpg",
-    place: "運動場前",
+    place: "グラウンド前",
     layout: {
       mode: "full",
       personHeightRatio: 0.5,
@@ -80,7 +80,7 @@ const PRESETS = {
 
   "wakimiti": {
     image: "images/wakimiti.png",
-    place: "脇道",
+    place: "神社前の通学路",
     layout: {
       mode: "full",
       personHeightRatio: 0.7,
@@ -135,7 +135,7 @@ const PRESETS = {
 
    "komon": {
       image: "images/komon.png",
-      place: "校門前",
+      place: "岸和田高校正門",
       layout: {
         mode: "full",
         personHeightRatio: 0.7,
@@ -146,7 +146,7 @@ const PRESETS = {
 
    "kosya-yoko": { // o
      image: "images/kosya_yoko.png",
-     place: "校舎横",
+     place: "岸和田高校校舎",
      layout: {
        mode: "full",
        personHeightRatio: 0.8,
@@ -157,7 +157,7 @@ const PRESETS = {
 
   "kosya": {
        image: "images/kosya.JPG",
-       place: "校舎",
+       place: "岸和田高校体育館",
        layout: {
          mode: "full",
          personHeightRatio: 0.8,
