@@ -533,42 +533,44 @@
             </button>
 
             <div class="preview-frame">
-                    <img id="save-image" alt="保存画像">
+                <img id="save-image" alt="保存画像">
             </div>
-            <div class="save-instruction">
 
-                <!-- 桜SVG（絶対に潰れないぷっくり5枚花デザイン） -->
-                <svg class="sakura-icon" viewBox="0 0 100 100" width="24" height="24" xmlns="http://www.w3.org/2000/svg" style="aspect-ratio: 1 / 1; flex-shrink: 0;">
-                    <!-- 1枚の大きな花びらを正確に360度（72度ずつ）に回転配置 -->
-                    <g fill="#ffb6c1">
-                        <!-- 上 -->
-                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" />
-                        <!-- 右上 -->
-                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(72 50 50)" />
-                        <!-- 右下 -->
-                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(144 50 50)" />
-                        <!-- 左下 -->
-                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(216 50 50)" />
-                        <!-- 左上 -->
-                        <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(288 50 50)" />
-                    </g>
-                    <!-- 中央の花芯（アクセントの濃いピンク） -->
-                    <circle cx="50" cy="50" r="6" fill="#ff7aa8" opacity="0.9"/>
-                </svg>
+            <!-- ✅ 新デザイン：保存ボタン＋ヒント -->
+            <div class="save-actions">
 
-                <button id="download-btn" class="btn primary"
-                        style="max-width:320px; margin:12px auto 0; display:flex; align-items:center; justify-content:center; gap:8px;">
-                    <svg viewBox="0 0 32 32" width="24" height="24" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
-                        <path d="M16 7v12" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M11 14l5 5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M21 14l-5 5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M8 25h16" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>写真を保存する</span>
+                <button id="download-btn" class="save-main-btn">
+                    <!-- 共有アイコン -->
+                    <div class="save-btn-icon">
+                        <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 5v14" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+                            <path d="M10 11l6-6 6 6" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6 20v4a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-4" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="save-btn-text">写真を保存する</span>
+                    <div class="save-btn-sparkle">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="white" opacity="0.85">
+                            <path d="M10 2c0 4.418-3.582 8-8 8 4.418 0 8 3.582 8 8 0-4.418 3.582-8 8-8-4.418 0-8-3.582-8-8z"/>
+                            <path d="M19 13c0 2.209-1.791 4-4 4 2.209 0 4 1.791 4 4 0-2.209 1.791-4 4-4-2.209 0-4-1.791-4-4z"/>
+                        </svg>
+                    </div>
                 </button>
 
+                <p class="save-hint">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="16" height="16" style="flex-shrink:0;">
+                        <g fill="#ffb6c1">
+                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z"/>
+                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(72 50 50)"/>
+                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(144 50 50)"/>
+                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(216 50 50)"/>
+                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(288 50 50)"/>
+                        </g>
+                        <circle cx="50" cy="50" r="6" fill="#ff7aa8" opacity="0.9"/>
+                    </svg>
+                    共有メニューから「画像を保存」を選んでね
+                </p>
             </div>
-
 
         </div>
     </div>
