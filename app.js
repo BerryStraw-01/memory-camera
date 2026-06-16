@@ -1835,6 +1835,44 @@ function warmupKleeFont() {
   });
 }
 
+// ===== 保存ボタン（Share API → フォールバック） =====
+const downloadBtn = document.getElementById("download-btn");
+
+if (downloadBtn) {
+  downloadBtn.onclick = async () => {
+    if (!finalImageURL) return;
+
+    try {
+      // data:URL → Blob に変換
+      const res = await fetch(finalImageURL);
+      const blob = await res.blob();
+      const file = new File([blob], "omoide-camera.png", { type: "image/png" });
+
+      // Web Share API が使えるか確認
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "思い出カメラ",
+          text: "思い出の一枚 🌸"
+        });
+        return; // 共有シートが出たら終了
+      }
+    } catch (e) {
+      // ユーザーがキャンセルした場合は何もしない
+      if (e.name === "AbortError") return;
+      console.warn("Share API failed:", e);
+    }
+
+    // フォールバック：通常ダウンロード（Android / PC）
+    const a = document.createElement("a");
+    a.href = finalImageURL;
+    a.download = "omoide-camera.png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+}
+
 // ===== MODNet / MediaPipe 共通の後処理 =====
 async function handleSegmentationResult(res) {
   await ensureFontsReady();

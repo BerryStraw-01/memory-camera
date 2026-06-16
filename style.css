@@ -1845,3 +1845,17 @@ input[type="range"]::-moz-range-thumb {
   font-size: 17px !important;
   color: #ff7aa8 !important;
 }
+
+/* ===== 保存画面：長押し保存を確実に有効化 ===== */
+#screen-save,
+#screen-save .screen-inner,
+#screen-save .preview-frame,
+#screen-save #save-image {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
+}
+
+#screen-save #save-image {
+  pointer-events: auto !important;
+}
