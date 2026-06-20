@@ -255,7 +255,9 @@ const bg = new Image();
 
 // ===== MODNet =====
 let modnetSession = null;
-const MODNET_SIZE = 512;
+const MODNET_SIZE = 256;
+
+let modnetLoadingPromise = null;
 
 // ===== WASM設定（モバイル対応） =====
 function configureORTForMobile() {
@@ -280,21 +282,25 @@ function configureORTForMobile() {
 }
 
 async function loadMODNet() {
-  try {
-    modnetSession = await ort.InferenceSession.create("modnet.onnx", {
-      executionProviders: ["wasm"],
-      graphOptimizationLevel: "all",
-      enableCpuMemArena: false,     // ★ モバイルのメモリ節約
-      enableMemPattern: false       // ★ モバイルのメモリ節約
-    });
-    console.log("✅ MODNet loaded");
-    console.log("MODNet inputNames:", modnetSession.inputNames);
-    console.log("MODNet outputNames:", modnetSession.outputNames);
-  } catch (e) {
-    console.error("❌ MODNet load failed:", e);
-    modnetSession = null;
-  }
-}
+   if (modnetLoadingPromise) return modnetLoadingPromise;
+
+   modnetLoadingPromise = (async () => {
+     try {
+       modnetSession = await ort.InferenceSession.create("modnet.onnx", {
+         executionProviders: ["wasm"],
+         graphOptimizationLevel: "all",
+         enableCpuMemArena: false,
+         enableMemPattern: false
+       });
+       console.log("✅ MODNet loaded");
+     } catch (e) {
+       console.error("❌ MODNet load failed:", e);
+       modnetSession = null;
+     }
+   })();
+
+   return modnetLoadingPromise;
+ }
 
 /**
  * Canvas → MODNet用テンソル
@@ -1012,6 +1018,23 @@ shutterBtn.onclick = async () => {
   showScreen("loading");
 
   try {
+    // ★ MODNetの読み込みを待つ（ここが重要）
+    if (!modnetSession) {
+      console.log("⏳ MODNet loading...");
+
+      if (!modnetLoadingPromise) {
+        loadMODNet();
+      }
+
+      await modnetLoadingPromise;
+
+      if (!modnetSession) {
+        throw new Error("MODNetの読み込みに失敗しました");
+      }
+
+      console.log("✅ MODNet ready");
+    }
+
     // ★ video が準備できていないなら戻る
     if (!video.videoWidth || !video.videoHeight) {
       console.error("video not ready:",
