@@ -448,20 +448,51 @@ function drawCover(ctx, src, sw, sh, dw, dh) {
 
 // ===== カメラON =====
 async function startCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      facingMode: { ideal: "environment" },
-      width: { ideal: 1920 },
-      height: { ideal: 1080 }
-    },
-    audio: false
-  });
+  // まず広角を探す
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width:  { ideal: 1920 },
+        height: { ideal: 1080 },
+        // ★ 広い視野角をリクエスト（広角レンズが選ばれやすくなる）
+        advanced: [{ zoom: 1.0 }]
+      },
+      audio: false
+    });
+  } catch (e) {
+    // 失敗したら通常のカメラで
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false
+    });
+  }
+
+  // ★ ズームを最小にして視野角を最大化
+  const track = stream.getVideoTracks()[0];
+  const caps = track.getCapabilities?.();
+  if (caps?.zoom) {
+    try {
+      await track.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] });
+      console.log("🔍 zoom set to min:", caps.zoom.min);
+    } catch (e) { /* 非対応端末は無視 */ }
+  }
 
   video.srcObject = stream;
 
   await new Promise(resolve => {
     video.onloadedmetadata = () => {
       video.play();
+
+      // ★ カメラ映像の縦横比をプレビュー枠に反映
+      const ratio = video.videoWidth / video.videoHeight;
+      const area = video.closest(".image-area");
+      if (area) {
+        area.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+      }
+
+      console.log("📷 camera:", video.videoWidth, "x", video.videoHeight, "ratio:", ratio);
       resolve();
     };
   });
