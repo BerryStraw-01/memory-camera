@@ -372,24 +372,39 @@ async function runMODNet(imageCanvas) {
     return null;
   }
 
-  const inputTensor = canvasToMODNetTensor(imageCanvas);
+  // ★ 入力サイズ0チェック（NaN対策）
+  if (!imageCanvas.width || !imageCanvas.height) {
+    console.error("MODNet input has zero size:",
+      imageCanvas.width, imageCanvas.height);
+    return null;
+  }
 
-  const inputName = modnetSession.inputNames[0];
-  const outputName = modnetSession.outputNames[0];
+  // ★ 最大2回まで試す
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const inputTensor = canvasToMODNetTensor(imageCanvas);
+      const inputName = modnetSession.inputNames[0];
+      const outputName = modnetSession.outputNames[0];
 
-  const result = await modnetSession.run({
-    [inputName]: inputTensor
-  });
+      const result = await modnetSession.run({
+        [inputName]: inputTensor
+      });
 
-  const outputTensor = result[outputName];
+      const outputTensor = result[outputName];
 
-  const alphaMask = modnetOutputToMaskCanvas(
-    outputTensor,
-    imageCanvas.width,
-    imageCanvas.height
-  );
+      return modnetOutputToMaskCanvas(
+        outputTensor,
+        imageCanvas.width,
+        imageCanvas.height
+      );
+    } catch (e) {
+      console.warn(`⚠️ MODNet attempt ${attempt + 1} failed:`, e);
+      await new Promise(r => setTimeout(r, 150));
+    }
+  }
 
-  return alphaMask;
+  console.error("❌ MODNet failed after retries");
+  return null;
 }
 
 // ===== 切り抜き =====
@@ -448,35 +463,44 @@ function drawCover(ctx, src, sw, sh, dw, dh) {
 
 // ===== カメラON =====
 async function startCamera() {
-  // まず広角を探す
   let stream;
+
   try {
+    // ★ getUserMedia には絶対に zoom を入れない（iOS互換性最優先）
     stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "environment" },
         width:  { ideal: 1920 },
-        height: { ideal: 1080 },
-        // ★ 広い視野角をリクエスト（広角レンズが選ばれやすくなる）
-        advanced: [{ zoom: 1.0 }]
+        height: { ideal: 1080 }
       },
       audio: false
     });
   } catch (e) {
-    // 失敗したら通常のカメラで
+    console.warn("getUserMedia(HD) failed, retry minimal:", e);
+    // それでもダメなら最小制約で
     stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: "environment" } },
       audio: false
     });
   }
 
-  // ★ ズームを最小にして視野角を最大化
-  const track = stream.getVideoTracks()[0];
-  const caps = track.getCapabilities?.();
-  if (caps?.zoom) {
-    try {
-      await track.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] });
-      console.log("🔍 zoom set to min:", caps.zoom.min);
-    } catch (e) { /* 非対応端末は無視 */ }
+  // ★ zoom はストリーム取得後に「対応端末だけ」適用する
+  try {
+    const track = stream.getVideoTracks()[0];
+    if (track && typeof track.getCapabilities === "function") {
+      const caps = track.getCapabilities();
+      if (caps && caps.zoom && typeof caps.zoom.min === "number") {
+        await track.applyConstraints({
+          advanced: [{ zoom: caps.zoom.min }]
+        });
+        console.log("🔍 zoom set to min:", caps.zoom.min);
+      } else {
+        console.log("ℹ️ zoom not supported on this device");
+      }
+    }
+  } catch (e) {
+    // 失敗してもカメラは止めない
+    console.warn("⚠️ zoom apply skipped:", e);
   }
 
   video.srcObject = stream;
@@ -485,14 +509,15 @@ async function startCamera() {
     video.onloadedmetadata = () => {
       video.play();
 
-      // ★ カメラ映像の縦横比をプレビュー枠に反映
-      const ratio = video.videoWidth / video.videoHeight;
+      // カメラ映像の縦横比をプレビュー枠に反映
       const area = video.closest(".image-area");
-      if (area) {
-        area.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+      if (area && video.videoWidth && video.videoHeight) {
+        area.style.aspectRatio =
+          `${video.videoWidth} / ${video.videoHeight}`;
       }
 
-      console.log("📷 camera:", video.videoWidth, "x", video.videoHeight, "ratio:", ratio);
+      console.log("📷 camera:",
+        video.videoWidth, "x", video.videoHeight);
       resolve();
     };
   });
@@ -975,63 +1000,81 @@ function resizeAllCanvases() {
 
 // ===== ボタン =====
 shutterBtn.onclick = async () => {
+  // ★ 二重起動防止（連打で前回処理中なら無視）
+  if (shutterBtn.disabled) return;
+
   if (!cameraReady) {
     await startCamera();
     return;
   }
 
+  shutterBtn.disabled = true;        // ★ 連打防止ON
   showScreen("loading");
 
+  try {
+    // ★ video が準備できていないなら戻る
+    if (!video.videoWidth || !video.videoHeight) {
+      console.error("video not ready:",
+        video.videoWidth, video.videoHeight);
+      alert("カメラの準備ができていません。少し待ってからもう一度試してね 🌸");
+      showScreen("camera");
+      return;
+    }
 
-  // ✅ ブラウザに1フレーム描画させてからMODNet実行
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    // ブラウザに1フレーム描画させてからMODNet実行
+    await new Promise(r =>
+      requestAnimationFrame(() => requestAnimationFrame(r))
+    );
 
+    previewImg.src = "";
+    editImg.src = "";
+    saveImg.src = "";
 
-  previewImg.src = "";
-  editImg.src = "";
-  saveImg.src = "";
+    const tempCanvas = document.createElement("canvas");
+    const tctx = tempCanvas.getContext("2d");
 
-  const tempCanvas = document.createElement("canvas");
-  const tctx = tempCanvas.getContext("2d");
+    const SEG_LONG_SIDE = 1280;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    const segScale = SEG_LONG_SIDE / Math.max(vw, vh);
 
-  const SEG_LONG_SIDE = 1280;
+    tempCanvas.width  = Math.round(vw * segScale);
+    tempCanvas.height = Math.round(vh * segScale);
 
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
+    // ★ 念のためサイズ検証
+    if (!tempCanvas.width || !tempCanvas.height) {
+      throw new Error("tempCanvas size is zero");
+    }
 
-  const segScale = SEG_LONG_SIDE / Math.max(vw, vh);
+    tctx.imageSmoothingEnabled = true;
+    tctx.imageSmoothingQuality = "high";
+    tctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
 
-  tempCanvas.width = Math.round(vw * segScale);
-  tempCanvas.height = Math.round(vh * segScale);
+    // MODNetでアルファマスクを取得
+    const alphaMaskCanvas = await runMODNet(tempCanvas);
 
-  tctx.imageSmoothingEnabled = true;
-  tctx.imageSmoothingQuality = "high";
+    if (!alphaMaskCanvas) {
+      alert("うまく撮影できませんでした。もう一度試してね 🌸");
+      showScreen("camera");
+      return;
+    }
 
-  tctx.drawImage(
-    video,
-    0,
-    0,
-    tempCanvas.width,
-    tempCanvas.height
-  );
+    const res = {
+      image: tempCanvas,
+      segmentationMask: alphaMaskCanvas
+    };
 
-  // ✅ MODNetでアルファマスクを取得
-  const alphaMaskCanvas = await runMODNet(tempCanvas);
+    await handleSegmentationResult(res);
 
-  if (!alphaMaskCanvas) {
-    console.error("MODNet failed");
+  } catch (e) {
+    // ★ どんなエラーが出ても見えるようにする
+    console.error("❌ shutter failed:", e);
+    alert("エラーが発生しました：" + (e?.message ?? e));
     showScreen("camera");
-    return;
+
+  } finally {
+    shutterBtn.disabled = false;     // ★ 必ず解除
   }
-
-  // ✅ MediaPipeと同じ形式の結果オブジェクトを作る
-  const res = {
-    image: tempCanvas,
-    segmentationMask: alphaMaskCanvas
-  };
-
-  // ✅ 共通の後処理を呼ぶ
-  await handleSegmentationResult(res);
 };
 
 function clamp(v, min, max) {
@@ -1906,57 +1949,72 @@ if (downloadBtn) {
 
 // ===== MODNet / MediaPipe 共通の後処理 =====
 async function handleSegmentationResult(res) {
-  await ensureFontsReady();
-  lastSegmentationResult = res;
+  try {
+    await ensureFontsReady();
+    lastSegmentationResult = res;
 
-  // 人物切り抜き
-  await drawPersonWithSegmentation(res);
+    // 人物切り抜き
+    await drawPersonWithSegmentation(res);
 
-  // 足元のマスクを膨張させる
-  dilateBottom(personCanvas, personCtx, 8);
+    // 足元のマスクを膨張させる
+    dilateBottom(personCanvas, personCtx, 8);
 
-  // ONNX harmonization
-  const output = await applyONNX();
-  applyONNXResultToPerson(output);
+    // ONNX harmonization
+    const output = await applyONNX();
+    applyONNXResultToPerson(output);
 
-  // alpha 復元
-  personCtx.globalCompositeOperation = "destination-in";
-  personCtx.drawImage(res.segmentationMask, 0, 0);
-  personCtx.globalCompositeOperation = "source-over";
+    // alpha 復元
+    personCtx.globalCompositeOperation = "destination-in";
+    personCtx.drawImage(res.segmentationMask, 0, 0);
+    personCtx.globalCompositeOperation = "source-over";
 
-  defringe(personCanvas);
+    defringe(personCanvas);
 
-  // SR判定用にbounds取得
-  maskCanvas.width = personCanvas.width;
-  maskCanvas.height = personCanvas.height;
-  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+    // SR判定用にbounds取得
+    maskCanvas.width = personCanvas.width;
+    maskCanvas.height = personCanvas.height;
+    maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+    maskCtx.drawImage(personCanvas, 0, 0);
 
-  maskCtx.drawImage(personCanvas, 0, 0);
+    let boundsBeforeSR = getPersonBoundsFromMask(maskCanvas);
 
-  let boundsBeforeSR = getPersonBoundsFromMask(maskCanvas);
+    // ★ bounds が取れなかったら失敗扱い
+    if (!boundsBeforeSR) {
+      throw new Error("person bounds not found (segmentation empty)");
+    }
 
-  // 必要ならSRで人物を高画質化
-  if (shouldUseSRForPerson(boundsBeforeSR)) {
-    await applySRToPerson();
+    // 必要ならSRで人物を高画質化
+    if (shouldUseSRForPerson(boundsBeforeSR)) {
+      await applySRToPerson();
+    }
+
+    // SR後にboundsを取り直す
+    maskCanvas.width = personCanvas.width;
+    maskCanvas.height = personCanvas.height;
+    maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+    maskCtx.drawImage(personCanvas, 0, 0);
+
+    cachedBounds = getPersonBoundsFromMask(maskCanvas);
+
+    if (!cachedBounds) {
+      throw new Error("cachedBounds not found after SR");
+    }
+
+    // 人物結果をキャッシュ
+    cachedPersonCanvas = document.createElement("canvas");
+    cachedPersonCanvas.width = personCanvas.width;
+    cachedPersonCanvas.height = personCanvas.height;
+    cachedPersonCanvas.getContext("2d").drawImage(personCanvas, 0, 0);
+
+    // 初回描画
+    renderLight();
+    showScreen("preview");
+
+  } catch (e) {
+    // ★ shutter側の try/catch に伝える
+    console.error("❌ handleSegmentationResult failed:", e);
+    throw e;
   }
-
-  // SR後にboundsを取り直す
-  maskCanvas.width = personCanvas.width;
-  maskCanvas.height = personCanvas.height;
-  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-  maskCtx.drawImage(personCanvas, 0, 0);
-
-  cachedBounds = getPersonBoundsFromMask(maskCanvas);
-
-  // 人物結果をキャッシュ
-  cachedPersonCanvas = document.createElement("canvas");
-  cachedPersonCanvas.width = personCanvas.width;
-  cachedPersonCanvas.height = personCanvas.height;
-  cachedPersonCanvas.getContext("2d").drawImage(personCanvas, 0, 0);
-
-  // 初回描画
-  renderLight();
-  showScreen("preview");
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
