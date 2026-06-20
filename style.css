@@ -1976,3 +1976,10 @@ input[type="range"]::-moz-range-thumb {
 .save-instruction {
   display: none !important;
 }
+
+#camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;   /* ← cover から contain に変更 */
+  background: #000;      /* 余白を黒く */
+}
