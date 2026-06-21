@@ -61,7 +61,7 @@ const PRESETS = {
       place: "岸和田城のてっぺん",
       layout: {
         mode: "full",
-        personHeightRatio: 0.4,
+        personHeightRatio: 0.35,
         footTargetX: 0.5,
         footTargetY: 0.5
       }
@@ -467,8 +467,20 @@ function drawCover(ctx, src, sw, sh, dw, dh) {
   ctx.drawImage(src, 0, 0, sw, sh, x, y, w, h);
 }
 
+function stopCamera() {
+  if (!video.srcObject) return;
+
+  const tracks = video.srcObject.getTracks();
+  tracks.forEach(track => track.stop());
+
+  video.srcObject = null;
+
+  console.log("📷 camera stopped");
+}
+
 // ===== カメラON =====
 async function startCamera() {
+  stopCamera();
   let stream;
 
   try {
@@ -1165,9 +1177,13 @@ if (saveBackBtn) {
 const retryBtn = document.getElementById("retry-btn");
 const editBackBtn = document.getElementById("edit-back-btn");
 
-retryBtn.onclick = () => showScreen("camera");
+retryBtn.onclick = () => {
+  stopCamera();   // ★追加
+  showScreen("camera");
+};
 
 editBackBtn.onclick = () => {
+  stopCamera();   // ★追加
   showScreen("preview");
 };
 
@@ -2058,4 +2074,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   await loadONNX();
   await loadSRONNX();
+});
+
+window.addEventListener("beforeunload", stopCamera);
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopCamera();
+  }
 });
