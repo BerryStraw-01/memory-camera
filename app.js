@@ -550,6 +550,17 @@ async function startCamera() {
 
   cameraReady = true;
   btnText.textContent = "撮影";
+
+
+  // ★ 追加：トラックが止まったら自動で状態をリセット
+  const track = stream.getVideoTracks()[0];
+  if (track) {
+    track.onended = () => {
+      console.warn("⚠️ video track ended");
+      cameraReady = false;
+      btnText.textContent = "カメラをON";
+    };
+  }
 }
 
 // ===== 共通描画（背景＋人物） =====
@@ -1058,11 +1069,27 @@ shutterBtn.onclick = async () => {
 
     // ★ video が準備できていないなら戻る
     if (!video.videoWidth || !video.videoHeight) {
-      console.error("video not ready:",
-        video.videoWidth, video.videoHeight);
-      alert("カメラの準備ができていません。少し待ってからもう一度試してね 🌸");
-      showScreen("camera");
-      return;
+      console.warn("⚠️ video not ready, restarting camera...");
+
+      // ★ カメラを再起動して復旧を試みる
+      try {
+        await startCamera();
+        // 少し待って videoWidth が入るまで様子を見る
+        await new Promise(r => setTimeout(r, 300));
+      } catch (e) {
+        console.error("camera restart failed:", e);
+      }
+
+      // それでもダメなら諦める
+      if (!video.videoWidth || !video.videoHeight) {
+        alert("カメラを起動できませんでした。\n「カメラをON」をもう一度押してね 📷");
+        cameraReady = false;
+        btnText.textContent = "カメラをON";
+        showScreen("camera");
+        return;
+      }
+
+      console.log("✅ camera recovered");
     }
 
     // ブラウザに1フレーム描画させてからMODNet実行
@@ -1230,8 +1257,22 @@ if (saveBackBtn) {
 const retryBtn = document.getElementById("retry-btn");
 const editBackBtn = document.getElementById("edit-back-btn");
 
-retryBtn.onclick = () => {
+retryBtn.onclick = async () => {
   showScreen("camera");
+
+  // ★ 戻ったときにカメラ状態をチェック
+  if (!video.srcObject || !video.videoWidth || !video.videoHeight) {
+    console.log("📷 camera not ready after retry, restarting...");
+    await startCamera();
+  } else if (video.paused) {
+    // 一時停止しているだけなら再生再開
+    try {
+      await video.play();
+    } catch (e) {
+      console.warn("video resume failed:", e);
+      await startCamera();
+    }
+  }
 };
 
 editBackBtn.onclick = () => {
