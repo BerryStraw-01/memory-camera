@@ -455,6 +455,10 @@ async function ensureFontsReady() {
   fontsReadyResolved = true;
 }
 
+async function waitKleeFont() {
+  await document.fonts.load("600 90px 'Klee One'");
+}
+
 function drawCover(ctx, src, sw, sh, dw, dh) {
   const scale = Math.max(dw / sw, dh / sh);
 
@@ -894,7 +898,7 @@ async function redrawFinal() {
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-  await fontReady;
+  await waitKleeFont();
 
   await drawBase();
 
@@ -970,7 +974,7 @@ const textCtx = textCanvas.getContext("2d");
 
 async function redrawTextLayer() {
   resizeAllCanvases();
-  await fontReady;
+  await waitKleeFont();
 
   textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
 
@@ -1136,7 +1140,6 @@ toggleKishikoBtn.onclick = async () => {
   // ✅ テキスト表示時にフォントを確実に読み込んでから描画
   if (showKishiko || showPlace) {
     await document.fonts.load(PLACE_FONT);
-    await document.fonts.ready;
   }
   renderLight();
 };
@@ -1147,7 +1150,6 @@ togglePlaceBtn.onclick = async () => {
 
   if (showKishiko || showPlace) {
     await document.fonts.load(PLACE_FONT);
-    await document.fonts.ready;
   }
   renderLight();
 };
@@ -1867,9 +1869,18 @@ async function renderLight() {
 
   ctx.drawImage(cachedPersonCanvas, px, py, baseW, baseH);
 
-  await fontReady;
+  await waitKleeFont();
 
   if (showKishiko || showPlace) {
+      await document.fonts.load(PLACE_FONT); // ★これ重要
+
+      // ★ 万が一ロードできていなければスキップ（後で再描画される）
+      if (!document.fonts.check(PLACE_FONT)) {
+        console.warn("⏳ Klee One not ready, retry later");
+        setTimeout(() => renderLight(), 100); // 100ms後にリトライ
+        return;
+      }
+
       ctx.save();
       ctx.globalCompositeOperation = "source-over";
       ctx.globalAlpha = 1.0;
@@ -2069,11 +2080,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   // ✅ モバイル対応のWASM設定を最初に適用
   configureORTForMobile();
 
+  document.fonts.load("600 90px 'Klee One'");
+  document.fonts.load("600 180px 'Klee One'");
+
   // ✅ MODNetを読み込む（失敗してもMediaPipeで動く）
   await loadMODNet();
 
   await loadONNX();
   await loadSRONNX();
+
 });
 
 window.addEventListener("beforeunload", stopCamera);
