@@ -1050,7 +1050,7 @@ shutterBtn.onclick = async () => {
       await modnetLoadingPromise;
 
       if (!modnetSession) {
-        throw new Error("MODNetの読み込みに失敗しました");
+        throw new Error("AIの準備ができませんでした。通信状況を確認して、もう一度試してね 🌸");
       }
 
       console.log("✅ MODNet ready");
@@ -2079,7 +2079,7 @@ async function handleSegmentationResult(res) {
 
     // ★ bounds が取れなかったら失敗扱い
     if (!boundsBeforeSR) {
-      throw new Error("person bounds not found (segmentation empty)");
+      throw new Error("人物を見つけられませんでした。明るい場所で、もう少し近づいて撮ってみてね 🌸");
     }
 
     // 必要ならSRで人物を高画質化
@@ -2096,7 +2096,7 @@ async function handleSegmentationResult(res) {
     cachedBounds = getPersonBoundsFromMask(maskCanvas);
 
     if (!cachedBounds) {
-      throw new Error("cachedBounds not found after SR");
+      throw new Error("人物の処理中にエラーが発生しました。もう一度撮ってみてね 🌸");
     }
 
     // 人物結果をキャッシュ
