@@ -1133,6 +1133,40 @@ shutterBtn.onclick = async () => {
   }
 };
 
+// ★ 描画で使う全テキストを集める
+function getAllUsedText() {
+  // 「in 岸高同窓会」と、全プリセットの place 名
+  let text = "in 岸高同窓会";
+  for (const key in PRESETS) {
+    text += PRESETS[key].place ?? "";
+  }
+  return text;
+}
+
+// ★ 使う文字すべてをフォントにロードさせる
+let kleeFullyLoaded = false;
+async function preloadKleeWithAllChars() {
+  if (kleeFullyLoaded) return;
+
+  const text = getAllUsedText();
+
+  // ★ 第2引数に「実際に使う文字」を渡す（重要）
+  await Promise.all([
+    document.fonts.load("600 90px 'Klee One'", text),
+    document.fonts.load("600 180px 'Klee One'", text)
+  ]);
+
+  // ダミー描画でフォントを確定させる
+  const c = document.createElement("canvas");
+  c.width = 10; c.height = 10;
+  const cctx = c.getContext("2d");
+  cctx.font = "600 90px 'Klee One'";
+  cctx.fillText(text, 0, 0);
+
+  kleeFullyLoaded = true;
+  console.log("✅ Klee One fully loaded with all chars");
+}
+
 function clamp(v, min, max) {
   return Math.min(max, Math.max(min, v));
 }
@@ -1156,7 +1190,7 @@ toggleKishikoBtn.onclick = async () => {
 
   // ✅ テキスト表示時にフォントを確実に読み込んでから描画
   if (showKishiko || showPlace) {
-    await document.fonts.load(PLACE_FONT);
+    await preloadKleeWithAllChars();
   }
   renderLight();
 };
@@ -1166,7 +1200,7 @@ togglePlaceBtn.onclick = async () => {
   togglePlaceBtn.classList.toggle("active", showPlace);
 
   if (showKishiko || showPlace) {
-    await document.fonts.load(PLACE_FONT);
+    await preloadKleeWithAllChars();
   }
   renderLight();
 };
@@ -1887,7 +1921,7 @@ async function renderLight() {
   await waitKleeFont();
 
   if (showKishiko || showPlace) {
-      await document.fonts.load(PLACE_FONT); // ★これ重要
+      await preloadKleeWithAllChars();
 
       // ★ 万が一ロードできていなければスキップ（後で再描画される）
       if (!document.fonts.check(PLACE_FONT)) {
@@ -2084,26 +2118,18 @@ async function handleSegmentationResult(res) {
 
 window.addEventListener("DOMContentLoaded", async () => {
   const bgKey = getBgParam() ?? currentBgKey;
-
-  if (PRESETS[bgKey]) {
-    currentBgKey = bgKey;
-  }
+  if (PRESETS[bgKey]) currentBgKey = bgKey;
 
   updateCameraGuide();
   setBackgroundByKey(currentBgKey);
-
-  // ✅ モバイル対応のWASM設定を最初に適用
   configureORTForMobile();
 
-  document.fonts.load("600 90px 'Klee One'");
-  document.fonts.load("600 180px 'Klee One'");
+  // ★ 全文字プリロードを最初に開始（並列）
+  preloadKleeWithAllChars();
 
-  // ✅ MODNetを読み込む（失敗してもMediaPipeで動く）
   await loadMODNet();
-
   await loadONNX();
   await loadSRONNX();
-
 });
 
 window.addEventListener("beforeunload", stopCamera);
