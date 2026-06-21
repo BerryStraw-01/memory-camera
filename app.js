@@ -1148,7 +1148,7 @@ shutterBtn.onclick = async () => {
     userMessage = "AIの準備ができていません。\n通信状況を確認して、少し待ってからもう一度試してね 🌸";
     } else if (e?.message?.includes("カメラ") || e?.message?.includes("video")) {
     userMessage = "カメラの映像を取得できませんでした。\nカメラを許可しているか確認してね 📷";
-    } else if (e?.message?.includes("person") || e?.message?.includes("bounds")) {
+    } else if (e?.message?.includes("person") || e?.message?.includes("bounds")　||　e?.message?.includes("人物")) {
     userMessage = "人物を見つけられませんでした。\n明るい場所で、もう少し近づいて撮ってみてね 🌸";
     }
 
