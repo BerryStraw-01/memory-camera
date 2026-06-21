@@ -374,7 +374,7 @@ function modnetOutputToMaskCanvas(outputTensor, targetW, targetH) {
  */
 async function runMODNet(imageCanvas) {
   if (!modnetSession) {
-    console.error("MODNet not loaded");
+    console.error("AIの準備ができませんでした。通信状況を確認して、もう一度試してね 🌸");
     return null;
   }
 
@@ -478,6 +478,10 @@ function stopCamera() {
   tracks.forEach(track => track.stop());
 
   video.srcObject = null;
+
+  // ★ 追加：状態をリセット
+  cameraReady = false;
+  if (btnText) btnText.textContent = "カメラをON";
 
   console.log("📷 camera stopped");
 }
@@ -1025,10 +1029,11 @@ shutterBtn.onclick = async () => {
   // ★ 二重起動防止（連打で前回処理中なら無視）
   if (shutterBtn.disabled) return;
 
-  if (!cameraReady) {
+  if (!cameraReady || !video.srcObject || !video.videoWidth) {
     await startCamera();
     return;
   }
+
 
   shutterBtn.disabled = true;        // ★ 連打防止ON
   showScreen("loading");
@@ -1082,7 +1087,7 @@ shutterBtn.onclick = async () => {
 
     // ★ 念のためサイズ検証
     if (!tempCanvas.width || !tempCanvas.height) {
-      throw new Error("tempCanvas size is zero");
+      throw new Error("カメラの映像をうまく取得できませんでした。もう一度試してね 🌸");
     }
 
     tctx.imageSmoothingEnabled = true;
@@ -1106,13 +1111,25 @@ shutterBtn.onclick = async () => {
     await handleSegmentationResult(res);
 
   } catch (e) {
-    // ★ どんなエラーが出ても見えるようにする
     console.error("❌ shutter failed:", e);
-    alert("エラーが発生しました：" + (e?.message ?? e));
+
+    // ★ 一般ユーザー向けの優しいメッセージ
+    let userMessage = "撮影中にエラーが発生しました 🌸\nもう一度試してね。";
+
+    // エラー内容に応じて文言を変える
+    if (e?.message?.includes("MODNet") || e?.message?.includes("AI")) {
+    userMessage = "AIの準備ができていません。\n通信状況を確認して、少し待ってからもう一度試してね 🌸";
+    } else if (e?.message?.includes("カメラ") || e?.message?.includes("video")) {
+    userMessage = "カメラの映像を取得できませんでした。\nカメラを許可しているか確認してね 📷";
+    } else if (e?.message?.includes("person") || e?.message?.includes("bounds")) {
+    userMessage = "人物を見つけられませんでした。\n明るい場所で、もう少し近づいて撮ってみてね 🌸";
+    }
+
+    alert(userMessage);
     showScreen("camera");
 
   } finally {
-    shutterBtn.disabled = false;     // ★ 必ず解除
+    shutterBtn.disabled = false;
   }
 };
 
@@ -1180,12 +1197,10 @@ const retryBtn = document.getElementById("retry-btn");
 const editBackBtn = document.getElementById("edit-back-btn");
 
 retryBtn.onclick = () => {
-  stopCamera();   // ★追加
   showScreen("camera");
 };
 
 editBackBtn.onclick = () => {
-  stopCamera();   // ★追加
   showScreen("preview");
 };
 
