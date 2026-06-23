@@ -931,10 +931,10 @@ async function redrawFinal() {
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 10;
     ctx.lineJoin = "round";
-    ctx.strokeText("in 岸高同窓会", x, y);
+    ctx.strokeText("岸高第41期生同窓会", x, y);
 
     ctx.fillStyle = "#ff7aa8";
-    ctx.fillText("in 岸高同窓会", x, y);
+    ctx.fillText("岸高第41期生同窓会", x, y);
   }
 
   if (showPlace) {
@@ -1005,10 +1005,10 @@ async function redrawTextLayer() {
 
     textCtx.lineWidth = 10;
     textCtx.strokeStyle = "#fff";
-    textCtx.strokeText("in 岸高同窓会", w / 2, y);
+    textCtx.strokeText("岸高第41期生同窓会", w / 2, y);
 
     textCtx.fillStyle = "#ff7aa8";
-    textCtx.fillText("in 岸高同窓会", w / 2, y);
+    textCtx.fillText("岸高第41期生同窓会", w / 2, y);
   }
 
   if (showPlace) {
@@ -1140,6 +1140,10 @@ shutterBtn.onclick = async () => {
   } catch (e) {
     console.error("❌ shutter failed:", e);
 
+    console.log("🔍 error message:", e?.message);   // ★ 追加
+    console.log("🔍 error name:", e?.name);          // ★ 追加
+    console.log("🔍 error stack:", e?.stack);        // ★ 追加
+
     // ★ 一般ユーザー向けの優しいメッセージ
     let userMessage = "撮影中にエラーが発生しました 🌸\nもう一度試してね。";
 
@@ -1162,8 +1166,7 @@ shutterBtn.onclick = async () => {
 
 // ★ 描画で使う全テキストを集める
 function getAllUsedText() {
-  // 「in 岸高同窓会」と、全プリセットの place 名
-  let text = "in 岸高同窓会";
+  let text = "岸高第41期生同窓会";
   for (const key in PRESETS) {
     text += PRESETS[key].place ?? "";
   }
@@ -1983,8 +1986,8 @@ async function renderLight() {
         ctx.lineWidth = 10;
         ctx.strokeStyle = "#fff";
         ctx.fillStyle = "#ff7aa8";
-        ctx.strokeText("in 岸高同窓会", frameW / 2, 20);
-        ctx.fillText("in 岸高同窓会", frameW / 2, 20);
+        ctx.strokeText("岸高第41期生同窓会", frameW / 2, 20);
+        ctx.fillText("岸高第41期生同窓会", frameW / 2, 20);
       }
 
       if (showPlace) {
