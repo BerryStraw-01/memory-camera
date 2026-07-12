@@ -3,585 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>思い出カメラ</title>
+    <title>思い出カメラ｜撮影スポットを選ぶ</title>
 
-    <!-- Google Fonts : Klee One -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&display=block&text=in%20岸高41期生同窓会岸和田城晴曇桜お堀の道てっぺんグラウンド前神社通学路蛸地蔵駅岸城二の丸広場高校正門校舎体育館（）と" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
 
     <style>
-        /* ===== ローディングアニメーション ===== */
-        #screen-loading .ld-back {
-            animation: ldBack 3s ease-in-out infinite;
-        }
-        #screen-loading .ld-front {
-            animation: ldFront 3s ease-in-out infinite;
-        }
-        #screen-loading .ld-s1 { animation: ldSparkle 3s ease-in-out 0.2s infinite; opacity: 0; }
-        #screen-loading .ld-s2 { animation: ldSparkle 3s ease-in-out 0.8s infinite; opacity: 0; }
-        #screen-loading .ld-s3 { animation: ldSparkle 3s ease-in-out 1.4s infinite; opacity: 0; }
-        #screen-loading .ld-text { animation: ldPulse 1.8s ease-in-out infinite; }
+        *, *::before, *::after { box-sizing: border-box; }
 
-        @keyframes ldBack {
-            0%, 100% { transform: translate(0, 0) rotate(-5deg); }
-            50%      { transform: translate(25px, 0) rotate(-1deg); }
+        html, body {
+            margin: 0;
+            width: 100%;
+            min-height: 100%;
         }
-        @keyframes ldFront {
-            0%, 100% { transform: translate(0, 0) rotate(4deg); }
-            50%      { transform: translate(-25px, 0) rotate(1deg); }
+
+        body {
+            font-family: 'Klee One', cursive;
+            font-weight: 600;
+            background: linear-gradient(180deg, #fff0f6, #ffe4ec);
+            color: #e2558f;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
         }
-        @keyframes ldSparkle {
-            0%, 20%   { opacity: 0; transform: scale(0); }
-            40%       { opacity: 1; transform: scale(1.3); }
-            60%       { opacity: 1; transform: scale(1); }
-            80%, 100% { opacity: 0; transform: scale(0); }
+
+        /* ===== 桜の背景 ===== */
+        .spring-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
         }
-        @keyframes ldPulse {
-            0%, 100% { opacity: 0.35; }
-            50%      { opacity: 1; }
+        .sakura {
+            position: absolute;
+            top: -10%;
+            width: 14px;
+            height: 18px;
+            background: radial-gradient(circle at 50% 30%, #ffd6e5 0%, #ff9fbd 45%, #ff6fa5 80%);
+            border-radius: 60% 60% 70% 70% / 55% 55% 90% 90%;
+            opacity: 0.85;
+            animation: sakura-fall linear infinite, sakura-sway ease-in-out infinite;
+        }
+        @keyframes sakura-fall {
+            0%   { transform: translateY(-10%) rotate(0deg);   opacity: 0; }
+            10%  { opacity: 1; }
+            100% { transform: translateY(120vh) rotate(240deg); opacity: 0; }
+        }
+        @keyframes sakura-sway {
+            0%   { margin-left: 0; }
+            25%  { margin-left: -12px; }
+            50%  { margin-left: 8px; }
+            75%  { margin-left: -6px; }
+            100% { margin-left: 0; }
+        }
+
+        /* ===== スマホ幅コンテナ ===== */
+        .wrap {
+            width: 100%;
+            max-width: 430px;
+            margin: 0 auto;
+            padding: 28px 16px 48px;
+        }
+
+        /* ===== ヘッダー ===== */
+        .page-header {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+        .page-title {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            background: linear-gradient(135deg, #FF46BB 0%, #ff7aa8 45%, #ff9fc5 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0 0 6px;
+        }
+        .page-sub {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: #b88a9f;
+            letter-spacing: 0.06em;
+            margin: 0;
+        }
+
+        /* ===== 2列グリッド ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        /* ===== カード ===== */
+        .card {
+            display: block;
+            text-decoration: none;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 8px 20px rgba(255, 120, 160, 0.22);
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        .card:active {
+            transform: scale(0.96);
+            box-shadow: 0 4px 12px rgba(255, 120, 160, 0.3);
+        }
+
+        .card-thumb {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3 / 4;   /* 撮影後の写真と同じ比率 */
+            background: #ffeaf2;
+            overflow: hidden;
+        }
+        .card-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        /* 下側に薄いグラデをかけて文字を読みやすく */
+        .card-thumb::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(255,120,168,0.55) 100%);
+        }
+
+        /* 角のかざり（アプリの撮影枠と合わせる） */
+        .corner {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            z-index: 2;
+        }
+        .corner.tl { top: 8px;    left: 8px;    border-right: none; border-bottom: none; border-top-left-radius: 5px; }
+        .corner.tr { top: 8px;    right: 8px;   border-left: none;  border-bottom: none; border-top-right-radius: 5px; }
+        .corner.bl { bottom: 8px; left: 8px;    border-right: none; border-top: none;    border-bottom-left-radius: 5px; }
+        .corner.br { bottom: 8px; right: 8px;   border-left: none;  border-top: none;    border-bottom-right-radius: 5px; }
+
+        /* 場所名（画像下に重ねる） */
+        .card-place {
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #fff;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.03em;
+            text-shadow: 0 1px 4px rgba(214, 64, 130, 0.7);
+            line-height: 1.3;
+        }
+        .card-place svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* 全身/バストのバッジ */
+        .badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 3;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #ff5b95;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 6px rgba(255, 120, 160, 0.35);
+        }
+
+        /* 画像が無いときのプレースホルダ */
+        .card-thumb img.broken {
+            opacity: 0;
+        }
+        .thumb-fallback {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 12px;
+            color: #d98cab;
+            background: repeating-linear-gradient(45deg, #ffeaf2, #ffeaf2 10px, #ffe0ec 10px, #ffe0ec 20px);
+        }
+
+        .footer-note {
+            margin-top: 26px;
+            text-align: center;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: #c2aab4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
     </style>
 </head>
 <body>
 
-<!-- 春背景 -->
-<div class="spring-bg">
-    <div class="sakura" style="left:10%; animation-duration:13s; animation-delay:-21s;"></div>
-    <div class="sakura" style="left:18%; animation-duration:26s; animation-delay:-7s;"></div>
-    <div class="sakura" style="left:27%; animation-duration:19s; animation-delay:-33s;"></div>
-    <div class="sakura" style="left:36%; animation-duration:22s; animation-delay:-14s;"></div>
-    <div class="sakura" style="left:45%; animation-duration:15s; animation-delay:-41s;"></div>
-    <div class="sakura" style="left:54%; animation-duration:28s; animation-delay:-9s;"></div>
-    <div class="sakura" style="left:63%; animation-duration:17s; animation-delay:-29s;"></div>
-    <div class="sakura" style="left:72%; animation-duration:24s; animation-delay:-18s;"></div>
+<!-- 桜背景（JSで花びらを生成） -->
+<div class="spring-bg" id="spring-bg"></div>
 
-    <div class="sakura-flower" style="left:22%; animation-duration:55s; animation-delay:-17s;">
-        <span></span><span></span><span></span><span></span><span></span>
-    </div>
-    <div class="sakura-flower" style="left:48%; animation-duration:55s; animation-delay:-38s;">
-        <span></span><span></span><span></span><span></span><span></span>
-    </div>
-    <div class="sakura-flower" style="left:78%; animation-duration:55s; animation-delay:-11s;">
-        <span></span><span></span><span></span><span></span><span></span>
-    </div>
+<div class="wrap">
+    <header class="page-header">
+        <h1 class="page-title">撮影スポットを選ぶ</h1>
+        <p class="page-sub">行きたい場所をタップしてね 🌸</p>
+    </header>
+
+    <div class="grid" id="grid"></div>
+
+    <p class="footer-note">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14">
+            <g fill="none" stroke="#ffb6c1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 8 11 V 8 A 4 4 0 0 1 16 8 V 11" />
+                <rect x="5" y="11" width="14" height="10" rx="1.5" />
+                <path d="M 12 14 V 17" />
+            </g>
+        </svg>
+        写真は端末内のみに保存されます
+    </p>
 </div>
-<div class="viewport-center">
-<div class="phone">
 
-    <!-- ===== カメラ ===== -->
-    <div id="screen-camera" class="screen active">
-        <div class="screen-inner">
-            <!-- ハートだけ少し小さく調整版 -->
-            <header class="screen-header">
-                <div class="title-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         viewBox="0 0 130 55"
-                         width="130"
-                         height="55"
-                         aria-hidden="true">
+<script>
+    // ===== カメラ本体のページ名（必要なら書き換えてください） =====
+    const CAMERA_PAGE = "camera.html";
 
-                        <defs>
-                            <!-- カメラ -->
+    // ===== 撮影スポット一覧（app.js の PRESETS と同じ並び） =====
+    // mode: "bust" = 肩から上 / "full" = 全身
+    const PLACES = [
+        { key: "ohori-miti",       place: "お堀の桜道",         image: "images/mihon/ohori_miti.png",      mode: "full" },
+        { key: "siro-sakura",      place: "岸和田城と桜",       image: "images/mihon/siro_sakura.png",     mode: "full" },
+        { key: "siro",             place: "岸和田城",           image: "images/mihon/siro.png",            mode: "full" },
+        { key: "undojo",           place: "グラウンド前",       image: "images/mihon/undojo.png",          mode: "full" },
+        { key: "wakimiti",         place: "神社前の通学路",     image: "images/mihon/wakimiti.png",        mode: "full" },
+        { key: "eki",              place: "蛸地蔵駅",           image: "images/mihon/eki.png",             mode: "full" },
+        { key: "jinja",            place: "岸城神社",           image: "images/mihon/jinja.png",           mode: "full" },
+        { key: "koen",             place: "二の丸広場",         image: "images/mihon/koen.png",            mode: "full" },
+        { key: "koen-mae",         place: "二の丸広場前",       image: "images/mihon/koen_mae.png",        mode: "full" },
+        { key: "komon",            place: "岸和田高校正門",     image: "images/mihon/komon.png",           mode: "full" },
+        { key: "kosya-yoko",       place: "岸和田高校校舎",     image: "images/mihon/kosya_yoko.png",      mode: "full" },
+        { key: "kosya",            place: "岸和田高校体育館",   image: "images/mihon/kosya.png",           mode: "full" },
+        { key: "siro-neta",        place: "岸和田城のてっぺん", image: "images/mihon/siro_ue.png",         mode: "full" },
+    ];
+　
+    // ピンのSVG
+    const pinSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+            <path d="M16 28s8-6.5 8-13a8 8 0 1 0-16 0c0 6.5 8 13 8 13z" fill="#fff"/>
+            <circle cx="16" cy="15" r="2.6" fill="#ff7aa8"/>
+        </svg>`;
 
-                            <!-- カメラ線用グラデーション（左上→右下） -->
-                            <linearGradient id="gradCamMain" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#FB42EC"/>
-                                <stop offset="100%" stop-color="#ff7aa8"/>
-                            </linearGradient>
+    // ===== カードを生成 =====
+    const grid = document.getElementById("grid");
 
+    PLACES.forEach(p => {
+        const a = document.createElement("a");
+        a.className = "card";
+        a.href = `${CAMERA_PAGE}?bg=${encodeURIComponent(p.key)}`;
 
-                            <!-- キラキラ -->
-                            <linearGradient id="gradSparklePale" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#ffd1e4"/>
-                                <stop offset="100%" stop-color="#fca1cc"/>
-                            </linearGradient>
-                        </defs>
+        const badge = p.mode === "full" ? "全身" : "顔・肩";
 
-                        <!-- 左キラキラ（大きめ・角丸寄り） -->
-                        <path
-                                d="
-                M 10 29
-                C 10 39 14 42 19 42
-                C 14 42 10 45 10 55
-                C 10 45 6 42 1 42
-                C 6 42 10 39 10 29
-                Z"
-                                fill="url(#gradSparklePale)"
-                                opacity="0.9"
-                        />
-
-                        <!-- カメラ -->
-                        <g transform="translate(30, 1)">
-
-                            <!-- 本体 -->
-                            <path
-                                    d="
-                    M18 20
-                    h-4
-                    c-3 0-6 3-6 6
-                    v18
-                    c0 3 3 6 6 6
-                    h36
-                    c3 0 6-3 6-6
-                    V26
-                    c0-3-3-6-6-6
-                    h-4
-                    l-6-8
-                    H24
-                    l-6 8
-                    z"
-                                    fill="none"
-                                    stroke="url(#gradCamMain)"
-                                    stroke-width="3.2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                            />
-
-                            <!-- 中間サイズのハート版 -->
-                            <path
-                                    d="
-    M 31 29
-    C 33.5 24.8 39.2 25.5 39.2 31
-    C 39.2 35.5 35.2 39 31 42.5
-    C 26.8 39 22.8 35.5 22.8 31
-    C 22.8 25.5 28.5 24.8 31 29
-    Z"
-                                    fill="none"
-                                    stroke="url(#gradCamMain)"
-                                    stroke-width="3"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                            />
-                        </g>
-
-                        <!-- 右キラキラ（大きめ・下配置） -->
-                        <path
-                                d="
-                M 97 34
-                C 97 42 100 45 104 45
-                C 100 45 97 48 97 56
-                C 97 48 94 45 90 45
-                C 94 45 97 42 97 34
-                Z"
-                                fill="url(#gradSparklePale)"
-                                opacity="0.85"
-                        />
-
-                        <!-- 右大キラ -->
-                        <path
-                                d="
-                M 118 20
-                C 118 33 122 36 127 36
-                C 122 36 118 40 118 53
-                C 118 40 114 36 109 36
-                C 114 36 118 33 118 20
-                Z"
-                                fill="url(#gradSparklePale)"
-                        />
-                    </svg>
-                </div>
-            </header>
-
-            <h1 class="title-text">思い出カメラ</h1>
-            <p class="subtitle">大切な瞬間を写真に残しましょう</p>
-
-            <!-- 撮影ガイド文 -->
-            <p id="camera-guide-text" class="camera-guide-text"></p>
-
-            <!-- 撮影枠 -->
-            <div class="screen-content">
-                <div class="image-area camera-guide-area">
-                    <video id="camera-video" muted playsinline></video>
-
-                    <!-- 肩から上ガイド -->
-                    <div id="guide-bust" class="camera-silhouette bust" aria-hidden="true">
-                        <div class="silhouette-head"></div>
-                        <div class="silhouette-neck"></div>
-                        <div class="silhouette-shoulders"></div>
-                    </div>
-
-                    <!-- 全身ガイド -->
-                    <div id="guide-full" class="camera-silhouette full" aria-hidden="true">
-                        <div class="full-head"></div>
-                        <div class="full-body"></div>
-                        <div class="full-leg left"></div>
-                        <div class="full-leg right"></div>
-                    </div>
-                </div>
-            </div>
-
-            <button id="camera-btn" class="camera-btn">
-
-                <!-- 左アイコン -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M4 4h3l2-2h6l2 2h3a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H4a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3zm8 3a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/>
-                </svg>
-
-
-                <span class="btn-text">カメラをON</span>
-
-                <!-- 右キラキラ -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                    <!-- 左上の大きなキラキラ -->
-                    <path d="M10 2c0 4.418-3.582 8-8 8 4.418 0 8 3.582 8 8 0-4.418 3.582-8 8-8-4.418 0-8-3.582-8-8z"/>
-                    <!-- 右下の小さなキラキラ -->
-                    <path d="M19 13c0 2.209-1.791 4-4 4 2.209 0 4 1.791 4 4 0-2.209 1.791-4 4-4-2.209 0-4-1.791-4-4z"/>
-                </svg>
-
-
-            </button>
-            <p class="note-text" style="display: inline-flex; align-items: center; gap: 4px;">
-                <!-- 南京錠（背景を透明にし、テキストのサイズに合わせました） -->
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="flex-shrink: 0;">
-                    <g fill="none" stroke="#FF69B4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- シャックル（上のU字） -->
-                        <path d="M 8 11 V 8 A 4 4 0 0 1 16 8 V 11" />
-                        <!-- ボディ（下の四角） -->
-                        <rect x="5" y="11" width="14" height="10" rx="1.5" />
-                        <!-- 鍵穴 -->
-                        <path d="M 12 14 V 17" stroke-width="2" />
-                    </g>
-                </svg>
-                写真は端末内のみに保存されます
-            </p>
-
-        </div>
-        </div>
-    </div>
-
-
-    <!-- ===== ローディング ===== -->
-    <div id="screen-loading" class="screen">
-        <div class="screen-inner center">
-
-            <div id="ld-stage" style="position:relative; width:200px; height:150px; margin:0 auto 20px; overflow:visible;">
-
-                <!-- 背景写真（奥）：HTMLのdivをアニメーション -->
-                <div class="ld-back" style="position:absolute; top:0; left:0; width:120px; height:90px; border-radius:12px; overflow:hidden; box-shadow:0 3px 12px rgba(0,0,0,0.12);">
-                    <svg viewBox="0 0 105 80" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="ldSky2" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#7EC8E3"/>
-                                <stop offset="100%" stop-color="#B5E8F7"/>
-                            </linearGradient>
-                            <linearGradient id="ldGnd2" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#90C695"/>
-                                <stop offset="100%" stop-color="#7AB87E"/>
-                            </linearGradient>
-                        </defs>
-                        <rect width="105" height="45" fill="url(#ldSky2)"/>
-                        <polygon points="52,28 22,55 82,55" fill="#8FBC8F" opacity="0.7"/>
-                        <rect y="48" width="105" height="32" fill="url(#ldGnd2)"/>
-                        <ellipse cx="22" cy="38" rx="8" ry="10" fill="#FFB7C5"/>
-                        <rect x="20" y="47" width="3" height="8" rx="1" fill="#8B7355"/>
-                        <ellipse cx="78" cy="40" rx="7" ry="9" fill="#FF9BB5"/>
-                        <rect x="76" y="48" width="3" height="7" rx="1" fill="#8B7355"/>
-                    </svg>
-                </div>
-
-                <!-- 人物写真（手前）：HTMLのdivをアニメーション -->
-                <div class="ld-front" style="position:absolute; bottom:0; right:0; width:120px; height:90px; border-radius:12px; overflow:hidden; box-shadow:0 3px 12px rgba(0,0,0,0.12);">
-                    <svg viewBox="0 0 105 80" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="ldPBg2" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#FFF0F5"/>
-                                <stop offset="100%" stop-color="#FFE4EC"/>
-                            </linearGradient>
-                        </defs>
-                        <rect width="105" height="80" fill="url(#ldPBg2)"/>
-                        <circle cx="52" cy="26" r="13" fill="#FFD5C8"/>
-                        <rect x="36" y="39" width="32" height="24" rx="12" fill="#FF9BB5"/>
-                        <rect x="40" y="60" width="8" height="14" rx="4" fill="#FF7AA8"/>
-                        <rect x="56" y="60" width="8" height="14" rx="4" fill="#FF7AA8"/>
-                    </svg>
-                </div>
-
-                <!-- キラキラ（HTML span） -->
-                <span class="ld-s1" style="position:absolute; top:0; right:10px; font-size:18px; color:#ff7aa8; pointer-events:none;">✦</span>
-                <span class="ld-s2" style="position:absolute; top:45%; left:42%; font-size:13px; color:#ffb6c1; pointer-events:none;">✦</span>
-                <span class="ld-s3" style="position:absolute; bottom:5px; left:15%; font-size:15px; color:#fca1cc; pointer-events:none;">✦</span>
-            </div>
-
-            <p class="ld-text" style="font-family:'Zen Maru Gothic',sans-serif; font-size:17px; color:#ff7aa8; text-align:center; margin:0;">思い出と重ねています…</p>
-
-        </div>
-    </div>
-
-    <!-- ===== プレビュー ===== -->
-    <div id="screen-preview" class="screen">
-        <div class="screen-inner preview-screen">
-
-            <button id="retry-btn" class="preview-back-btn" aria-label="戻る">
-                <svg viewBox="0 0 24 24">
-                    <path d="M15 6 L9 12 L15 18" fill="none" stroke="#ff7aa8"
-                          stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-
-            <div class="preview-frame">
-                <img id="captured-image">
-                <div class="grid"></div>
-                <div class="grid-v1"></div>
-                <div class="grid-v2"></div>
+        a.innerHTML = `
+            <div class="card-thumb">
+                <img src="${p.image}" alt="${p.place}" loading="lazy"
+                     onerror="this.classList.add('broken'); this.nextElementSibling.style.display='flex';">
+                <div class="thumb-fallback">画像を準備中</div>
                 <span class="corner tl"></span>
                 <span class="corner tr"></span>
                 <span class="corner bl"></span>
                 <span class="corner br"></span>
+                <div class="card-place">${pinSvg}<span>${p.place}</span></div>
             </div>
+        `;
+        grid.appendChild(a);
+    });
 
-            <div class="preview-controls">
-                <div class="control-card horizontal">
-                    <div class="control-left">
-                        <div class="control-icon">
-                            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;aspect-ratio:1/1;flex-shrink:0;">
-                                <path d="M16 6v20" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
-                                <path d="M10 11l6-6" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
-                                <path d="M22 11l-6-6" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
-                                <path d="M10 21l6 5" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
-                                <path d="M22 21l-6 5" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="control-right">
-                        <input type="range" id="offset-slider" min="-20" max="20" value="0">
-                        <div class="range-caption"><span>下</span><span>上</span></div>
-                    </div>
-                </div>
-
-                <div class="control-card horizontal">
-                    <div class="control-left">
-                        <div class="control-icon">
-                            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;aspect-ratio:1/1;flex-shrink:0;">
-                                <rect x="4" y="4" width="24" height="24" rx="3" fill="none" stroke="#ff7aa8" stroke-width="2.5" stroke-dasharray="4 3"/>
-                                <rect x="11" y="11" width="10" height="10" rx="1.5" fill="none" stroke="#ff7aa8" stroke-width="2.5"/>
-                                <path d="M19 13l6-6" fill="none" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round"/>
-                                <path d="M21 7h4v4" fill="none" stroke="#ff7aa8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="control-right">
-                        <input id="scale-slider" type="range" min="70" max="170" step="1" value="120"/>
-                        <div class="range-caption"><span>小</span><span>大</span></div>
-                    </div>
-                </div>
-
-                <button id="to-edit-btn" class="btn primary" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;">
-                    <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg" style="aspect-ratio:1/1;flex-shrink:0;">
-                        <line x1="10" y1="21" x2="21" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="13" y1="24" x2="24" y2="13" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="21" y1="10" x2="24" y2="13" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M10 21l-4 7 7-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span>次の操作は【文字入れ】</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== 編集 ===== -->
-    <div id="screen-edit" class="screen">
-        <div class="screen-inner edit-ui">
-            <button id="edit-back-btn" class="preview-back-btn" aria-label="戻る">
-                <svg viewBox="0 0 24 24">
-                    <path
-                            d="M15 6 L9 12 L15 18"
-                            fill="none"
-                            stroke="#ff7aa8"
-                            stroke-width="2.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                    />
-                </svg>
-            </button>
-
-            <!-- 画像 -->
-            <div class="preview-frame edit-frame">
-                <img id="edit-image" alt="編集">
-            </div>
-
-            <!-- カードUI -->
-            <div class="edit-cards">
-
-                <!-- 文字 -->
-                <button id="toggle-kishiko" class="edit-card pink">
-                    <div class="card-icon">
-
-                        <svg viewBox="2 2 32 32" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
-                            <!-- T（56pxのサイズ感に合わせて線をさらに太く、力強く修正） -->
-                            <path d="M8 10h14M15 10v14"
-                                  stroke="white" stroke-width="3.8"
-                                  stroke-linecap="round" stroke-linejoin="round"/>
-
-                            <!-- +（右下でしっかり目立つ太さに調整） -->
-                            <path d="M26 18v6M23 21h6"
-                                  stroke="white" stroke-width="3.2"
-                                  stroke-linecap="round" stroke-linejoin="round"/>
-
-                            <!-- ✨左上の大キラキラ（56pxの枠内でさらにダイナミックに） -->
-                            <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
-                                  fill="white"
-                                  opacity="0.95"
-                                  transform="translate(2, 2) scale(1.4)" />
-
-                            <!-- ✨右上の小キラキラ -->
-                            <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
-                                  fill="white"
-                                  opacity="0.8"
-                                  transform="translate(22, 3) scale(0.95)" />
-                        </svg>
-
-                    </div>
-
-                    <div class="card-text">
-                        <div class="card-title">岸高同窓会</div>
-                        <div class="card-sub">タップして表示</div>
-                    </div>
-                </button>
-
-                <!-- 場所 -->
-                <button id="toggle-place" class="edit-card purple">
-                    <div class="card-icon">
-                        <svg viewBox="2 2 32 32" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
-                            <!-- マップピン（大きなボタンの中でどっしりと目立つ主役に） -->
-                            <path d="M16 28s8-6.5 8-13a8 8 0 1 0-16 0c0 6.5 8 13 8 13z"
-                                  fill="white"/>
-
-                            <!-- ピン中央の穴 -->
-                            <circle cx="16" cy="15" r="2.5" fill="#a855f7"/>
-
-                            <!-- ✨右上の大キラキラ（はみ出さず、かつ大きくきらめくサイズ） -->
-                            <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
-                                  fill="white"
-                                  opacity="0.95"
-                                  transform="translate(22, 2) scale(1.4)" />
-
-                            <!-- ✨左上の小キラキラ -->
-                            <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
-                                  fill="white"
-                                  opacity="0.75"
-                                  transform="translate(1, 5) scale(0.95)" />
-                        </svg>
-
-                    </div>
-
-                    <div class="card-text">
-                        <div class="card-title">場所</div>
-                        <div class="card-sub">タップして表示</div>
-                    </div>
-                </button>
-
-            </div>
-
-            <!-- ボタン -->
-            <button id="save-btn" class="btn primary large">
-
-                <!-- 保存アイコン -->
-                <svg viewBox="0 0 32 32" width="32" height="32" xmlns="http://www.w3.org/2000/svg" style="aspect-ratio: 1 / 1; flex-shrink: 0;">
-                    <!-- 縦棒（中央配置：細さ1.8px） -->
-                    <path d="M16 7v12"
-                          stroke="white" stroke-width="1.8"
-                          stroke-linecap="round"/>
-
-                    <!-- 矢印の先端（✅ バグの原因だった一本のパスを左右に分解し、黒い潰れを根本から消去） -->
-                    <path d="M11 14l5 5"
-                          stroke="white" stroke-width="1.8"
-                          stroke-linecap="round"/>
-                    <path d="M21 14l-5 5"
-                          stroke="white" stroke-width="1.8"
-                          stroke-linecap="round"/>
-
-                    <!-- 下の皿線（細さ1.8px） -->
-                    <path d="M8 25h16"
-                          stroke="white" stroke-width="1.8"
-                          stroke-linecap="round"/>
-
-                    <!-- ✨右上の大キラキラ -->
-                    <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
-                          fill="white"
-                          opacity="0.95"
-                          transform="translate(21, 3) scale(1.0)" />
-
-                    <!-- ✨左上の小キラキラ -->
-                    <path d="M4 0 L5.5 3.5 L9 5 L5.5 6.5 L4 10 L2.5 6.5 L0 5 L2.5 3.5 Z"
-                          fill="white"
-                          opacity="0.75"
-                          transform="translate(4, 6) scale(0.7)" />
-                </svg>
-
-                <span>保存する</span>
-
-            </button>
-        </div>
-    </div>
-
-    <!-- ===== 保存 ===== -->
-    <div id="screen-save" class="screen">
-        <div class="screen-inner">
-            <button id="save-back-btn" class="preview-back-btn" aria-label="戻る">
-                <svg viewBox="0 0 24 24">
-                    <path d="M15 6 L9 12 L15 18"
-                          fill="none"
-                          stroke="#ff7aa8"
-                          stroke-width="2.8"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"/>
-                </svg>
-            </button>
-
-            <div class="preview-frame">
-                <img id="save-image" alt="保存画像">
-            </div>
-
-            <!-- ✅ 新デザイン：保存ボタン＋ヒント -->
-            <div class="save-actions">
-
-                <button id="download-btn" class="save-main-btn">
-                    <!-- 共有アイコン -->
-                    <div class="save-btn-icon">
-                        <svg viewBox="0 0 32 32" width="28" height="28" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M16 5v14" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
-                            <path d="M10 11l6-6 6 6" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M6 20v4a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-4" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
-                    <span class="save-btn-text">写真を保存する</span>
-                    <div class="save-btn-sparkle">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="white" opacity="0.85">
-                            <path d="M10 2c0 4.418-3.582 8-8 8 4.418 0 8 3.582 8 8 0-4.418 3.582-8 8-8-4.418 0-8-3.582-8-8z"/>
-                            <path d="M19 13c0 2.209-1.791 4-4 4 2.209 0 4 1.791 4 4 0-2.209 1.791-4 4-4-2.209 0-4-1.791-4-4z"/>
-                        </svg>
-                    </div>
-                </button>
-
-                <p class="save-hint">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="16" height="16" style="flex-shrink:0;">
-                        <g fill="#ffb6c1">
-                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z"/>
-                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(72 50 50)"/>
-                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(144 50 50)"/>
-                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(216 50 50)"/>
-                            <path d="M50 50 C40 25, 30 10, 42 5 C46 3, 48 10, 50 14 C52 10, 54 3, 58 5 C70 10, 60 25, 50 50 Z" transform="rotate(288 50 50)"/>
-                        </g>
-                        <circle cx="50" cy="50" r="6" fill="#ff7aa8" opacity="0.9"/>
-                    </svg>
-                    共有メニューから「画像を保存」を選んでね
-                </p>
-            </div>
-
-        </div>
-    </div>
-
-</div>
-</div>
-
-<canvas id="capture-canvas" style="display:none;"></canvas>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.min.js"></script>
-<script src="app.js"></script>
+    // ===== 桜の花びらを散らす =====
+    (function makeSakura() {
+        const bg = document.getElementById("spring-bg");
+        const count = 14;
+        for (let i = 0; i < count; i++) {
+            const s = document.createElement("div");
+            s.className = "sakura";
+            s.style.left = Math.random() * 100 + "%";
+            s.style.animationDuration =
+                (12 + Math.random() * 16) + "s, " + (3 + Math.random() * 3) + "s";
+            s.style.animationDelay =
+                (-Math.random() * 30) + "s, " + (-Math.random() * 5) + "s";
+            const scale = 0.6 + Math.random() * 0.8;
+            s.style.transform = `scale(${scale})`;
+            bg.appendChild(s);
+        }
+    })();
+</script>
 
 </body>
 </html>
