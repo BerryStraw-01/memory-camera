@@ -255,7 +255,10 @@ const bg = new Image();
 
 // ===== MODNet =====
 let modnetSession = null;
-const MODNET_SIZE = 256;
+const MODNET_SIZE = 512;
+
+// ★ 追加：MODNet入力のレターボックス情報を記録する
+let lastLetterbox = null;
 
 let modnetLoadingPromise = null;
 
@@ -312,19 +315,37 @@ function canvasToMODNetTensor(canvas) {
   const tmp = document.createElement("canvas");
   tmp.width = size;
   tmp.height = size;
-
   const tctx = tmp.getContext("2d");
+
+  // ★ 余白を黒で塗る
+  tctx.fillStyle = "black";
+  tctx.fillRect(0, 0, size, size);
+
   tctx.imageSmoothingEnabled = true;
   tctx.imageSmoothingQuality = "high";
-  tctx.drawImage(canvas, 0, 0, size, size);
+
+  // ★ アスペクト比を保ったまま contain 配置
+  const sw = canvas.width;
+  const sh = canvas.height;
+  const scale = Math.min(size / sw, size / sh);
+
+  const dw = Math.round(sw * scale);
+  const dh = Math.round(sh * scale);
+  const dx = Math.round((size - dw) / 2);
+  const dy = Math.round((size - dh) / 2);
+
+  tctx.drawImage(canvas, 0, 0, sw, sh, dx, dy, dw, dh);
+
+  // ★ 後でマスクから余白を除くために記録しておく
+  lastLetterbox = { dx, dy, dw, dh, size };
 
   const imgData = tctx.getImageData(0, 0, size, size).data;
   const float32 = new Float32Array(3 * size * size);
 
   for (let i = 0; i < size * size; i++) {
-    float32[i]                     = (imgData[i * 4]     / 255.0 - 0.5) / 0.5;
-    float32[i + size * size]       = (imgData[i * 4 + 1] / 255.0 - 0.5) / 0.5;
-    float32[i + size * size * 2]   = (imgData[i * 4 + 2] / 255.0 - 0.5) / 0.5;
+    float32[i]                   = (imgData[i * 4]     / 255.0 - 0.5) / 0.5;
+    float32[i + size * size]     = (imgData[i * 4 + 1] / 255.0 - 0.5) / 0.5;
+    float32[i + size * size * 2] = (imgData[i * 4 + 2] / 255.0 - 0.5) / 0.5;
   }
 
   return new ort.Tensor("float32", float32, [1, 3, size, size]);
@@ -335,15 +356,16 @@ function canvasToMODNetTensor(canvas) {
  * 出力: [1, 1, H, W]、値は0〜1
  */
 function modnetOutputToMaskCanvas(outputTensor, targetW, targetH) {
-  const [_, __, h, w] = outputTensor.dims;
+  const [_, __, h, w] = outputTensor.dims; // 通常 size × size
   const data = outputTensor.data;
 
-  const tmp = document.createElement("canvas");
-  tmp.width = w;
-  tmp.height = h;
+  // まず出力を w×h のマスクcanvasに描く
+  const full = document.createElement("canvas");
+  full.width = w;
+  full.height = h;
 
-  const tctx = tmp.getContext("2d");
-  const imgData = tctx.createImageData(w, h);
+  const fctx = full.getContext("2d");
+  const imgData = fctx.createImageData(w, h);
 
   for (let i = 0; i < w * h; i++) {
     const alpha = Math.min(1, Math.max(0, data[i]));
@@ -352,11 +374,12 @@ function modnetOutputToMaskCanvas(outputTensor, targetW, targetH) {
     imgData.data[i * 4]     = v;
     imgData.data[i * 4 + 1] = v;
     imgData.data[i * 4 + 2] = v;
-    imgData.data[i * 4 + 3] = v;  // ← ★ 255 → v に変更
+    imgData.data[i * 4 + 3] = v;
   }
 
-  tctx.putImageData(imgData, 0, 0);
+  fctx.putImageData(imgData, 0, 0);
 
+  // ★ レターボックスの余白を除いて元画像サイズへ戻す
   const result = document.createElement("canvas");
   result.width = targetW;
   result.height = targetH;
@@ -364,7 +387,26 @@ function modnetOutputToMaskCanvas(outputTensor, targetW, targetH) {
   const rctx = result.getContext("2d");
   rctx.imageSmoothingEnabled = true;
   rctx.imageSmoothingQuality = "high";
-  rctx.drawImage(tmp, 0, 0, targetW, targetH);
+
+  const lb = lastLetterbox;
+
+  if (lb) {
+    // 出力サイズ(w)がsizeと違う場合にも対応してスケール
+    const s = w / lb.size;
+    const srcX = lb.dx * s;
+    const srcY = lb.dy * s;
+    const srcW = lb.dw * s;
+    const srcH = lb.dh * s;
+
+    rctx.drawImage(
+      full,
+      srcX, srcY, srcW, srcH,  // ★ 余白を除いた実画像領域だけ
+      0, 0, targetW, targetH   // ★ 元画像サイズへ引き伸ばし
+    );
+  } else {
+    // 念のためのフォールバック（従来動作）
+    rctx.drawImage(full, 0, 0, targetW, targetH);
+  }
 
   return result;
 }
